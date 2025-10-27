@@ -42,6 +42,7 @@ $ npm run start
 $ npm run start:dev
 
 # production mode
+# npm run build + npm run startと同意
 $ npm run start:prod
 ```
 
