@@ -38,6 +38,7 @@ $ npm install
 $ npm run start
 
 # watch mode
+# npm run start:dev は 開発モードでの自動再起動付き実行（--watch付き）
 $ npm run start:dev
 
 # production mode
