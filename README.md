@@ -34,13 +34,15 @@ $ npm install
 ## Compile and run the project
 
 ```bash
+# watch mode
+# npm run start:dev は 開発モードでの自動再起動付き実行（--watch付き）
+$ npm run start:dev
+
 # development
 $ npm run start
 
-# watch mode
-$ npm run start:dev
-
 # production mode
+# npm run build + npm run startと同意
 $ npm run start:prod
 ```
 
