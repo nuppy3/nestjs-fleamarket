@@ -1,4 +1,3 @@
-// @ts-expect-error: 型定義が存在しないため
 import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
 export default function ApiPage() {
