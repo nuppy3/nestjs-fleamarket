@@ -25,10 +25,53 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Preparation for environment construction 
+### .envファイルの設定
+
+```bash
+$ vi .env
+
+# 以下を追加
+DATABASE_URL="postgresql://ユーザー名:パスワード@localhost:5432/データベース名"
+JWT_SECRET="ランダムな文字列"
+```
+
+#### DATABASE_URLの設定内容
+- ユーザー名: docker-compose.ymlのpostgres/environmentのPOSTGRES_USERの値
+- パスワード: docker-compose.ymlのpostgres/environmentのPOSTGRES_PASSWORDの値
+- データベース名: docker-compose.ymlのpostgres/environmentのPOSTGRES_DBの値
+
+#### JWT_SECRET:秘密鍵の生成方法
+opensslコマンドを使用し、秘密鍵を作成する
+opensslコマンド：SSL/TLS通信の証明書作成、秘密鍵・公開鍵の管理、データの暗号化・復号化など、様々な暗号化関連の操作を行うためのコマンド
+
+```bash
+$ openssl rand -hex 32
+
+# 以下のようなランダムな文字列が出力されるのでコピーして.envにセット
+78da1d5d5cf074z0901111b9w47xa96c2gghb13c3a52725664981r889258914c
+```
+
 ## Project setup
+依存関係のインストール
 
 ```bash
 $ npm install
+```
+
+## DB setup (Docker:postgres、TBL作成、Prismaクライアント生成など)
+- Docker Desktop を起動し、Dockerデーモンを立ち上げる
+- docker-composeにて、postgresコンテナを立ち上げる
+```bash
+$ docker compose up -d
+```
+- DB作成 (schema.prismaを元にDBマイグレーション）
+```bash
+$ npx prisma migrate dev
+```
+- Prismaクライアントの生成
+```bash
+$ npx prisma generate
 ```
 
 ## Compile and run the project
