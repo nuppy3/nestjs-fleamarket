@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[7109],{8638:(s,e,a)=>{a.r(e),a.d(e,{default:()=>r});var h=a(89870),l=a(74848);function r(){return(0,l.jsx)("div",{style:{height:"100vh"},children:(0,l.jsx)(h.A,{url:"/nestjs-fleamarket/swagger.json"})})}}}]);

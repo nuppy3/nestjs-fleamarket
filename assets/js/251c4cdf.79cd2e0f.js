@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkdocs=globalThis.webpackChunkdocs||[]).push([[7109],{8638:(s,e,h)=>{h.r(e),h.d(e,{default:()=>u});var l=h(89870),r=h(74848);function u(){return(0,r.jsx)("div",{style:{height:"100vh"},children:(0,r.jsx)(l.A,{url:"/swagger.json"})})}}}]);
