@@ -75,6 +75,7 @@ $ npx prisma generate
 ```
 
 ## Compile and run the project
+rootディレクトリにて以下を実行する
 
 ```bash
 # watch mode
@@ -100,6 +101,33 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+```
+## Swagger UI / Docusaurus
+### ローカル環境
+
+```bash
+# npm run start:dev 実施後、swagger.jsonが出力されるのでdocs/static配下にコピー
+cp swagger.json docs/static/swagger.json
+
+# Docusaurus ドキュメント起動
+cd docs
+npm run star
+
+# Swagger UI URL
+http://localhost:3000/nestjs-fleamarket/api
+```
+
+
+### 本番環境 GitHub Pages
+
+```bash
+cd docs
+npm run build 　　　#ビルドを実行：build/ フォルダ作成し、静的ファイル生成 （省略可）
+npm run deploy 　　 #ビルド実行 ＋ GitHub Pages へ自動デプロイ 
+
+# Swagger UI URL
+https://nuppy3.github.io/nestjs-fleamarket/api
+
 ```
 
 ## Deployment
