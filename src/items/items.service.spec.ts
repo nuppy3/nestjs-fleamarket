@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Item } from '../../generated/prisma';
+import { Item, ItemStatus } from '../../generated/prisma';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { ItemsService } from './items.service';
@@ -89,9 +89,14 @@ describe('ItemsService Test', () => {
       // テストケース毎にMockの返却値を変えない場合は、mockPrismaServiceにて直接
       // jest.fn().mockResolvedValue()でもいいか。→空のケースとかは必ず実施するから、Mockの
       // 返却値を変えないなんてことはないから、以下の実装がベストプラクティス
-      (prismaService.item.findMany as jest.Mock).mockResolvedValue(
-        sharedResultItems,
-      );
+      // (prismaService.item.findMany as jest.Mock).mockResolvedValue(
+      //   sharedResultItems,
+      // );
+      //
+      // → 以下に書き換え（spyOnがベストプラクティス）型キャスト不要
+      jest
+        .spyOn(prismaService.item, 'findMany')
+        .mockResolvedValue(sharedResultItems);
 
       // 期待値
       const expectedItems = sharedExpectedItems;
@@ -106,12 +111,18 @@ describe('ItemsService Test', () => {
     });
 
     it('StatusがON_SALE のみ', async () => {
+      // Mockの返却値作成（PrismaService）
       const mockResultItems = sharedResultItems.filter(
         (item) => item.status === 'ON_SALE',
       );
-      (prismaService.item.findMany as jest.Mock).mockResolvedValue(
-        mockResultItems,
-      );
+      // jest.spyOn()に修正
+      jest
+        .spyOn(prismaService.item, 'findMany')
+        .mockResolvedValue(mockResultItems);
+      // (prismaService.item.findMany as jest.Mock).mockResolvedValue(
+      //   mockResultItems,
+      // );
+
       // テスト対象Service.method()
       const results = await itemsService.findAll();
       // 期待値
@@ -122,7 +133,8 @@ describe('ItemsService Test', () => {
     });
 
     it('空配列の場合', async () => {
-      (prismaService.item.findMany as jest.Mock).mockResolvedValue([]);
+      jest.spyOn(prismaService.item, 'findMany').mockResolvedValue([]);
+      // (prismaService.item.findMany as jest.Mock).mockResolvedValue([]);
       const results = await itemsService.findAll();
       expect(results).toEqual([]);
     });
@@ -136,11 +148,14 @@ describe('ItemsService Test', () => {
       // ・prismaServiceのモック関数の中身、振る舞いをmockResolvedValue()にて実装
       const mockResultItem = sharedResultItems.find(
         (item) => item.id === itemId,
-      );
+      )!;
 
-      (prismaService.item.findUnique as jest.Mock).mockResolvedValue(
-        mockResultItem,
-      );
+      jest
+        .spyOn(prismaService.item, 'findUnique')
+        .mockResolvedValue(mockResultItem);
+      // (prismaService.item.findUnique as jest.Mock).mockResolvedValue(
+      //   mockResultItem,
+      // );
 
       // テスト対象メソッド
       const result = await itemsService.findById(itemId);
@@ -162,16 +177,20 @@ describe('ItemsService Test', () => {
       // どんな引数で呼んだか」を記録してくれているので、モックでも「実際に渡された引数」で「実際の
       // Prismaの引数(型、値)」で渡されているかチェックするという強力なツール!!
       // 以下のコードはEslintエラーが出るが、テストコード内限定でESLintの以下を無効化
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(prismaService.item.findUnique as jest.Mock).toHaveBeenCalledWith({
-        where: { id: itemId },
-      });
+      expect(jest.spyOn(prismaService.item, 'findUnique')).toHaveBeenCalledWith(
+        {
+          // expect(prismaService.item.findUnique as jest.Mock).toHaveBeenCalledWith({
+          where: { id: itemId },
+        },
+      );
     });
     it('異常系: 商品が存在しない（null)', async () => {
       // アイテムID
       const itemId = '';
       // prismaSeviceのモック設定
-      (prismaService.item.findUnique as jest.Mock).mockResolvedValue(null);
+      jest.spyOn(prismaService.item, 'findUnique').mockResolvedValue(null);
+      // (prismaService.item.findUnique as jest.Mock).mockResolvedValue(null);
+
       // await(非同期)メソッドの場合、Promiseを返却する必要があるが、Promiseをアンラップ(rejects)して別の
       // Matcherを連鎖させるようにして、toThrowを呼んだりする。
       await expect(itemsService.findById(itemId)).rejects.toThrow(
@@ -209,14 +228,15 @@ describe('ItemsService Test', () => {
         name: 'JBLイヤホン100',
         price: 1000,
         description: '未使用品です',
-        status: 'ON_SALE',
+        status: ItemStatus.ON_SALE,
         createdAt: new Date('2025-10-02T07:39:21.000Z'),
         updatedAt: new Date('2025-10-02T07:39:21.000Z'),
         userId: '9de29d9d-fca8-4061-9427-b821d96dea2b',
       };
-      (prismaService.item.create as jest.Mock).mockResolvedValue(
-        mockResultItem,
-      );
+
+      jest
+        .spyOn(prismaService.item, 'create')
+        .mockResolvedValue(mockResultItem);
 
       // テスト対象メソッド(expectはmockResultItemをそのまま渡してもいい)
       const result = await itemsService.create(param, paramUserId);
@@ -232,8 +252,9 @@ describe('ItemsService Test', () => {
       });
 
       // prismaService.item.create()の引数チェック
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(prismaService.item.create as jest.Mock).toHaveBeenCalledWith({
+
+      expect(jest.spyOn(prismaService.item, 'create')).toHaveBeenCalledWith({
+        // expect(prismaService.item.create as jest.Mock).toHaveBeenCalledWith({
         data: {
           name: param.name,
           price: param.price,
@@ -253,8 +274,9 @@ describe('ItemsService Test', () => {
       // PrismaServiceの返却値(Mock)作成
       const mockResulItem = sharedResultItems.find(
         (item) => item.id === itemId,
-      );
-      (prismaService.item.update as jest.Mock).mockResolvedValue(mockResulItem);
+      )!;
+      jest.spyOn(prismaService.item, 'update').mockResolvedValue(mockResulItem);
+      // (prismaService.item.update as jest.Mock).mockResolvedValue(mockResulItem);
 
       // テスト対象メソッド
       const result = await itemsService.updateStatus(itemId, userId);
@@ -269,8 +291,8 @@ describe('ItemsService Test', () => {
         userId: '9de29d9d-fca8-4061-9427-b821d96dea2b',
       });
       // prismaService.item.updateの引数チェック
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(prismaService.item.update as jest.Mock).toHaveBeenCalledWith({
+      expect(jest.spyOn(prismaService.item, 'update')).toHaveBeenCalledWith({
+        // expect(prismaService.item.update as jest.Mock).toHaveBeenCalledWith({
         data: { status: 'SOLD_OUT', userId }, // userIdはkey名と一致しているので省略形
         where: { id: itemId },
       });
@@ -283,13 +305,24 @@ describe('ItemsService Test', () => {
       const userId = '9de29d9d-fca8-4061-9427-b821d96dea2b';
 
       // voidメソッドなので、期待値検証ではなく、呼び出し検証
-      // 戻り値は任意。nullでもundefinedでも{hoge='hoge'}でも何でも。
-      (prismaService.item.delete as jest.Mock).mockResolvedValue(null);
+      // 戻り値はItem型で値は任意。なので、適当にセット
+      jest.spyOn(prismaService.item, 'delete').mockResolvedValue({
+        id: '2e7a7dab-cc05-4468-835a-9cec4b77da8c',
+        name: 'JBLイヤホン003',
+        price: 30000,
+        description: '未使用品です',
+        status: 'ON_SALE',
+        createdAt: new Date('2025-10-04T07:47:52.000Z'),
+        updatedAt: new Date('2025-10-04T07:47:52.000Z'),
+        userId: '9de29d9d-fca8-4061-9427-b821d96dea2b',
+      });
+      // (prismaService.item.delete as jest.Mock).mockResolvedValue(null);
       await itemsService.delete(itemId, userId);
 
       // prismaService.item.delete()の引数チェック
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(prismaService.item.delete as jest.Mock).toHaveBeenCalledWith({
+
+      expect(jest.spyOn(prismaService.item, 'delete')).toHaveBeenCalledWith({
+        // expect(prismaService.item.delete as jest.Mock).toHaveBeenCalledWith({
         where: {
           id: itemId,
           userId,
