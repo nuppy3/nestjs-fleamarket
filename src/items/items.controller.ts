@@ -24,7 +24,7 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   /**
-   * FindAll API
+   * findAll API
    * @returns items: Itemオブジェクトの配列
    */
   @Get()
@@ -33,7 +33,7 @@ export class ItemsController {
   }
 
   /**
-   * findByIDメソッド
+   * findByID API
    * ParseUUIDPipeを適用してValidationを実施。
    * @param id ID ItemテーブルのPK(uuid型)
    * @returns Itemオブジェクト
@@ -44,7 +44,8 @@ export class ItemsController {
   }
 
   /**
-   * create
+   * create API
+   *
    * 「@Body()」:リクエストBodyからパラメータを取得→CreateItemDtoにセット
    * @param id ID ItemテーブルのPK(uuid型)
    * @param name 名前
@@ -67,7 +68,8 @@ export class ItemsController {
   }
 
   /**
-   * updateStatus
+   * updateStatus API
+   *
    * @param id ItemテーブルのPK(uuid型)
    * @param req httpリクエスト+認証ミドルウェアが追加したユーザー情報（RequestUser型）
    * @returns Itemテーブルの更新結果データ
@@ -82,7 +84,8 @@ export class ItemsController {
   }
 
   /**
-   * delete
+   * delete API
+   *
    * @param id ItemテーブルのPK(uuid型)
    */
   @Delete(':id')
