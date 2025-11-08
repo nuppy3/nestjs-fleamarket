@@ -15,11 +15,6 @@ import { StoresService } from './stores.service';
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
-  @Post()
-  create(@Body() createStoreDto: CreateStoreDto) {
-    return this.storesService.create(createStoreDto);
-  }
-
   @Get()
   findAll() {
     return this.storesService.findAll();
@@ -28,6 +23,11 @@ export class StoresController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.storesService.findOne(+id);
+  }
+
+  @Post()
+  create(@Body() createStoreDto: CreateStoreDto) {
+    return this.storesService.create(createStoreDto);
   }
 
   @Patch(':id')
