@@ -9,14 +9,20 @@ import {
 } from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { Store } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
+  /**
+   * findAll(): 店舗情報一覧を取得します。
+   *
+   * @returns 店舗情報一覧(Storeオブジェクト配列)
+   */
   @Get()
-  findAll() {
+  findAll(): Store[] {
     return this.storesService.findAll();
   }
 
