@@ -1,4 +1,6 @@
 import {
+  ArrayUnique,
+  IsArray,
   IsEmail,
   IsEnum,
   IsIn,
@@ -27,26 +29,26 @@ export class CreateStoreDto {
   })
   status: StoreStatus;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(8)
-  zipCode: string; // 郵便番号
+  zipCode?: string; // 郵便番号
 
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(100)
-  address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(40)
-  prefecture: string;
+  address?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  prefecture?: string;
+
+  @IsNotEmpty()
   @IsString()
   @MaxLength(13)
   phoneNumber: string;
@@ -57,9 +59,11 @@ export class CreateStoreDto {
   businessHours?: string; // 営業時間 例："10:00〜20:00"
 
   @IsOptional()
-  @IsString()
+  @IsArray()
+  @ArrayUnique() // 重複禁止
   @IsIn(WEEKDAYS, {
+    each: true, // 各要素がWEEKDAYS内の文字列であることをチェック
     message: `holiday must be one of: ${WEEKDAYS.join(', ')}`,
   })
-  holiday?: Weekday;
+  holiday?: Weekday[]; // 休日は複数の曜日なので配列型
 }

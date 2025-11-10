@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Store, StoreStatus } from './stores.model';
+import { Store } from './stores.model';
 
 @Injectable()
 export class StoresService {
@@ -9,11 +9,6 @@ export class StoresService {
   private stores: Store[] = [];
 
   findAll(): Store[] {
-    this.stores = [
-      { id: '001', name: '001店舗', status: StoreStatus.EDITING },
-      { id: '002', name: '002店舗', status: StoreStatus.EDITING },
-      { id: '003', name: '003店舗', status: StoreStatus.EDITING },
-    ];
     return this.stores;
   }
 
@@ -21,8 +16,20 @@ export class StoresService {
     return `This action returns a #${id} store`;
   }
 
-  create(createStoreDto: CreateStoreDto) {
-    return 'This action adds a new store';
+  /**
+   * create()
+   * @param createStoreDto
+   * @returns
+   */
+  create(createStoreDto: CreateStoreDto): Store {
+    // DTO→Storeオブジェクト、からのStore[]にpush
+    const store: Store = {
+      id: '0001',
+      ...createStoreDto,
+    };
+    this.stores.push(store);
+
+    return store;
   }
 
   update(id: number, updateStoreDto: UpdateStoreDto) {
