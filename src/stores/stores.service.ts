@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { v4 as uuid } from 'uuid';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { Store } from './stores.model';
@@ -18,13 +19,14 @@ export class StoresService {
 
   /**
    * create()
+   *
    * @param createStoreDto
    * @returns
    */
   create(createStoreDto: CreateStoreDto): Store {
     // DTO→Storeオブジェクト、からのStore[]にpush
     const store: Store = {
-      id: '0001',
+      id: uuid(), // uuidのv4()をuuid()のエイリアスで使用
       ...createStoreDto,
     };
     this.stores.push(store);

@@ -4,7 +4,7 @@
 //------------------------------------------
 
 /**
- * 店舗情報
+ * 店舗情報 （Domainモデル)
  * アプリ内部（Service・UseCase・他ドメイン）で使う「中核的な型」。
  * HTTP層ではDTO(request/response)、DB層ではPrismaの型、その中間(service)で橋渡し役を
  * 担うのが Store です。
