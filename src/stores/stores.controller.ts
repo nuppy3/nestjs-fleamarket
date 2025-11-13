@@ -7,7 +7,8 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateStoreDto } from './dto/store.dto';
+import { plainToInstance } from 'class-transformer';
+import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import type { Store } from './stores.model';
 import { StoresService } from './stores.service';
@@ -40,8 +41,13 @@ export class StoresController {
    * @returns
    */
   @Post()
-  create(@Body() createStoreDto: CreateStoreDto): Store {
-    return this.storesService.create(createStoreDto);
+  create(@Body() createStoreDto: CreateStoreDto): StoreResponseDto {
+    // 店舗情報作成
+    const created = this.storesService.create(createStoreDto);
+    // domain → dto
+    return plainToInstance(StoreResponseDto, created, {
+      excludeExtraneousValues: true, // StoreResponseDtoに定義されていない項目は除外
+    });
   }
 
   @Patch(':id')
