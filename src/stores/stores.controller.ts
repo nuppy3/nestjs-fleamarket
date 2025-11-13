@@ -7,9 +7,9 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateStoreDto } from './dto/create-store.dto';
+import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Store } from './stores.model';
+import type { Store } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -40,7 +40,7 @@ export class StoresController {
    * @returns
    */
   @Post()
-  create(@Body() createStoreDto: CreateStoreDto) {
+  create(@Body() createStoreDto: CreateStoreDto): Store {
     return this.storesService.create(createStoreDto);
   }
 

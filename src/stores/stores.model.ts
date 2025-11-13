@@ -5,12 +5,16 @@
 
 /**
  * 店舗情報 （Domainモデル)
+ *
+ * ドメインモデル(データ構造だけ持つ場合)はtypeではなくInterfaceがベストプラクティス。
+ * (ビジネスルール（ロジック）を持つ場合は、classがベスト)
+ *
  * アプリ内部（Service・UseCase・他ドメイン）で使う「中核的な型」。
  * HTTP層ではDTO(request/response)、DB層ではPrismaの型、その中間(service)で橋渡し役を
  * 担うのが Store です。
  *
  * 使用例①：DB層のPrismaの型(DBのレスポンス)をmodel.tsのStoreに変換して、Controllerへ
- *      （DB→Storeに変換→Controller）
+ *      （DB→Storeに変換→Controller）逆も然り(Controller→Store→DB)
  *
  * Service層は「アプリ的に意味のある構造」を扱える。
  *
@@ -31,7 +35,7 @@
  * ・APIごとに出力内容やフィールド名を調整（例：statusを日本語化）→ DTOのズレ
  * 3者の関心ごとは確実に分かれていきます。
  */
-export type Store = {
+export interface Store {
   id: string;
   name: string;
   kanaName?: string;
@@ -42,8 +46,8 @@ export type Store = {
   prefecture?: string;
   phoneNumber: string;
   businessHours?: string;
-  holiday?: Weekday[];
-};
+  holidays?: Weekday[];
+}
 
 export enum StoreStatus {
   PUBLISHED = 'published', // 掲載中
@@ -71,11 +75,27 @@ export const WEEKDAYS = [
   'SATURDAY',
 ] as const;
 
+// ・as const構文：リテラル型を固定する魔法の様な構文
+// const colors = ['red', 'green', 'blue']; を 「typeof colors」 すると、「string[]」が返る。
+// → 当たり前だが、「red」「green」「blue」という具体的な文字列は失われていて、「stringの配列」としてしか認識されません。
+// const colors = ['red', 'green', 'blue'] as const; as constを付けて、「typeof colors」 すると、
+// readonly ['red', 'green', 'blue'] が返る。
+// → 配列の中身が「リテラル（文字列そのもの）」として保持され、読み取り専用になる。
+// ※typeof は通常「変数の値の型を取得する」演算子
+//
+// typeof WEEKDAYS: readonly ['SUNDAY', 'MONDAY', ....];が返る
+// [number] って何?: ここが少しマジカルですが、配列の型に [number] をつけると、「配列のすべての要素の型」を
+// 取り出す、という意味になります。
+// → type Weekday = (typeof WEEKDAYS)[number];  'SUNDAY' | 'MONDAY' | 'TUESDAY' | ... が返る。
+//
+
 // union型 ： 'SUNDAY' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY',
 export type Weekday = (typeof WEEKDAYS)[number];
 
 // Weekdayの日本語変換
-// オブジェクトの型を簡潔に定義するためのユーティリティ型:Record<K, T>
+// Record<K, T>：オブジェクトの型を簡潔に定義するためのユーティリティ型
+// 「キーがK、値がTのオブジェクト」を作成する。「キーを K の集合に固定して、値の型を T に統一する」型安全な
+// 辞書（Map）のようなものです📘。
 export const WEEKDAY_LABELS: Record<Weekday, string> = {
   SUNDAY: '日',
   MONDAY: '月',
