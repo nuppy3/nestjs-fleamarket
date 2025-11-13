@@ -1,4 +1,4 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -11,6 +11,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import {
+  Store,
   StoreStatus,
   WEEKDAY_LABELS,
   WEEKDAYS,
@@ -75,15 +76,43 @@ export class CreateStoreDto {
   holidays?: Weekday[]; // 休日は複数の曜日なので配列型
 }
 
+// ------------------------------------
+// 型安全なサブセット(全体の一部）DTOの抽出)
+// ------------------------------------
+// StoreドメインをベースとしたKeySet
+export const StoreResponseKeys = [
+  'id',
+  'name',
+  'kanaName',
+  'status',
+  'zipCode',
+  'email',
+  'address',
+  'prefecture',
+  'phoneNumber',
+  'businessHours',
+  'holidays',
+  // satisfiesは配列が(keyof Store)[]型に一致するか確認
+  // 要するに、配列内の各要素がStore型のkeyのみであることを強制
+] satisfies (keyof Store)[];
+
+// 型安全なStoreのサブセット(全体の一部）DTOを作成
+// Storeの中から上記要素(キー名)だけをPick
+export type StoreResponseShape = Pick<
+  Store,
+  (typeof StoreResponseKeys)[number]
+>;
+
 /**
  * 店舗情報レスポンスDTO
+ * StoreドメインのサブセットDTO
  *
  * @Expose() をつけると、plainToInstance の変換対象になります。
  * 返却項目を明示（@Expose）
  * 不要な項目を除外（@Exclude）
  * 値の変換（@Transform）
  */
-export class StoreResponseDto {
+export class StoreResponseDto implements StoreResponseShape {
   @Expose()
   id: string;
   @Expose()
@@ -125,8 +154,24 @@ export class StoreResponseDto {
   @Expose()
   holidays?: Weekday[];
 
-  // 休日を日本語['月', '火', ...] の形式で返す
-  @Expose()
-  @Transform(({ value }) => (value as Weekday[])?.map((w) => WEEKDAY_LABELS[w]))
-  holidaysLabel?: string[];
+  // ※ @Transformよりも以下のgetterの方がスマートらしいので削除
+  // 休日を日本語['月', '火', ...] の形式で返す。
+  // @Expose()
+  // @Transform(({ value }) => (value as Weekday[])?.map((w) => WEEKDAY_LABELS[w]))
+  // holidaysLabel?: string[];
+
+  /**
+   * 休日を日本語['日', '月', ...] の形式で返すゲッター
+   * 変換ロジックをゲッター内に持つことで、instanceToPlain時に実行される。
+   */
+  @Expose() // JSONに出力するため、ゲッターにも @Expose() が必要
+  get holidaysLabel(): string[] | undefined {
+    // // holidaysプロパティが既に plainToInstance によって設定されていることを前提とする
+    // if (!this.holidays || this.holidays.length === 0) {
+    //   return undefined; // 値がない場合は undefined を返す
+    // }
+
+    // WEEKDAY_LABELS を使用して変換を実行
+    return this.holidays?.map((w) => WEEKDAY_LABELS[w]);
+  }
 }
