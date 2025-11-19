@@ -23,8 +23,8 @@ export class StoresController {
    * @returns 店舗情報一覧(Storeオブジェクト配列)
    */
   @Get()
-  findAll(): Store[] {
-    return this.storesService.findAll();
+  async findAll(): Promise<Store[]> {
+    return await this.storesService.findAll();
   }
 
   @Get(':id')

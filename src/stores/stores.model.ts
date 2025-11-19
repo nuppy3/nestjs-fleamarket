@@ -49,15 +49,32 @@ export interface Store {
   holidays?: Weekday[];
 }
 
-export enum StoreStatus {
-  PUBLISHED = 'published', // 掲載中
-  EDITING = 'editing', // 編集中
-  SUSPENDED = 'suspended', // 停止中
-}
+// enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）
+// export enum StoreStatus {
+//   PUBLISHED = 'published', // 掲載中
+//   EDITING = 'editing', // 編集中
+//   SUSPENDED = 'suspended', // 停止中
+// }
 
+// 20251029
 // 上記のenumと以下のunionどっちにしようかな問題 → unionが軽量でas const/(typeof StoreStatus)[number]
 // のコラボで、unionがトレンドっぽいね。
 // export type StoreStatus = 'published' | 'editing' | 'suspended';
+//--------------------------------------
+// 20251119
+// enumキーワードの時代は終わった
+// as const オブジェクト + typeof ~[keyof ~]の定義が新のenum！！
+// 以下の類似パターンであるば、オブジェクトから値全部を集めて自動的にunion型にするテクニック
+// 「modern enumパターン」です。
+//
+// as constを付けると、{ readonly PUBLISHED: 'published'; readonly EDITING: 'editing'; readonly: SUSPENDED: 'suspended'}としてリテラル型の具体的な値'published'という文字列になる
+export const StoreStatus = {
+  PUBLISHED: 'published', // 掲載中
+  EDITING: 'editing', // 編集中
+  SUSPENDED: 'suspended', // 停止中
+} as const;
+// StoreStatus（モダンenum=union）の型を定義
+export type StoreStatus = (typeof StoreStatus)[keyof typeof StoreStatus];
 
 // ------------------------------------------------
 // 配列から自動的に Union 型を生成するテクニック
@@ -65,7 +82,6 @@ export enum StoreStatus {
 // PrismaやNestJSでもよく使われる「modern enumパターン」 です。
 // ------------------------------------------------
 export const WEEKDAYS = [
-  // ↑type Weekday(パスカルケース) に変換したいので被らない様に全て大文字にしている?
   'SUNDAY',
   'MONDAY',
   'TUESDAY',

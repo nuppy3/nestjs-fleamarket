@@ -89,7 +89,7 @@ model Store {
   id            String     @id @default(uuid()) @db.Uuid
   name          String     @db.VarChar(255)
   kanaName      String?    @db.VarChar(255)
-  status        StorStatus @default(EDITING)
+  status        StorStatus @default(editing)
   zipCode       String?    @db.VarChar(8)
   email         String     @db.VarChar(255)
   address       String?    @db.VarChar(255)
@@ -116,7 +116,7 @@ model Store {
 
 // あくまでPrismaのenumであり、Typescriptのenumじゃないから、プロパティに","を付与しない
 enum StorStatus {
-  PUBLISHED
-  EDITING
-  SUSPENDED
+  published
+  editing
+  suspended
 }
