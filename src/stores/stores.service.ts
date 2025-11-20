@@ -9,9 +9,11 @@ import { Store, Weekday } from './stores.model';
 export class StoresService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  // Storeオブジェクト配列（★DB開通後削除）
-  // private stores: Store[] = [];
-
+  /**
+   * findAll()：Store情報をDBから取得し、返却します。
+   *
+   * @returns Storeドメイン（DB取得情報をdomeinに詰め替え）
+   */
   async findAll(): Promise<Store[]> {
     // Store情報取得
     const resultStores = await this.prismaService.store.findMany();
