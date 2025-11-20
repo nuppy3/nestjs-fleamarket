@@ -69,7 +69,7 @@ model User {
   createdAt DateTime   @default(now()) @db.Timestamp(0)
   updatedAt DateTime   @updatedAt @db.Timestamp(0)
   Items     Item[] // UserにItemsを持つ必要あるかな。。まぁ、Udemyの例がそうなのでいいか
-  stores    Store[]
+  // stores    Store[]
 }
 
 enum UserStatus {
@@ -110,8 +110,8 @@ model Store {
   //　・fields属性：参照元(Item)モデルのキーを指定。
   //  ・references属性：参照先(User)モデルの主キーを指定
   //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.Uuid
+  // user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // userId String @db.Uuid
 }
 
 // あくまでPrismaのenumであり、Typescriptのenumじゃないから、プロパティに","を付与しない

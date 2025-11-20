@@ -55,10 +55,10 @@ export class StoresService {
   }
 
   /**
-   * create()
+   * create(): 店舗情報を作成し、DB登録します。
    *
-   * @param createStoreDto
-   * @returns
+   * @param createStoreDto 店舗情報作成用DTO
+   * @returns 店舗情報(domain)
    */
   async create(createStoreDto: CreateStoreDto): Promise<Store> {
     // dto → domain
@@ -67,10 +67,10 @@ export class StoresService {
       ...createStoreDto,
     };
 
+    console.log('process.env.JWT_SECRET:' + process.env.JWT_SECRET);
     // domain → primsaデータ
     const prismaInput = {
       ...domainStore,
-      userId: process.env.JWT_SECRET!,
     };
 
     // prisma：Store情報をDB登録
