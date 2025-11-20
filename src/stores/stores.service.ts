@@ -60,7 +60,7 @@ export class StoresService {
    * @param createStoreDto
    * @returns
    */
-  create(createStoreDto: CreateStoreDto): Store {
+  async create(createStoreDto: CreateStoreDto): Promise<Store> {
     // dto → domain
     const domainStore: Store = {
       id: uuid(), // uuidのv4()をuuid()のエイリアスで使用
@@ -68,13 +68,19 @@ export class StoresService {
     };
 
     // domain → primsaデータ
+    const prismaInput = {
+      ...domainStore,
+      userId: process.env.JWT_SECRET!,
+    };
 
-    // // Store[]に登録（本来はPrisma→DB登録。DB開通後削除）
-    // this.stores.push(domainStore);
+    // prisma：Store情報をDB登録
+    const created = await this.prismaService.store.create({
+      data: prismaInput,
+    });
 
-    // // DB（Prisma）→ Domain(DB連携なしのため、無理やり。。)
+    // prisma → domain
     // const savedStore: Store = {
-    //   ...this.stores[this.stores.length - 1],
+    //   ...created,
     // };
 
     return domainStore;
