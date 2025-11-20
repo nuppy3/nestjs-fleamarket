@@ -79,11 +79,24 @@ export class StoresService {
     });
 
     // prisma → domain
-    // const savedStore: Store = {
-    //   ...created,
-    // };
+    const savedStore: Store = {
+      id: created.id,
+      name: created.name,
+      status: created.status,
+      email: created.email,
+      phoneNumber: created.phoneNumber,
+      kanaName: created.kanaName ?? undefined,
+      zipCode: created.zipCode ?? undefined,
+      address: created.address ?? undefined,
+      prefecture: created.prefecture ?? undefined,
+      businessHours: created.businessHours ?? undefined,
+      // string[] → union 変換
+      holidays: created.holidays?.length
+        ? (created.holidays as Weekday[])
+        : undefined,
+    };
 
-    return domainStore;
+    return savedStore;
   }
 
   update(id: number, updateStoreDto: UpdateStoreDto) {
