@@ -132,6 +132,7 @@ describe('ItemsService Test', () => {
       expect(results).toEqual(expectedItems);
     });
 
+    // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
     it('空配列の場合', async () => {
       jest.spyOn(prismaService.item, 'findMany').mockResolvedValue([]);
       // (prismaService.item.findMany as jest.Mock).mockResolvedValue([]);
