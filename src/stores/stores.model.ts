@@ -36,7 +36,11 @@
  * 3者の関心ごとは確実に分かれていきます。
  */
 export interface Store {
-  id: string;
+  // id(uuid)は「技術的識別子」であり、ビジネスルールには関係がない。
+  // Storeドメイン(entity)にはid(uuid)を持たせない！id(uuid)はDB、infra管轄：idに依存しない純粋なドメイン
+  //「作成時は id なし、取得時(レスポンス)は id あり（別型）」＝ 完全に正しい設計むしろこれが「本物のドメイン駆動設計」
+  // が、実務的に、idを持たせてもいいっぽいが、厳密にidを除外してみる。
+  // id: string;
   name: string;
   kanaName?: string;
   status: StoreStatus;
@@ -47,6 +51,10 @@ export interface Store {
   phoneNumber: string;
   businessHours?: string;
   holidays?: Weekday[];
+  // idはdomainから除外しており、以下も除外対象であるが、作成日などはある種のビジネルルールとも
+  // 考えられるのでdomainに含める(ほぼ入れるらしい)
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）

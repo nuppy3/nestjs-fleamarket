@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { Store } from 'generated/prisma';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Store as StoreEntity } from './stores.model';
 import { StoresService } from './stores.service';
 

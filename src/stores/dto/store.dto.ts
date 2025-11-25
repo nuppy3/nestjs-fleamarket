@@ -81,7 +81,8 @@ export class CreateStoreDto {
 // ------------------------------------
 // StoreドメインをベースとしたKeySet
 export const StoreResponseKeys = [
-  'id',
+  // Storeドメイン（Entity)にid(uuid)は持たせない。
+  // 'id',
   'name',
   'kanaName',
   'status',
@@ -113,8 +114,10 @@ export type StoreResponseShape = Pick<
  * 値の変換（@Transform）
  */
 export class StoreResponseDto implements StoreResponseShape {
+  // Storeドメインにidは不要。ResponseDtoにidを付与。→ベストプラクティス!!
   @Expose()
-  id: string;
+  readonly id: string;
+
   @Expose()
   name: string;
   @Expose()
@@ -173,5 +176,18 @@ export class StoreResponseDto implements StoreResponseShape {
 
     // WEEKDAY_LABELS を使用して変換を実行
     return this.holidays?.map((w) => WEEKDAY_LABELS[w]);
+  }
+
+  @Expose()
+  readonly createdAt: Date;
+  @Expose()
+  readonly updatedAt: Date;
+
+  // 重要!! コンストラクタ：domain → DTO 変換するコンストラクタ
+  // domainはあくまで「ビジネスルール」だけ持つべきであり、idやcreatedAt、updatedAtなどはDTO
+  // で持つ。
+  constructor(domain: Store, id: string) {
+    this.id = id;
+    Object.assign(this, domain);
   }
 }
