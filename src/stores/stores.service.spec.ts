@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { Store } from 'generated/prisma';
-import { PrismaService } from '../prisma/prisma.service';
-import { Store as StoreEntity } from './stores.model';
+import { PrismaService } from './../prisma/prisma.service';
+// import { Store } from './entities/store.entity';
+import { Store } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -18,7 +18,10 @@ describe('StoresService Test', () => {
   // DIモジュール
   let storesService: StoresService;
   let prismaService: PrismaService;
-  let prismaMockStores: Store[];
+  // 正常系データ
+  let prismaMockStores: (Store & {
+    id: string;
+  })[];
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -64,10 +67,51 @@ describe('StoresService Test', () => {
         .mockResolvedValue(prismaMockStores);
 
       // test対象呼び出し
-      const result: StoreEntity[] = await storesService.findAll();
+      const result = await storesService.findAll();
 
       // 結果検証
       expect(result).toEqual(prismaMockStores);
+    });
+
+    it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す', async () => {
+      // mockの返却値作成
+      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([
+        {
+          id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '山田電気 赤羽店',
+          status: 'published',
+          email: 'yamada-akabane@test.co.jp',
+          phoneNumber: '03-1122-9901',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          kanaName: null,
+          prefecture: null,
+          holidays: [],
+          zipCode: null,
+          address: null,
+          businessHours: null,
+        },
+      ]);
+      // テスト実施
+      const result = await storesService.findAll();
+      // 検証
+      expect(result).toEqual([
+        {
+          id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '山田電気 赤羽店',
+          status: 'published',
+          email: 'yamada-akabane@test.co.jp',
+          phoneNumber: '03-1122-9901',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          kanaName: undefined,
+          prefecture: undefined,
+          holidays: undefined,
+          zipCode: undefined,
+          address: undefined,
+          businessHours: undefined,
+        },
+      ]);
     });
 
     // // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
@@ -82,8 +126,10 @@ describe('StoresService Test', () => {
 /**
  * Prismaの返却値(Store配列)を作成
  */
-function createMockStores(): Store[] {
-  const stores: Store[] = [
+function createMockStores(): (Store & {
+  id: string;
+})[] {
+  const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山田電気 赤羽店',
