@@ -40,7 +40,7 @@ export class StoresService {
         businessHours: prismaStore.businessHours ?? undefined,
         // 以下のキャストだと、store.holidaysがnullもしくはundefined時にキャストエラーになってしまう
         // holidays: (store.holidays as Weekday[]) ?? undefined,
-        // store.holidaysがnull or undefinedじゃない且つ、殻配列でない場合
+        // store.holidaysがnull or undefinedじゃない且つ、空配列でない場合
         holidays: prismaStore.holidays?.length
           ? (prismaStore.holidays as Weekday[])
           : undefined,

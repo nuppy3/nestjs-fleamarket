@@ -1,7 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
-import { Store } from './stores.model';
+// StoreはPrismaの返却値Storeと重複するので、StoreEntityにリネーム
+import { Store } from '../../generated/prisma';
+import { Store as StoreEntity } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -18,8 +20,10 @@ describe('StoresService Test', () => {
   // DIモジュール
   let storesService: StoresService;
   let prismaService: PrismaService;
-  // 正常系データ
-  let prismaMockStores: (Store & {
+  // 正常系データ: Prismaの返却値(StoreはPrismaの型)
+  let prismaMockStores: Store[];
+  // 期待値: seriveの返却値(StoreEntityはStoreドメイン ※Storeという名前が重複するためStoreEntityにリネーム)
+  let expectedStores: (StoreEntity & {
     id: string;
   })[];
 
@@ -51,6 +55,8 @@ describe('StoresService Test', () => {
 
     // PrismaService Mock Data
     prismaMockStores = createMockStores();
+    // 期待値：Serviceの返却値
+    expectedStores = createExpectStores();
   });
 
   // 前処理: 書くテストケースの前に毎回実行
@@ -70,10 +76,10 @@ describe('StoresService Test', () => {
       const result = await storesService.findAll();
 
       // 結果検証
-      expect(result).toEqual(prismaMockStores);
+      expect(result).toEqual(expectedStores);
     });
 
-    it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す', async () => {
+    it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（1件)', async () => {
       // mockの返却値作成
       jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([
         {
@@ -114,8 +120,45 @@ describe('StoresService Test', () => {
       ]);
     });
 
+    it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（複数件)', async () => {
+      // mockの返却値作成
+      // 以下のように実装してみたものの、[{...}]の形でベタ書した方がUTとしては直感的かも。。
+      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue(
+        prismaMockStores.map((store) => {
+          store.kanaName = null;
+          store.prefecture = null;
+          store.holidays = [];
+          store.zipCode = null;
+          store.address = null;
+          store.businessHours = null;
+          return Object.assign({}, store);
+        }),
+      );
+      // テスト実施
+      const result = await storesService.findAll();
+      // 検証
+      expect(result).toEqual(
+        expectedStores.map((store) => {
+          store.kanaName = undefined;
+          store.prefecture = undefined;
+          store.holidays = undefined;
+          store.zipCode = undefined;
+          store.address = undefined;
+          store.businessHours = undefined;
+          return Object.assign({}, store);
+        }),
+      );
+    });
+
     // // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
-    it('データが0件の場合は空配列を返す', () => {});
+    it('データが0件の場合は空配列を返す', async () => {
+      // prisma mock データ
+      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+      // テスト実施
+      const result = await storesService.findAll();
+      // 検証
+      expect(result).toEqual([]);
+    });
   });
 
   describe('create', () => {
@@ -126,10 +169,8 @@ describe('StoresService Test', () => {
 /**
  * Prismaの返却値(Store配列)を作成
  */
-function createMockStores(): (Store & {
-  id: string;
-})[] {
-  const stores: (Store & { id: string })[] = [
+function createMockStores(): Store[] {
+  const stores: Store[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山田電気 赤羽店',
@@ -176,5 +217,58 @@ function createMockStores(): (Store & {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
   ];
+  return stores;
+}
+
+// 期待値作成：serviceの返却値
+function createExpectStores(): (StoreEntity & { id: string })[] {
+  const stores: (StoreEntity & { id: string })[] = [
+    {
+      id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      name: '山田電気 赤羽店',
+      status: 'published',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+      prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都北区赤羽３丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+    {
+      id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      name: '山田電気 江戸川店',
+      status: 'published',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+      prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都江戸川区西念1丁目10番地',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+    {
+      id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      name: '山田電気 銀座店',
+      status: 'published',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
+      prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都中央区西銀座5丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+  ];
+
   return stores;
 }
