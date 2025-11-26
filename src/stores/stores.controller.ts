@@ -10,7 +10,6 @@ import {
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import type { Store } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -23,8 +22,19 @@ export class StoresController {
    * @returns 店舗情報一覧(Storeオブジェクト配列)
    */
   @Get()
-  async findAll(): Promise<Store[]> {
-    return await this.storesService.findAll();
+  async findAll(): Promise<StoreResponseDto[]> {
+    // 店舗情報取得
+    const stores = await this.storesService.findAll();
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
+    return instanceToPlain(
+      plainToInstance(StoreResponseDto, stores, {
+        excludeExtraneousValues: true,
+      }),
+    ) as StoreResponseDto[];
+
+    // return await this.storesService.findAll();
   }
 
   @Get(':id')
@@ -45,6 +55,7 @@ export class StoresController {
     // 店舗情報作成
     const created = this.storesService.create(createStoreDto);
     // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
       plainToInstance(StoreResponseDto, created, {
         excludeExtraneousValues: true,
