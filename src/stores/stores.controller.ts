@@ -33,8 +33,6 @@ export class StoresController {
         excludeExtraneousValues: true,
       }),
     ) as StoreResponseDto[];
-
-    // return await this.storesService.findAll();
   }
 
   @Get(':id')
