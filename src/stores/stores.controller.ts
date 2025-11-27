@@ -30,6 +30,8 @@ export class StoresController {
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
     return instanceToPlain(
       plainToInstance(StoreResponseDto, stores, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
     ) as StoreResponseDto[];
@@ -56,6 +58,8 @@ export class StoresController {
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
       plainToInstance(StoreResponseDto, created, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
     ) as StoreResponseDto;
