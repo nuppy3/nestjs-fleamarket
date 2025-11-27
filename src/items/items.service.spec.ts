@@ -24,7 +24,7 @@ const mockPrismaService = {
 describe('ItemsService Test', () => {
   // DI対象モジュールの宣言
   let itemsService: ItemsService;
-  let prismaService: PrismaService;
+  let prismaService: PrismaService; // Mock化するためにDI
   let sharedResultItems: Item[]; // 全テストで共有
   let sharedExpectedItems: Item[];
   // 本物のPrismaServiceを使う場合
