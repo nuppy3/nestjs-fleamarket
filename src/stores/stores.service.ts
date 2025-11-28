@@ -67,6 +67,19 @@ export class StoresService {
   async create(
     createStoreDto: CreateStoreDto,
   ): Promise<Store & { id: string }> {
+    // 分割代入で必要な項目のみを取得：これがベスト(理由は以下の超重要!!を参照)
+    const {
+      name,
+      kanaName,
+      status,
+      zipCode,
+      email,
+      address,
+      phoneNumber,
+      businessHours,
+      holidays,
+    } = createStoreDto;
+
     // dto → domain
     // const domainStore: Store = {
     //   // uuidはDBでデフォルト登録するため不要 且つ、v4の超有名な「uuid + ESM + Jest」の罠画あるため
@@ -78,8 +91,21 @@ export class StoresService {
     // ※StoreドメインからcreatedAt/updatedAtを抜いたオブジェクト
     // Storeドメインには当然ながらcreatedAt/updatedAtが存在しないため
     // 直接、DTO → primsaデータ すればいいのだが、厳密なDDD/CAを実装してみた。
-    const domainStore: Omit<Store, 'createdAt' | 'updatedAt'> = {
-      ...createStoreDto,
+    const domainStore: Omit<Store, 'prefecture' | 'createdAt' | 'updatedAt'> = {
+      // 超重要!!：以下のようにスプレッド構文だと、createStoreDtoに予期せぬパラメータが入ってきても
+      // domainStoreにセットされてしまう。いくらOmitで型制御しても、コンパイルは通るが実際は
+      // 予期せぬパラメータ（prefectureもcreateAtも、それこそ hogehogeとかも）入ってくる。
+      // → 分割代入で取得後に明示的に代入がベストプラクティス！
+      // ...createStoreDto,
+      name,
+      kanaName,
+      status,
+      zipCode,
+      email,
+      address,
+      phoneNumber,
+      businessHours,
+      holidays,
     };
 
     // domain → primsaデータ

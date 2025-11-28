@@ -50,10 +50,11 @@ export class CreateStoreDto {
   @MaxLength(100)
   address?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(40)
-  prefecture?: string;
+  // Store model からprefectureを削除
+  // @IsOptional()
+  // @IsString()
+  // @MaxLength(40)
+  // prefecture?: string;
 
   @IsNotEmpty()
   @IsString()
