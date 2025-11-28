@@ -36,7 +36,8 @@ export class StoresService {
         kanaName: prismaStore.kanaName ?? undefined,
         zipCode: prismaStore.zipCode ?? undefined,
         address: prismaStore.address ?? undefined,
-        prefecture: prismaStore.prefecture ?? undefined,
+        // Store modelからprefectureを削除↓
+        // prefecture: prismaStore.prefecture ?? undefined,
         businessHours: prismaStore.businessHours ?? undefined,
         // 以下のキャストだと、store.holidaysがnullもしくはundefined時にキャストエラーになってしまう
         // holidays: (store.holidays as Weekday[]) ?? undefined,
@@ -101,7 +102,8 @@ export class StoresService {
       kanaName: created.kanaName ?? undefined,
       zipCode: created.zipCode ?? undefined,
       address: created.address ?? undefined,
-      prefecture: created.prefecture ?? undefined,
+      // Store modelから、prefectureを削除
+      // prefecture: created.prefecture ?? undefined,
       businessHours: created.businessHours ?? undefined,
       // string[] → union 変換
       holidays: created.holidays?.length
