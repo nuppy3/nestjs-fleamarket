@@ -51,9 +51,11 @@ export class StoresController {
    * @returns
    */
   @Post()
-  create(@Body() createStoreDto: CreateStoreDto): StoreResponseDto {
+  async create(
+    @Body() createStoreDto: CreateStoreDto,
+  ): Promise<StoreResponseDto> {
     // 店舗情報作成
-    const created = this.storesService.create(createStoreDto);
+    const created = await this.storesService.create(createStoreDto);
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
