@@ -93,7 +93,8 @@ model Store {
   zipCode       String?    @db.VarChar(8)
   email         String     @db.VarChar(255)
   address       String?    @db.VarChar(255)
-  prefecture    String?    @db.VarChar(255)
+  // prefectureを削除：今後、prefecture TBL を作成するため
+  // prefecture    String?    @db.VarChar(255)
   phoneNumber   String     @db.VarChar(13)
   businessHours String?    @db.VarChar(255)
   // PostgreSQLはネイティブ配列型 (String[])という型が存在する（MySQL/oracleにはない）
