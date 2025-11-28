@@ -6,7 +6,9 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -48,9 +50,10 @@ export class StoresController {
   /**
    * create(): 店舗情報を作成します。
    * @param createStoreDto リクエストBodyパラメータ
-   * @returns
+   * @returns 店舗情報DTO(StoreResponseDto)
    */
   @Post()
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
     @Body() createStoreDto: CreateStoreDto,
   ): Promise<StoreResponseDto> {
