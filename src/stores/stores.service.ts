@@ -89,7 +89,7 @@ export class StoresService {
 
     // dto → domain - {createAt/updatedAt}
     // ※StoreドメインからcreatedAt/updatedAtを抜いたオブジェクト
-    // Storeドメインには当然ながらcreatedAt/updatedAtが存在しないため
+    // dto(リクエストパラメータ)には当然ながらcreatedAt/updatedAtが存在しないため。
     // 直接、DTO → primsaデータ すればいいのだが、厳密なDDD/CAを実装してみた。
     const domainStore: Omit<Store, 'prefecture' | 'createdAt' | 'updatedAt'> = {
       // 超重要!!：以下のようにスプレッド構文だと、createStoreDtoに予期せぬパラメータが入ってきても
