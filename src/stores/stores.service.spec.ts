@@ -92,7 +92,7 @@ describe('StoresService Test', () => {
           createdAt: new Date('2025-04-05T10:00:00.000Z'),
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
           kanaName: null,
-          prefecture: null,
+          // prefecture: null,
           holidays: [],
           zipCode: null,
           address: null,
@@ -112,7 +112,7 @@ describe('StoresService Test', () => {
           createdAt: new Date('2025-04-05T10:00:00.000Z'),
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
           kanaName: undefined,
-          prefecture: undefined,
+          // prefecture: undefined,
           holidays: undefined,
           zipCode: undefined,
           address: undefined,
@@ -128,7 +128,7 @@ describe('StoresService Test', () => {
         // Mockデータの任意項目をnullに書き換え
         prismaMockStores.map((store) => {
           store.kanaName = null;
-          store.prefecture = null;
+          // store.prefecture = null;
           store.holidays = [];
           store.zipCode = null;
           store.address = null;
@@ -143,7 +143,7 @@ describe('StoresService Test', () => {
         // 期待値の任意項目をundefinedに書き換え
         expectedStores.map((store) => {
           store.kanaName = undefined;
-          store.prefecture = undefined;
+          // store.prefecture = undefined;
           store.holidays = undefined;
           store.zipCode = undefined;
           store.address = undefined;
@@ -174,7 +174,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        prefecture: '石川県',
+        // prefecture: '石川県',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
         address: '石川県北区赤羽３丁目',
@@ -190,7 +190,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        prefecture: '石川県',
+        // prefecture: '石川県',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
         address: '石川県北区赤羽３丁目',
@@ -205,7 +205,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        prefecture: '石川県',
+        // prefecture: '石川県',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
         address: '石川県北区赤羽３丁目',
@@ -239,7 +239,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: null,
-        prefecture: null,
+        // prefecture: null,
         holidays: [],
         zipCode: null,
         address: null,
@@ -259,7 +259,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
-        prefecture: undefined,
+        // prefecture: undefined,
         holidays: undefined,
         zipCode: undefined,
         address: undefined,
@@ -295,7 +295,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
-        prefecture: undefined,
+        // prefecture: undefined,
         holidays: undefined,
         zipCode: undefined,
         address: undefined,
@@ -311,7 +311,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: null,
-        prefecture: null,
+        // prefecture: null,
         holidays: [],
         zipCode: null,
         address: null,
@@ -331,7 +331,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
-        prefecture: undefined,
+        // prefecture: undefined,
         holidays: undefined,
         zipCode: undefined,
         address: undefined,
@@ -373,7 +373,7 @@ function createMockStores(): Store[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都北区赤羽３丁目',
@@ -388,7 +388,7 @@ function createMockStores(): Store[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都江戸川区西念1丁目10番地',
@@ -403,7 +403,7 @@ function createMockStores(): Store[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都中央区西銀座5丁目',
@@ -425,7 +425,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都北区赤羽３丁目',
@@ -440,7 +440,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都江戸川区西念1丁目10番地',
@@ -455,7 +455,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       email: 'yamada-akabane@test.co.jp',
       phoneNumber: '03-1122-9901',
       kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
-      prefecture: '東京都',
+      // prefecture: '東京都',
       holidays: ['WEDNESDAY', 'SUNDAY'],
       zipCode: '100-0001',
       address: '東京都中央区西銀座5丁目',
