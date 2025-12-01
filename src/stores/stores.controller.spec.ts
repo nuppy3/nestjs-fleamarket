@@ -1,8 +1,11 @@
 import { Test } from '@nestjs/testing';
+import type { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
 import { StoresController } from './stores.controller';
 import { Store } from './stores.model';
 import { StoresService } from './stores.service';
+
 // fn()はmock関数(振る舞いはテスト実施時に指定)
 const mockStoresService = {
   findAll: jest.fn(),
@@ -147,6 +150,10 @@ describe('StoresController TEST', () => {
         businessHours: '10:00-20:00',
       };
 
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const param: ExpressRequest & { user: RequestUser } = createRequest();
+
       // service mock data
       jest.spyOn(storesService, 'create').mockResolvedValue({
         id: '12345678-7012-462c-b7d0-7e452ba0f1ab',
@@ -162,10 +169,11 @@ describe('StoresController TEST', () => {
         businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象controller呼び出し
-      const result = await storesController.create(reqDto);
+      const result = await storesController.create(reqDto, param);
 
       // 検証
       expect(result).toEqual({
@@ -202,6 +210,10 @@ describe('StoresController TEST', () => {
         // businessHours: '10:00-20:00',
       };
 
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const param: ExpressRequest & { user: RequestUser } = createRequest();
+
       // service mock data
       jest.spyOn(storesService, 'create').mockResolvedValue({
         id: '12345678-7012-462c-b7d0-7e452ba0f1ab',
@@ -217,10 +229,11 @@ describe('StoresController TEST', () => {
         // businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象controller呼び出し
-      const result = await storesController.create(reqDto);
+      const result = await storesController.create(reqDto, param);
 
       // 検証
       expect(result).toEqual({
@@ -257,6 +270,10 @@ describe('StoresController TEST', () => {
         businessHours: undefined,
       };
 
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const param: ExpressRequest & { user: RequestUser } = createRequest();
+
       // service mock data
       jest.spyOn(storesService, 'create').mockResolvedValue({
         id: '12345678-7012-462c-b7d0-7e452ba0f1ab',
@@ -272,10 +289,11 @@ describe('StoresController TEST', () => {
         businessHours: undefined,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象controller呼び出し
-      const result = await storesController.create(reqDto);
+      const result = await storesController.create(reqDto, param);
 
       // 検証
       expect(result).toEqual({
@@ -318,6 +336,7 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -333,6 +352,7 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -348,6 +368,7 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
   return stores;
@@ -411,4 +432,34 @@ function createExpectedStoreDtos(): StoreResponseDto[] {
     },
   ];
   return stores;
+}
+
+/**
+ * req: ExpressRequest & { user: RequestUser } をモックする。
+ * ExpressRequest（通常は express の Request 型）にカスタムの user プロパティ（RequestUser 型）を
+ * 追加したリクエストオブジェクトを模倣する必要があります。
+ * → ExpressRequest と RequestUser を組み合わせた型を満たすようにモックを作成します。
+ *
+ */
+function createRequest(): ExpressRequest & { user: RequestUser } {
+  // RequestUserをモック:ペイロードの値
+  const mockUser: RequestUser = {
+    id: '633931d5-2b25-45f1-8006-c137af49e53d',
+    name: 'テストユーザー',
+    status: 'FREE',
+  };
+
+  // モックリクエスト（ExpressRequest & { user: RequestUser } を満たすデータを作成）
+  // Partial<T>は、ユーティリティ型の一つで、指定した型Tのすべてのプロパティをオプション(任意)に
+  // する型を生成します。
+  // ExpressRequest（expressのRequest型を拡張した型）は、通常多くのプロパティ
+  // （headers, query, bodyなど）を持っています。
+  // テストではすべてのプロパティをモックする必要がないため、Partial<ExpressRequest>を使って
+  // 必要なプロパティ（この場合はuser）だけを定義します。
+  const mockRequest: Partial<ExpressRequest & { user: RequestUser }> = {
+    user: mockUser,
+  };
+  // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+  // 完全に一致しないため、保守性がやや低下する可能性があるため）
+  return mockRequest as ExpressRequest & { user: RequestUser };
 }

@@ -97,6 +97,7 @@ describe('StoresService Test', () => {
           zipCode: null,
           address: null,
           businessHours: null,
+          userId: '633931d5-2b25-45f1-8006-c137af49e53d',
         },
       ]);
       // テスト実施
@@ -117,6 +118,7 @@ describe('StoresService Test', () => {
           zipCode: undefined,
           address: undefined,
           businessHours: undefined,
+          userId: '633931d5-2b25-45f1-8006-c137af49e53d',
         },
       ]);
     });
@@ -181,21 +183,25 @@ describe('StoresService Test', () => {
         businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象service呼び出し
-      const result = await storesService.create({
-        name: '山田電気 能登店',
-        status: 'published',
-        email: 'yamada-akabane@test.co.jp',
-        phoneNumber: '03-1122-9901',
-        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        // prefecture: '石川県',
-        holidays: ['WEDNESDAY', 'SUNDAY'],
-        zipCode: '100-0001',
-        address: '石川県北区赤羽３丁目',
-        businessHours: '10:00-20:00',
-      });
+      const result = await storesService.create(
+        {
+          name: '山田電気 能登店',
+          status: 'published',
+          email: 'yamada-akabane@test.co.jp',
+          phoneNumber: '03-1122-9901',
+          kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+          // prefecture: '石川県',
+          holidays: ['WEDNESDAY', 'SUNDAY'],
+          zipCode: '100-0001',
+          address: '石川県北区赤羽３丁目',
+          businessHours: '10:00-20:00',
+        },
+        '633931d5-2b25-45f1-8006-c137af49e53d',
+      );
 
       // 検証
       expect(result).toEqual({
@@ -212,6 +218,7 @@ describe('StoresService Test', () => {
         businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
     });
 
@@ -246,10 +253,14 @@ describe('StoresService Test', () => {
         businessHours: null,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
-      const result = await storesService.create(storeDto);
+      const result = await storesService.create(
+        storeDto,
+        '633931d5-2b25-45f1-8006-c137af49e53d',
+      );
 
       // 検証
       expect(result).toEqual({
@@ -266,6 +277,7 @@ describe('StoresService Test', () => {
         businessHours: undefined,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
       // 1回呼ばれたか
       expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
@@ -318,10 +330,14 @@ describe('StoresService Test', () => {
         businessHours: null,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
-      const result = await storesService.create(storeDto);
+      const result = await storesService.create(
+        storeDto,
+        '633931d5-2b25-45f1-8006-c137af49e53d',
+      );
 
       // 検証
       expect(result).toEqual({
@@ -338,6 +354,7 @@ describe('StoresService Test', () => {
         businessHours: undefined,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
       // 1回呼ばれたか
       expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
@@ -380,6 +397,7 @@ function createMockStores(): Store[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -395,6 +413,7 @@ function createMockStores(): Store[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -410,6 +429,7 @@ function createMockStores(): Store[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
   return stores;
@@ -432,6 +452,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -447,6 +468,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -462,6 +484,7 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       businessHours: '10:00-20:00',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
 
