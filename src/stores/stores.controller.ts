@@ -6,10 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import type { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresService } from './stores.service';
@@ -56,9 +59,13 @@ export class StoresController {
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
     @Body() createStoreDto: CreateStoreDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<StoreResponseDto> {
     // 店舗情報作成
-    const created = await this.storesService.create(createStoreDto);
+    const created = await this.storesService.create(
+      createStoreDto,
+      req.user.id,
+    );
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(

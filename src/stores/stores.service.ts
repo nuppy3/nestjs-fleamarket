@@ -47,6 +47,9 @@ export class StoresService {
           : undefined,
         createdAt: prismaStore.createdAt,
         updatedAt: prismaStore.updatedAt,
+        // 警告が出る理由：外部キーの特殊性のため、Unsafe assignment of an error typed value.」エラー
+        // 回避のため、as stringを追加
+        userId: prismaStore.userId as string,
       };
       domains.push(domain);
     }
@@ -66,6 +69,7 @@ export class StoresService {
    */
   async create(
     createStoreDto: CreateStoreDto,
+    userId: string,
   ): Promise<Store & { id: string }> {
     // 分割代入で必要な項目のみを取得：これがベスト(理由は以下の超重要!!を参照)
     const {
@@ -106,12 +110,12 @@ export class StoresService {
       phoneNumber,
       businessHours,
       holidays,
+      userId, // Userとのリレーション
     };
 
     // domain → primsaデータ
     const prismaInput = {
       ...domainStore,
-      userId: '1ea2767d-ab84-4a96-bd16-fa26c5a6dc12',
     };
 
     // prisma：Store情報をDB登録
@@ -138,6 +142,9 @@ export class StoresService {
         : undefined,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
+      // 警告が出る理由：外部キーの特殊性のため、Unsafe assignment of an error typed value.」エラー
+      // 回避のため、as stringを追加
+      userId: created.userId as string,
     };
 
     return savedStore;

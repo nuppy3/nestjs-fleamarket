@@ -55,6 +55,8 @@ export interface Store {
   // 考えられるのでdomainに含める(ほぼ入れるらしい)
   createdAt: Date;
   updatedAt: Date;
+  // Userとのリレーション
+  userId: string;
 }
 
 // enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）
