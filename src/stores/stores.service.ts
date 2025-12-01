@@ -111,6 +111,7 @@ export class StoresService {
     // domain → primsaデータ
     const prismaInput = {
       ...domainStore,
+      userId: '1ea2767d-ab84-4a96-bd16-fa26c5a6dc12',
     };
 
     // prisma：Store情報をDB登録
