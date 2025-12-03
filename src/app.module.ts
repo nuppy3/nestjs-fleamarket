@@ -4,6 +4,7 @@ import { ItemsNoDbModule } from './items-no-db/items-no-db.module';
 import { ItemsModule } from './items/items.module';
 import { StoresModule } from './stores/stores.module';
 import { TodoItemsModule } from './todo-items/todo-items.module';
+import { PrefecturesModule } from './prefectures/prefectures.module';
 
 @Module({
   // featureモジュール(子モジュール)、外部モジュールの登録
@@ -16,6 +17,7 @@ import { TodoItemsModule } from './todo-items/todo-items.module';
     ItemsNoDbModule,
     AuthModule,
     StoresModule,
+    PrefecturesModule,
   ],
   // コントローラー
   controllers: [],
