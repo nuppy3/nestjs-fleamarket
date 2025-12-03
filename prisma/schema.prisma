@@ -111,13 +111,53 @@ model Store {
   //　・fields属性：参照元(Item)モデルのキーを指定。
   //  ・references属性：参照先(User)モデルの主キーを指定
   //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
-  userId String @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String     @db.Uuid
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Prefectureテーブルとのリレーション
+  prefectureId String     @db.Uuid
+  prefecture   Prefecture @relation(fields: [prefectureId], references: [id], onDelete: Cascade)
 }
 
 // あくまでPrismaのenumであり、Typescriptのenumじゃないから、プロパティに","を付与しない
 enum StorStatus {
   published
   editing
+  suspended
+}
+
+model Prefecture {
+  // <カラム(フィールド)> <Prismaの型> <DBの型(VarCharなど(Intは不要か）、PK,FK,デフォルト値指定> <DB(Postgresql)の型>
+
+  // @id：PK指定
+  // default：デフォルト値を指定。uuidにて自動採番。
+  // @db.Uuid： PrismaのString型はPostgresqlだとtext型に変換されるので、Postgresqlの
+  // 　　　　　　Uuid型として認識させる、@db.Uuid を指定する。 
+  id        String           @id @default(uuid()) @db.Uuid
+  code      String           @unique @db.VarChar(2) // 01:北海道 13:東京
+  name      String           @db.VarChar(255)
+  kanaName  String           @db.VarChar(255)
+  status    PrefectureStatus @default(published)
+  kanaEn    String           @db.VarChar(255) // "Tokyo-to"
+  // now(): データが追加されたタイミングの時間
+  // @db.Timestamp(0) : 秒まで表示
+  createdAt DateTime         @default(now()) @db.Timestamp(0)
+  // @updatedAt: 更新時刻がセットされる
+  updatedAt DateTime         @updatedAt @db.Timestamp(0)
+
+  // Regionテーブルとの紐付け関連
+  // Regionテーブルとのリレーションを定義
+  // @relation：参照元(Prefecture)と参照先(Region)のモデルとの関連付けを行う
+  //　・fields属性：参照元(Item)モデルのキーを指定。
+  //  ・references属性：参照先(User)モデルの主キーを指定
+  //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
+  // regionId String @db.Uuid
+  // region   Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  // Storeテーブルとのリレーション(1:N)
+  store Store[]
+}
+
+enum PrefectureStatus {
+  published
   suspended
 }
