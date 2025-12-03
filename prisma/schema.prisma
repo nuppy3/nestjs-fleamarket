@@ -111,11 +111,11 @@ model Store {
   //　・fields属性：参照元(Item)モデルのキーを指定。
   //  ・references属性：参照先(User)モデルの主キーを指定
   //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
-  userId       String     @db.Uuid
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String      @db.Uuid
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Prefectureテーブルとのリレーション
-  prefectureId String     @db.Uuid
-  prefecture   Prefecture @relation(fields: [prefectureId], references: [id], onDelete: Cascade)
+  prefectureId String?     @db.Uuid
+  prefecture   Prefecture? @relation(fields: [prefectureId], references: [id], onDelete: Cascade)
 }
 
 // あくまでPrismaのenumであり、Typescriptのenumじゃないから、プロパティに","を付与しない
