@@ -15,14 +15,14 @@ import { PrefecturesService } from './prefectures.service';
 export class PrefecturesController {
   constructor(private readonly prefecturesService: PrefecturesService) {}
 
-  @Post()
-  create(@Body() createPrefectureDto: CreatePrefectureDto) {
-    return this.prefecturesService.create(createPrefectureDto);
-  }
-
   @Get()
   findAll() {
     return this.prefecturesService.findAll();
+  }
+
+  @Post()
+  create(@Body() createPrefectureDto: CreatePrefectureDto) {
+    return this.prefecturesService.create(createPrefectureDto);
   }
 
   @Get(':id')
