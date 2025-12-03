@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreatePrefectureDto } from './create-prefecture.dto';
+import { CreatePrefectureDto } from './prefecture.dto';
 
 export class UpdatePrefectureDto extends PartialType(CreatePrefectureDto) {}

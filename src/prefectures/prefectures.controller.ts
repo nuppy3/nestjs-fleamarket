@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreatePrefectureDto } from './dto/create-prefecture.dto';
+import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 import { PrefecturesService } from './prefectures.service';
 

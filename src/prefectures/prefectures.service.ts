@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prefecture } from 'src/stores/stores.model';
 import { PrismaService } from './../prisma/prisma.service';
-import { CreatePrefectureDto } from './dto/create-prefecture.dto';
+import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 
 @Injectable()
