@@ -25,7 +25,9 @@ export class PrefecturesController {
   }
 
   @Post()
-  async create(@Body() createPrefectureDto: CreatePrefectureDto) {
+  async create(
+    @Body() createPrefectureDto: CreatePrefectureDto,
+  ): Promise<PrefectureResponseDto> {
     const domain = await this.prefecturesService.create(createPrefectureDto);
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
