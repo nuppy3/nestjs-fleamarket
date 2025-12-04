@@ -10,7 +10,9 @@ export class PrefecturesService {
 
   async findAll(): Promise<Prefecture[]> {
     // prisma経由でPrefecture情報配列取得
-    const prefectures = await this.prismaService.prefecture.findMany();
+    const prefectures = await this.prismaService.prefecture.findMany({
+      orderBy: { code: 'asc' },
+    });
     // prisma→domain
     const domains: Prefecture[] = prefectures.map((prefecture) => ({
       ...prefecture,
