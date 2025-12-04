@@ -7,7 +7,11 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreatePrefectureDto } from './dto/prefecture.dto';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import {
+  CreatePrefectureDto,
+  PrefectureResponseDto,
+} from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 import { PrefecturesService } from './prefectures.service';
 
@@ -21,8 +25,17 @@ export class PrefecturesController {
   }
 
   @Post()
-  create(@Body() createPrefectureDto: CreatePrefectureDto) {
-    return this.prefecturesService.create(createPrefectureDto);
+  async create(@Body() createPrefectureDto: CreatePrefectureDto) {
+    const domain = await this.prefecturesService.create(createPrefectureDto);
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    return instanceToPlain(
+      plainToInstance(PrefectureResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as PrefectureResponseDto;
   }
 
   @Get(':id')
