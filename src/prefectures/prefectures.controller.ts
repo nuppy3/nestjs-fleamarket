@@ -16,8 +16,8 @@ export class PrefecturesController {
   constructor(private readonly prefecturesService: PrefecturesService) {}
 
   @Get()
-  findAll() {
-    return this.prefecturesService.findAll();
+  async findAll() {
+    return await this.prefecturesService.findAll();
   }
 
   @Post()

@@ -31,6 +31,7 @@ export class CreateStoreDto {
   @MaxLength(40) // 任意項目だが入力された際のValidation
   kanaName?: string;
 
+  // StoreStatusは厳密なEnumではない（modern Enum=union)のだが@IsEnum()が効くみたい！
   @IsEnum(StoreStatus, {
     message: `StoreStatus must be one of: ${StoreStatus.EDITING}, ${StoreStatus.PUBLISHED}, ${StoreStatus.SUSPENDED}`,
   })

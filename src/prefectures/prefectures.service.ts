@@ -19,8 +19,21 @@ export class PrefecturesService {
     return domains;
   }
 
-  create(createPrefectureDto: CreatePrefectureDto) {
-    return 'This action adds a new prefecture';
+  async create(createPrefectureDto: CreatePrefectureDto) {
+    // dto取得
+    const { name, code, kanaName, status, kanaEn } = createPrefectureDto;
+
+    // dto → domain の詰め替えスキップ
+
+    // domain → prismaインプットパラメータ
+    const prismaInput = { name, code, kanaName, status, kanaEn };
+
+    // prisma → domain
+    const created = await this.prismaService.prefecture.create({
+      data: prismaInput,
+    });
+
+    return created;
   }
 
   findOne(id: number) {
