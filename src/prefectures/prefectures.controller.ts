@@ -6,7 +6,9 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import {
   CreatePrefectureDto,
@@ -36,6 +38,7 @@ export class PrefecturesController {
   }
 
   @Post()
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
     @Body() createPrefectureDto: CreatePrefectureDto,
   ): Promise<PrefectureResponseDto> {
