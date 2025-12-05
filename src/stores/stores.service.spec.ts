@@ -16,7 +16,7 @@ const mockPrismaService = {
   },
 };
 
-// descrive():関連する複数のテストケースをグループ化
+// describe():関連する複数のテストケースをグループ化
 describe('StoresService Test', () => {
   // DIモジュール
   let storesService: StoresService;

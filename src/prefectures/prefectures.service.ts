@@ -8,15 +8,17 @@ import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 export class PrefecturesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAll(): Promise<Prefecture[]> {
+  async findAll(): Promise<(Prefecture & { id: string })[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
       orderBy: { code: 'asc' },
     });
     // prisma→domain
-    const domains: Prefecture[] = prefectures.map((prefecture) => ({
-      ...prefecture,
-    }));
+    const domains: (Prefecture & { id: string })[] = prefectures.map(
+      (prefecture) => ({
+        ...prefecture,
+      }),
+    );
 
     return domains;
   }

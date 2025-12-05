@@ -56,6 +56,10 @@ export type PrefectureResponseShape = Pick<
  * 値の変換（@Transform）
  */
 export class PrefectureResponseDto implements PrefectureResponseShape {
+  // ドメインにidは不要。ResponseDtoにidを付与。→ベストプラクティス!!
+  @Expose()
+  readonly id: string;
+
   @Expose()
   name: string;
 
