@@ -98,6 +98,7 @@ describe('StoresService Test', () => {
           address: null,
           businessHours: null,
           userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+          prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
         },
       ]);
       // テスト実施
@@ -184,6 +185,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       });
 
       // テスト対象service呼び出し
@@ -254,6 +256,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       });
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
@@ -331,6 +334,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       });
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
@@ -398,6 +402,7 @@ function createMockStores(): Store[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -414,7 +419,9 @@ function createMockStores(): Store[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
     },
+
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
       name: '山田電気 銀座店',
@@ -430,6 +437,7 @@ function createMockStores(): Store[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
     },
   ];
   return stores;

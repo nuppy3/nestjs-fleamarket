@@ -47,8 +47,6 @@ export class StoresService {
           : undefined,
         createdAt: prismaStore.createdAt,
         updatedAt: prismaStore.updatedAt,
-        // 警告が出る理由：外部キーの特殊性のため、Unsafe assignment of an error typed value.」エラー
-        // 回避のため、as stringを追加
         userId: prismaStore.userId,
       };
       domains.push(domain);
