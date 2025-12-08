@@ -72,7 +72,7 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   describe('create', () => {
-    it('正常系: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', () => {
+    it('正常系: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', async () => {
       // serviceの引数作成
       const dto: CreatePrefectureDto = {
         name: '石川県',
@@ -93,8 +93,23 @@ describe('□□□ Prefecture Test □□□', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       });
+
+      // テスト対象service呼び出し
+      const result = await prefectureService.create(dto);
+
+      // 検証
+      expect(result).toEqual({
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      });
     });
-    it('異常系①: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', () => {});
+    it('異常系①: Prefectureの情報を登録(全項目)し、一時制約エラー', () => {});
     it('異常系②: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', () => {});
   });
 });
