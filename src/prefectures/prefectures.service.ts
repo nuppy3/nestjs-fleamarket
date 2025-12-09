@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from 'generated/prisma/runtime/library';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture } from '../prefectures/prefecture.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -52,7 +52,7 @@ export class PrefecturesService {
       // Prismaの既知のリクエストエラーであるかをチェック
       // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっている
       if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === '2002') {
+        if (e.code === 'P2002') {
           const field =
             (e.meta?.target as string[])?.join(', ') || '不明なフィールド';
           // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる

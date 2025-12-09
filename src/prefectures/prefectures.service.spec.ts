@@ -1,9 +1,11 @@
 import { ConflictException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
+// import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
+// import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
-import { Prefecture } from './entities/prefecture.entity';
+import { Prefecture } from './prefecture.model';
 import { PrefecturesService } from './prefectures.service';
 
 const mockPrismaSercie = {
@@ -17,8 +19,8 @@ describe('□□□ Prefecture Test □□□', () => {
   // DIモジュール
   let prefectureService: PrefecturesService;
   let prismaService: PrismaService;
-  let prismaMockPrefectures: Prefecture[];
-  let expectedPrefectures: Prefecture[];
+  let prismaMockPrefectures: (Prefecture & { id: string })[];
+  let expectedPrefectures: (Prefecture & { id: string })[];
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -191,8 +193,8 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 });
 
-function createPrismaMockData(): Prefecture[] {
-  const domains: Prefecture[] = [
+function createPrismaMockData(): (Prefecture & { id: string })[] {
+  const domains: (Prefecture & { id: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -257,8 +259,8 @@ function createPrismaMockData(): Prefecture[] {
   return domains;
 }
 // 期待値作成
-function createExpectedData(): Prefecture[] {
-  const domains: Prefecture[] = [
+function createExpectedData(): (Prefecture & { id: string })[] {
+  const domains: (Prefecture & { id: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
