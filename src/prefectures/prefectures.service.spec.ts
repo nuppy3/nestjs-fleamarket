@@ -1,7 +1,9 @@
+import { ConflictException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Prefecture } from '../../generated/prisma';
+import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
+import { Prefecture } from './entities/prefecture.entity';
 import { PrefecturesService } from './prefectures.service';
 
 const mockPrismaSercie = {
@@ -72,16 +74,19 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   describe('create', () => {
-    it('正常系: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', async () => {
-      // serviceの引数作成
-      const dto: CreatePrefectureDto = {
-        name: '石川県',
-        code: '24',
-        kanaName: 'イシカワ',
-        kanaEn: 'ishikawa',
-        status: 'published',
-      };
+    // serviceの引数作成
+    const dto: CreatePrefectureDto = {
+      name: '石川県',
+      code: '24',
+      kanaName: 'イシカワ',
+      kanaEn: 'ishikawa',
+      status: 'published',
+    };
 
+    // ----------------------------------------------------------------
+    // 1. 正常ケースのテスト
+    // ----------------------------------------------------------------
+    it('正常系: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', async () => {
       // prisma modk data 作成
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
         id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -109,8 +114,80 @@ describe('□□□ Prefecture Test □□□', () => {
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       });
     });
-    it('異常系①: Prefectureの情報を登録(全項目)し、一時制約エラー', () => {});
-    it('異常系②: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', () => {});
+
+    // ----------------------------------------------------------------
+    // 2. エラーケースのテスト ： catch句のテスト
+    // ----------------------------------------------------------------
+    it('異常系①: Prefectureの情報を登録(全項目)し、一時制約エラー(P2002)の検証', async () => {
+      // prismaのP2002エラーのmockを作成
+      // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
+      // を返す場合、Prisma Client は例外をスローします。
+      // 一意制約、アクセス不可などは当該Errorは同じで、codeが違うだけ。
+      const mockP2002Error = new PrismaClientKnownRequestError(
+        'Unique constraint failed on the fields: (`code`)',
+        {
+          code: 'P2002',
+          clientVersion: 'test-version',
+          meta: { target: ['code'] }, // 一意制約違反のフィールド
+        },
+      );
+
+      // Pricmaが、P2002 エラーを返すように設定
+      // Errorを返却させたい場合はmockRejectedValue()でcreateのPrisma<Prefecture & {id:string}>の
+      // 返却をアンラップして、Errorを返すようにする）
+      jest
+        .spyOn(prismaService.prefecture, 'create')
+        .mockRejectedValue(mockP2002Error);
+
+      // test対象service呼び出し、結果検証
+      // ConflictExceptionがスローされることをテスト
+      await expect(prefectureService.create(dto)).rejects.toThrow(
+        ConflictException,
+      );
+
+      // ConflictExceptionのmessageが正しいことを検証
+      await expect(prefectureService.create(dto)).rejects.toThrow(
+        '指定された code は既に存在します。',
+      );
+    });
+    it('異常系②: P2002以外のPrismaエラーの場合、そのままエラーをスローする', async () => {
+      // P2002以外のエラーを作成（なんでもいいが、P2000:値が長すぎるエラーにしておく)
+      const mockP2000Error = new PrismaClientKnownRequestError(
+        'Value too long for column',
+        { code: 'P2000', clientVersion: 'test-version' },
+      );
+
+      // prismaServiceのmock(Error)を設定
+      jest
+        .spyOn(prismaService.prefecture, 'create')
+        .mockRejectedValue(mockP2000Error);
+
+      // serviceを呼び出し、結果を検証
+      await expect(prefectureService.create(dto)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+      // Errorに以下が含まれることを検証（このテストはなくてもいいか）
+      await expect(prefectureService.create(dto)).rejects.toHaveProperty(
+        'code',
+        'P2000',
+      );
+    });
+
+    it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: create()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.prefecture, 'create')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのまま再スローされることをテスト
+      await expect(prefectureService.create(dto)).rejects.toThrow(Error);
+      await expect(prefectureService.create(dto)).rejects.toThrow(
+        'Database connection failed',
+      );
+    });
   });
 });
 
