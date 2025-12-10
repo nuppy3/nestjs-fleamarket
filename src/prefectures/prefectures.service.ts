@@ -1,5 +1,4 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture } from '../prefectures/prefecture.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -48,21 +47,27 @@ export class PrefecturesService {
       const domain: Prefecture & { id: string } = Object.assign({}, created);
 
       return domain;
-    } catch (e) {
+      // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
+      // 詳細は、以下のトラブルシューティングを参照
+      // https://nuppy3.atlassian.net/wiki/spaces/~712020c7a7ba463a644114a22001124373f0fc/pages/60162052/03_99
+    } catch (e: unknown) {
       // Prismaの既知のリクエストエラーであるかをチェック
-      // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっている
-      if (e instanceof PrismaClientKnownRequestError) {
+
+      // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっているが、
+      // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
+      // if (e instanceof PrismaClientKnownRequestError) {
+      if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
         if (e.code === 'P2002') {
-          const field =
-            (e.meta?.target as string[])?.join(', ') || '不明なフィールド';
+          const meta = e.meta as { target?: string[] } | undefined;
+          const field = meta?.target?.join(', ') || '不明なフィールド';
           // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる
           throw new ConflictException(`指定された ${field} は既に存在します。`);
         } else {
           throw e;
         }
-      } else {
-        throw e;
       }
+
+      throw e;
     }
   }
 
