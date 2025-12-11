@@ -17,7 +17,9 @@ export class StoresService {
    */
   async findAll(): Promise<(Store & { id: string })[]> {
     // Store情報取得
-    const resultStores = await this.prismaService.store.findMany();
+    const resultStores = await this.prismaService.store.findMany({
+      where: { status: 'published' },
+    });
 
     // prisma → domain
     // stores.map((strore) => {})

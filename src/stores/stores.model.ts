@@ -3,6 +3,8 @@
 // type・interface・enum・union などをまとめる。
 //------------------------------------------
 
+import { Prefecture } from 'src/prefectures/prefecture.model';
+
 /**
  * 店舗情報 （Domainモデル)
  *
@@ -57,8 +59,8 @@ export interface Store {
   // Userとのリレーション
   userId: string;
   // Prefecture：値オブジェクト(prefectureというstringを持つのではなくオブジェクトを持たせる)
-  prefecture?: string;
-  // prefecture: Prefecture;
+  // prefecture?: string;
+  prefecture?: Prefecture;
 }
 
 // enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）
