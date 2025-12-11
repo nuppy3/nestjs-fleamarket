@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
 // StoreはPrismaの返却値Storeと重複するので、StoreEntityにリネーム
-import { Store } from '../../generated/prisma';
+import { Prefecture, Store } from '../../generated/prisma';
 import { CreateStoreDto } from './dto/store.dto';
 import { Store as StoreEntity } from './stores.model';
 import { StoresService } from './stores.service';
@@ -81,8 +81,9 @@ describe('StoresService Test', () => {
     });
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（1件)', async () => {
-      // mockの返却値作成
-      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([
+      // Storeの中にネストされたPrefectureがあった場合は、mockResulvedValueに直接[{...}]で
+      // mockデータを指定すると型エラー関連の警告で怒られる。→ mockValuesの型を明示して解決
+      const mockValues: (Store & { prefecture: Prefecture | null })[] = [
         {
           id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
           name: '山田電気 赤羽店',
@@ -99,8 +100,11 @@ describe('StoresService Test', () => {
           businessHours: null,
           userId: '633931d5-2b25-45f1-8006-c137af49e53d',
           prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+          prefecture: null,
         },
-      ]);
+      ];
+      // mockの返却値作成
+      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue(mockValues);
       // テスト実施
       const result = await storesService.findAll();
       // 検証
@@ -120,6 +124,7 @@ describe('StoresService Test', () => {
           address: undefined,
           businessHours: undefined,
           userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+          prefecture: undefined,
         },
       ]);
     });
@@ -385,8 +390,10 @@ describe('StoresService Test', () => {
 /**
  * Prismaの返却値(Store配列)を作成
  */
-function createMockStores(): Store[] {
-  const stores: Store[] = [
+// 型は、Prisma.StoreGetPayload<{ include: { prefecture: true } }>[]が便利だが、@prisma/clientの
+// import問題なのか、エラーになったので、(Store & { prefecture: Prefecture | null })[]としている。
+function createMockStores(): (Store & { prefecture: Prefecture | null })[] {
+  const stores: (Store & { prefecture: Prefecture | null })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山田電気 赤羽店',
@@ -403,6 +410,16 @@ function createMockStores(): Store[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      prefecture: {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -420,6 +437,16 @@ function createMockStores(): Store[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      prefecture: {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
 
     {
@@ -438,6 +465,16 @@ function createMockStores(): Store[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      prefecture: {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
   ];
   return stores;
@@ -461,6 +498,15 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -477,6 +523,15 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -493,6 +548,15 @@ function createExpectStores(): (StoreEntity & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
   ];
 

@@ -6,7 +6,7 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
