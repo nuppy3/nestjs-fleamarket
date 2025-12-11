@@ -18,6 +18,9 @@ export class StoresService {
   async findAll(): Promise<(Store & { id: string })[]> {
     // Store情報取得
     const resultStores = await this.prismaService.store.findMany({
+      include: {
+        prefecture: true,
+      },
       where: { status: 'published' },
     });
 
@@ -50,6 +53,19 @@ export class StoresService {
         createdAt: prismaStore.createdAt,
         updatedAt: prismaStore.updatedAt,
         userId: prismaStore.userId,
+        // prismaStore.prefectureがnull/undefinedでなければ必要なプロパティをセットした
+        // オブジェクトをprefecture(値オブジェクト ≒ prefectureドメイン)にセット
+        prefecture: prismaStore.prefecture
+          ? {
+              name: prismaStore.prefecture?.name,
+              code: prismaStore.prefecture?.code,
+              kanaName: prismaStore.prefecture?.kanaName,
+              status: prismaStore.prefecture?.status,
+              kanaEn: prismaStore.prefecture?.kanaEn,
+              createdAt: prismaStore.prefecture?.createdAt,
+              updatedAt: prismaStore.prefecture?.updatedAt,
+            }
+          : undefined,
       };
       domains.push(domain);
     }

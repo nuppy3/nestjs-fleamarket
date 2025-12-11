@@ -3,7 +3,7 @@
 // type・interface・enum・union などをまとめる。
 //------------------------------------------
 
-import { Prefecture } from 'src/prefectures/prefecture.model';
+import { Prefecture } from '../prefectures/prefecture.model';
 
 /**
  * 店舗情報 （Domainモデル)

@@ -10,6 +10,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { type Prefecture } from '../../prefectures/prefecture.model';
 import {
   Store,
   StoreStatus,
@@ -91,10 +92,10 @@ export const StoreResponseKeys = [
   'zipCode',
   'email',
   'address',
-  'prefecture',
   'phoneNumber',
   'businessHours',
   'holidays',
+  'prefecture',
   // satisfiesは配列が(keyof Store)[]型に一致するか確認
   // 要するに、配列内の各要素がStore型のkeyのみであることを強制
 ] satisfies (keyof Store)[];
@@ -149,8 +150,6 @@ export class StoreResponseDto implements StoreResponseShape {
   @Expose()
   address?: string;
   @Expose()
-  prefecture?: string;
-  @Expose()
   phoneNumber: string;
   @Expose()
   businessHours?: string;
@@ -185,9 +184,13 @@ export class StoreResponseDto implements StoreResponseShape {
   @Expose()
   readonly updatedAt: Date;
 
+  @Expose()
+  readonly prefecture?: Prefecture;
+
   // 重要!! コンストラクタ：domain → DTO 変換するコンストラクタ
   // domainはあくまで「ビジネスルール」だけ持つべきであり、idやcreatedAt、updatedAtなどはDTO
   // で持つ。
+  // あれ??、でもplainToInstanceでdomain→dto変換してるから、このconstructor使われてなくね？
   constructor(domain: Store, id: string) {
     this.id = id;
     Object.assign(this, domain);
