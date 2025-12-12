@@ -22,7 +22,7 @@ describe('StoresService Test', () => {
   let storesService: StoresService;
   let prismaService: PrismaService;
   // 正常系データ: Prismaの返却値(StoreはPrismaの型)
-  let prismaMockStores: Store[];
+  let prismaMockStores: (Store & { prefecture: Prefecture | null })[];
   // 期待値: seriveの返却値(StoreEntityはStoreドメイン ※Storeという名前が重複するためStoreEntityにリネーム)
   let expectedStores: (StoreEntity & {
     id: string;
@@ -82,7 +82,8 @@ describe('StoresService Test', () => {
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（1件)', async () => {
       // Storeの中にネストされたPrefectureがあった場合は、mockResulvedValueに直接[{...}]で
-      // mockデータを指定すると型エラー関連の警告で怒られる。→ mockValuesの型を明示して解決
+      // mockデータを指定すると型エラー関連の警告で怒られる。→ mockValuesとして定数を外だしして
+      // 型を明示して解決
       const mockValues: (Store & { prefecture: Prefecture | null })[] = [
         {
           id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -141,6 +142,7 @@ describe('StoresService Test', () => {
           store.zipCode = null;
           store.address = null;
           store.businessHours = null;
+          store.prefecture = null;
           return Object.assign({}, store);
         }),
       );
@@ -156,6 +158,7 @@ describe('StoresService Test', () => {
           store.zipCode = undefined;
           store.address = undefined;
           store.businessHours = undefined;
+          store.prefecture = undefined;
           return Object.assign({}, store);
         }),
       );

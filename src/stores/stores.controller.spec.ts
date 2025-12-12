@@ -57,6 +57,7 @@ describe('StoresController TEST', () => {
       // 検証
       expect(resoult).toEqual(expectedStoreDtos);
     });
+
     it('正常系： 店舗情報のリストを返却する(domainの任意項目undefined→DTOの任意項目除外）', async () => {
       // SerivceのMockデータを作成
       jest.spyOn(storesService, 'findAll').mockResolvedValue(
@@ -72,6 +73,7 @@ describe('StoresController TEST', () => {
           // prefecture: undefined,
           holidays: undefined,
           businessHours: undefined,
+          prefecture: undefined,
         })),
         // 以下でもOK：以下はわかりやすいが、上記より少し遅いらしい。
         // {
@@ -337,6 +339,15 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -353,6 +364,15 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -369,6 +389,15 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
   ];
   return stores;
@@ -395,6 +424,15 @@ function createExpectedStoreDtos(): StoreResponseDto[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       statusLabel: '営業中',
       holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
@@ -412,6 +450,15 @@ function createExpectedStoreDtos(): StoreResponseDto[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       statusLabel: '編集中',
       holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
@@ -429,6 +476,15 @@ function createExpectedStoreDtos(): StoreResponseDto[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       statusLabel: '閉店',
       holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
     },
   ];
   return stores;
