@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
+import { Prefecture } from '../../generated/prisma';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -95,10 +97,35 @@ export class StoresService {
       zipCode,
       email,
       address,
+      prefectureCode,
       phoneNumber,
       businessHours,
       holidays,
     } = createStoreDto;
+
+    // ------------------------------------------------------------
+    // prefectureCodeの妥当性チェック ⭐️TODO 以下は後日作成（①prefectureのfindByCode()作成、
+    // ②以下のチェック処理
+    // ------------------------------------------------------------
+    let prefecture: Prefecture | undefined;
+    // if (prefectureCode) {
+    //   prefecture = await this.prismaService.findByCode(prefectureCode);
+
+    // 暫定ロジック ------------------------------
+    prefecture = {
+      id: 'ce1a0a09-642b-40b6-af95-06939ea68453',
+      name: '東京都',
+      code: '13',
+      kanaName: 'トウキョウト',
+      status: 'published',
+      kanaEn: 'tokyo-to',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    };
+    // 暫定ロジック ------------------------------
+
+    //   // codeに紐づくprefectureが存在しない場合はエラー
+    // }
 
     // dto → domain
     // const domainStore: Store = {
@@ -111,7 +138,10 @@ export class StoresService {
     // ※StoreドメインからcreatedAt/updatedAtを抜いたオブジェクト
     // dto(リクエストパラメータ)には当然ながらcreatedAt/updatedAtが存在しないため。
     // 直接、DTO → primsaデータ すればいいのだが、厳密なDDD/CAを実装してみた。
-    const domainStore: Omit<Store, 'prefecture' | 'createdAt' | 'updatedAt'> = {
+    const domainStore: Omit<
+      Store,
+      'prefectureCode' | 'createdAt' | 'updatedAt'
+    > = {
       // 超重要!!：以下のようにスプレッド構文だと、createStoreDtoに予期せぬパラメータが入ってきても
       // domainStoreにセットされてしまう。いくらOmitで型制御しても、コンパイルは通るが実際は
       // 予期せぬパラメータ（prefectureもcreateAtも、それこそ hogehogeとかも）入ってくる。
@@ -127,16 +157,40 @@ export class StoresService {
       businessHours,
       holidays,
       userId, // Userとのリレーション
+      prefecture,
     };
 
     // domain → primsaデータ
     const prismaInput = {
-      ...domainStore,
+      name: domainStore.name,
+      kanaName: domainStore.kanaName,
+      status: domainStore.status,
+      zipCode: domainStore.zipCode,
+      email: domainStore.email,
+      address: domainStore.address,
+      phoneNumber: domainStore.phoneNumber,
+      businessHours: domainStore.businessHours,
+      holidays: domainStore.holidays,
+      userId: domainStore.userId,
+      prefectureId: prefecture.id,
     };
 
     // prisma：Store情報をDB登録
     const created = await this.prismaService.store.create({
       data: prismaInput,
+      include: {
+        prefecture: {
+          select: {
+            code: true,
+            name: true,
+            kanaName: true,
+            kanaEn: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
     });
 
     // prisma → domain
@@ -161,6 +215,8 @@ export class StoresService {
       // 警告が出る理由：外部キーの特殊性のため、Unsafe assignment of an error typed value.」エラー
       // 回避のため、as stringを追加
       userId: created.userId,
+      // prefecture(値オブジェクト)
+      prefecture: created.prefecture ?? undefined,
     };
 
     return savedStore;

@@ -52,11 +52,10 @@ export class CreateStoreDto {
   @MaxLength(100)
   address?: string;
 
-  // Store model からprefectureを削除
-  // @IsOptional()
-  // @IsString()
-  // @MaxLength(40)
-  // prefecture?: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  prefectureCode?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -64,6 +63,7 @@ export class CreateStoreDto {
   phoneNumber: string;
 
   @IsOptional()
+  @IsNotEmpty()
   @IsString()
   @MaxLength(100)
   businessHours?: string; // 営業時間 例："10:00〜20:00"
