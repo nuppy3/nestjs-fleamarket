@@ -27,6 +27,11 @@ describe('StoresService Test', () => {
   let expectedStores: (StoreEntity & {
     id: string;
   })[];
+  // Prismaの型：Store + Prefectrue
+  // prefectureのidを取得していないので除外するためPartialとして定義(Omitだと都度除外しないといけないのでPartialで対応)
+  type PrismaStoreWithPrefecture = Store & {
+    prefecture: Partial<Prefecture | null>;
+  };
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -177,15 +182,28 @@ describe('StoresService Test', () => {
 
   describe('create', () => {
     it('正常系: 店舗情報登録(全項目)し、Storeドメイン＋idの形で返却する', async () => {
+      // storesService.create()の引数作成（登録対象の店舗情報）
+      const storeDto: CreateStoreDto = {
+        name: '山田電気 能登店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+        prefectureCode: '17',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '石川県北区赤羽３丁目',
+        businessHours: '10:00-20:00',
+      };
+
       // Prisma mock Data 設定
-      jest.spyOn(prismaService.store, 'create').mockResolvedValue({
+      const mockValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        // prefecture: '石川県',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
         address: '石川県北区赤羽３丁目',
@@ -194,23 +212,22 @@ describe('StoresService Test', () => {
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
         prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
-      });
+        prefecture: {
+          name: '石川県',
+          code: '17',
+          kanaName: 'イシカワケン',
+          status: 'published',
+          kanaEn: 'ishikawa',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
+      };
+      jest.spyOn(prismaService.store, 'create').mockResolvedValue(mockValue);
 
       // テスト対象service呼び出し
       const result = await storesService.create(
-        {
-          name: '山田電気 能登店',
-          status: 'published',
-          email: 'yamada-akabane@test.co.jp',
-          phoneNumber: '03-1122-9901',
-          kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-          // prefecture: '石川県',
-          holidays: ['WEDNESDAY', 'SUNDAY'],
-          zipCode: '100-0001',
-          address: '石川県北区赤羽３丁目',
-          businessHours: '10:00-20:00',
-        },
-        '633931d5-2b25-45f1-8006-c137af49e53d',
+        storeDto,
+        '633931d5-2b25-45f1-8006-c137af49e53d', // userId
       );
 
       // 検証
@@ -221,7 +238,6 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        // prefecture: '石川県',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
         address: '石川県北区赤羽３丁目',
@@ -229,7 +245,64 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: {
+          name: '石川県',
+          code: '17',
+          kanaName: 'イシカワケン',
+          status: 'published',
+          kanaEn: 'ishikawa',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
       });
+
+      // 1回呼ばれたか
+      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
+        1,
+      );
+
+      // prismaService.store.create()の引数チェック
+      // 複雑な変換ロジックがないので、toHaveBeenCalledWithは不要だが一応。
+      // 引数を検証（data と include を両方チェック）
+      // ⭐️ポイント：外側のマッチャーにて、includeとdataをチェック（objectContainingなので
+      // 少なくとdataとincludeというプロパティを持っていればOKとしている）
+      // includeの中はobjectContainingを指定していないので、jestは厳密にチェックする!!
+      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledWith(
+        expect.objectContaining({
+          // ↑ 外側のマッチャー
+          // === include の検証（厳密に一致）===
+          include: {
+            prefecture: {
+              select: {
+                code: true,
+                name: true,
+                kanaName: true,
+                kanaEn: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+          // === data の検証（完全一致）===
+          // 単なる詰め替えなので実施する必要はないかもだが、一応。
+          data: {
+            name: storeDto.name,
+            kanaName: storeDto.kanaName,
+            status: storeDto.status,
+            zipCode: storeDto.zipCode,
+            email: storeDto.email,
+            address: storeDto.address,
+            phoneNumber: storeDto.phoneNumber,
+            businessHours: storeDto.businessHours,
+            holidays: storeDto.holidays,
+            userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+            // store serviceの暫定ロジックにて以下のprefectureIdを返却しているため以下を指定している
+            // store serviceの修正後にこちらも要修正
+            prefectureId: 'ce1a0a09-642b-40b6-af95-06939ea68453',
+          },
+        }),
+      );
     });
 
     it('正常系: 店舗情報登録(任意項目除外)し、Storeドメイン＋idの形で返却する', async () => {
@@ -240,7 +313,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         // kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        // prefecture: '石川県',
+        // prefectureCode: '17',
         // holidays: ['WEDNESDAY', 'SUNDAY'],
         // zipCode: '100-0001',
         // address: '石川県北区赤羽３丁目',
@@ -249,14 +322,13 @@ describe('StoresService Test', () => {
 
       // Prisma mock Data 設定
       // Prismaはcreateの項目がundefined(key自体なし)でも、key: nullの形で返却する仕様
-      jest.spyOn(prismaService.store, 'create').mockResolvedValue({
+      const mockValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: null,
-        // prefecture: null,
         holidays: [],
         zipCode: null,
         address: null,
@@ -264,8 +336,10 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-        prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
-      });
+        prefectureId: null,
+        prefecture: null,
+      };
+      jest.spyOn(prismaService.store, 'create').mockResolvedValue(mockValue);
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
       const result = await storesService.create(
@@ -281,7 +355,6 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
-        // prefecture: undefined,
         holidays: undefined,
         zipCode: undefined,
         address: undefined,
@@ -289,25 +362,44 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: undefined,
       });
+
       // 1回呼ばれたか
       expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
         1,
       );
+
       // prismaService.store.create()の引数チェック
       // 複雑な変換ロジックがないので、toHaveBeenCalledWithは不要だが一応。
-      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledWith({
-        // objectContaining(obj)：obj内の項目と一部一致（指定したキーだけ）
-        // → CreateItemDtoにある値(必須)だけを検証:単なる詰め替えなのでこの程度でOK
-        // Jestの型バグのため下記↓コードを入れている。
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: expect.objectContaining({
-          name: storeDto.name,
-          status: storeDto.status,
-          email: storeDto.email,
-          phoneNumber: storeDto.phoneNumber,
+      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledWith(
+        // includeとdataの部分一致（最低限、incudeとdataのプロパティが存在すればOK）
+        expect.objectContaining({
+          include: {
+            prefecture: {
+              select: {
+                code: true,
+                name: true,
+                kanaName: true,
+                kanaEn: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+          // objectContaining(obj)：obj内の項目と部分一致（指定したキーだけ）
+          // → CreateItemDtoにある値(必須)だけを検証:単なる詰め替えなのでこの程度でOK
+          // Jestの型バグのため下記↓コードを入れている。
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          data: expect.objectContaining({
+            name: storeDto.name,
+            status: storeDto.status,
+            email: storeDto.email,
+            phoneNumber: storeDto.phoneNumber,
+          }),
         }),
-      });
+      );
     });
 
     it('正常系: 店舗情報登録(任意項目undefind)し、Storeドメイン＋idの形で返却する', async () => {
@@ -318,7 +410,7 @@ describe('StoresService Test', () => {
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
-        // prefecture: undefined,
+        prefectureCode: undefined,
         holidays: undefined,
         zipCode: undefined,
         address: undefined,
@@ -327,14 +419,13 @@ describe('StoresService Test', () => {
 
       // Prisma mock Data 設定
       // Prismaはcreateの項目がundefined(key自体なし)でも、key: nullの形で返却する仕様
-      jest.spyOn(prismaService.store, 'create').mockResolvedValue({
+      const mockValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
         kanaName: null,
-        // prefecture: null,
         holidays: [],
         zipCode: null,
         address: null,
@@ -343,7 +434,9 @@ describe('StoresService Test', () => {
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
         prefectureId: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
-      });
+        prefecture: null,
+      };
+      jest.spyOn(prismaService.store, 'create').mockResolvedValue(mockValue);
 
       // テスト対象service呼び出し: パラメーター(任意項目削除)
       const result = await storesService.create(
@@ -367,6 +460,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: undefined,
       });
       // 1回呼ばれたか
       expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
@@ -374,18 +468,21 @@ describe('StoresService Test', () => {
       );
       // prismaService.store.create()の引数チェック
       // 複雑な変換ロジックがないので、toHaveBeenCalledWithは不要だが一応。
-      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledWith({
-        // objectContaining(obj)：obj内の項目と一部一致（指定したキーだけ）
-        // → CreateItemDtoにある値(必須)だけを検証:単なる詰め替えなのでこの程度でOK
-        // Jestの型バグのため下記↓コードを入れている。
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        data: expect.objectContaining({
-          name: storeDto.name,
-          status: storeDto.status,
-          email: storeDto.email,
-          phoneNumber: storeDto.phoneNumber,
+      expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledWith(
+        // includeを毎回チェックする必要はないので当該テストでは除外
+        expect.objectContaining({
+          // objectContaining(obj)：obj内の項目と部分一致（指定したキーだけ）
+          // → CreateItemDtoにある値(必須)だけを検証:単なる詰め替えなのでこの程度でOK
+          // Jestの型バグのため下記↓コードを入れている。
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          data: expect.objectContaining({
+            name: storeDto.name,
+            status: storeDto.status,
+            email: storeDto.email,
+            phoneNumber: storeDto.phoneNumber,
+          }),
         }),
-      });
+      );
     });
   });
 });
