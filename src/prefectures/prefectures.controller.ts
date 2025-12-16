@@ -60,6 +60,23 @@ export class PrefecturesController {
     return this.prefecturesService.findOne(+id);
   }
 
+  @Get('code/:code')
+  async findByCode(
+    @Param('code') code: string,
+  ): Promise<PrefectureResponseDto> {
+    // prefecture取得
+    const domain = await this.prefecturesService.findByCode(code);
+
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(PrefectureResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as PrefectureResponseDto;
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,
