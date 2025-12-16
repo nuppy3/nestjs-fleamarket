@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prefecture } from '../prefectures/prefecture.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -73,6 +77,39 @@ export class PrefecturesService {
 
   findOne(id: number) {
     return `This action returns a #${id} prefecture`;
+  }
+
+  /**
+   * prefectureコードを元に都道府県情報を取得し返却します。
+   *
+   * @param code prefectureコード
+   * @returns 都道府県情報(Prefectureドメイン＋id)
+   */
+  async findByCode(code: string): Promise<Prefecture & { id: string }> {
+    // Prefectureを取得
+    const prefecture = await this.prismaService.prefecture.findUnique({
+      where: { code },
+    });
+
+    // codeに紐づく都道府県情報が無い場合
+    if (!prefecture) {
+      throw new NotFoundException(`
+        codeに関連する都道府県情報が存在しません!! code: ${code}`);
+    }
+
+    // Prefecture(Prisma) → domain
+    const domain: Prefecture & { id: string } = {
+      id: prefecture.id,
+      name: prefecture.name,
+      code: prefecture.code,
+      kanaName: prefecture.kanaName,
+      kanaEn: prefecture.kanaEn,
+      status: prefecture.status,
+      createdAt: prefecture.createdAt,
+      updatedAt: prefecture.updatedAt,
+    };
+
+    return domain;
   }
 
   update(id: number, updatePrefectureDto: UpdatePrefectureDto) {
