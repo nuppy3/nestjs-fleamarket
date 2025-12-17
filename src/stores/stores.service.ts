@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
 import { Prefecture } from '../../generated/prisma';
+import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -10,7 +11,10 @@ import { Store, Weekday } from './stores.model';
 
 @Injectable()
 export class StoresService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly prefectureService: PrefecturesService,
+  ) {}
 
   /**
    * findAll()：Store情報をDBから取得し、返却します。
@@ -103,29 +107,17 @@ export class StoresService {
       holidays,
     } = createStoreDto;
 
-    // ------------------------------------------------------------
-    // prefectureCodeの妥当性チェック ⭐️TODO 以下は後日作成（①prefectureのfindByCode()作成、
-    // ②以下のチェック処理
-    // ------------------------------------------------------------
+    // prefectureCodeの妥当性チェック
     let prefecture: Prefecture | undefined;
-    // if (prefectureCode) {
-    //   prefecture = await this.prismaService.findByCode(prefectureCode);
-
-    // 暫定ロジック ------------------------------
-    prefecture = {
-      id: 'ce1a0a09-642b-40b6-af95-06939ea68453',
-      name: '東京都',
-      code: '13',
-      kanaName: 'トウキョウト',
-      status: 'published',
-      kanaEn: 'tokyo-to',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    };
-    // 暫定ロジック ------------------------------
-
-    //   // codeに紐づくprefectureが存在しない場合はエラー
-    // }
+    if (prefectureCode) {
+      prefecture = await this.prefectureService.findByCode(prefectureCode);
+      // codeに紐づくprefectureが存在しない場合はエラー
+      if (!prefecture) {
+        new NotFoundException(
+          `prefectureCodeに該当する都道府県情報が存在しません。 prefectureCode: ${prefectureCode}`,
+        );
+      }
+    }
 
     // dto → domain
     // const domainStore: Store = {
@@ -172,7 +164,7 @@ export class StoresService {
       businessHours: domainStore.businessHours,
       holidays: domainStore.holidays,
       userId: domainStore.userId,
-      prefectureId: prefecture.id,
+      prefectureId: prefecture?.id,
     };
 
     // prisma：Store情報をDB登録
