@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 // import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 // import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { Prefecture } from './prefecture.model';
@@ -12,6 +13,7 @@ const mockPrismaSercie = {
   prefecture: {
     findMany: jest.fn(),
     create: jest.fn(),
+    findUnique: jest.fn(),
   },
 };
 
@@ -19,7 +21,7 @@ describe('□□□ Prefecture Test □□□', () => {
   // DIモジュール
   let prefectureService: PrefecturesService;
   let prismaService: PrismaService;
-  let prismaMockPrefectures: (Prefecture & { id: string })[];
+  let prismaMockPrefectures: PrismaPrefecture[];
   let expectedPrefectures: (Prefecture & { id: string })[];
 
   // 前処理: テスト全体の前に1回だけ実行される
@@ -191,10 +193,38 @@ describe('□□□ Prefecture Test □□□', () => {
       );
     });
   });
+
+  describe('findByCode', () => {
+    it('正常系：codeに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
+      // findBYCodeの引数
+      const code: string = '01';
+
+      // PrismaのMockデータ作成
+      const prismaMockPrefecture = prismaMockPrefectures.find(
+        (prefecture) => prefecture.code === code,
+      )!;
+
+      // Prisma Modkデータセット
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(prismaMockPrefecture);
+
+      // テスト対象のfindByCode
+      const result = await prefectureService.findByCode(code);
+
+      // 検証
+      expect(result).toEqual(
+        expectedPrefectures.find((prefecture) => prefecture.code === code),
+      );
+    });
+
+    // it('正常系：codeに紐づくPrefectureを取得。任意項目がnullの場合undefinedに変換して返却する。', () => {});
+    it('異常系：codeに紐づくPrefectureを取得(0件)、NotFoundExceptionをスローする', () => {});
+  });
 });
 
-function createPrismaMockData(): (Prefecture & { id: string })[] {
-  const domains: (Prefecture & { id: string })[] = [
+function createPrismaMockData(): PrismaPrefecture[] {
+  const domains: PrismaPrefecture[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
