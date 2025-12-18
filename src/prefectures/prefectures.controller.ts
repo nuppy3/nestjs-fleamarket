@@ -65,7 +65,7 @@ export class PrefecturesController {
     @Param('code') code: string,
   ): Promise<PrefectureResponseDto> {
     // prefecture取得
-    const domain = await this.prefecturesService.findByCode(code);
+    const domain = await this.prefecturesService.findByCodeOrFail(code);
 
     // domain → dto
     return instanceToPlain(

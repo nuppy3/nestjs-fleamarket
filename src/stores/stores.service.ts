@@ -110,12 +110,16 @@ export class StoresService {
     // prefectureCodeの妥当性チェック
     let prefecture: Prefecture | undefined;
     if (prefectureCode) {
-      prefecture = await this.prefectureService.findByCode(prefectureCode);
-      // codeに紐づくprefectureが存在しない場合はエラー
-      if (!prefecture) {
-        new NotFoundException(
-          `prefectureCodeに該当する都道府県情報が存在しません。 prefectureCode: ${prefectureCode}`,
-        );
+      try {
+        prefecture =
+          await this.prefectureService.findByCodeOrFail(prefectureCode);
+      } catch (e: unknown) {
+        if (e instanceof NotFoundException) {
+          // codeに紐づくprefectureが存在しない場合はエラー
+          throw new NotFoundException(
+            `prefectureCodeに該当する都道府県情報が存在しません。 prefectureCode: ${prefectureCode}`,
+          );
+        }
       }
     }
 

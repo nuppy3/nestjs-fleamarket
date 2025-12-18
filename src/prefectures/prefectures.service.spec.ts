@@ -194,9 +194,9 @@ describe('□□□ Prefecture Test □□□', () => {
     });
   });
 
-  describe('findByCode', () => {
+  describe('findByCodeOrFail', () => {
     it('正常系：codeに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
-      // findBYCodeの引数
+      // findBYCodeOrFailの引数
       const code: string = '01';
 
       // PrismaのMockデータ作成
@@ -209,8 +209,8 @@ describe('□□□ Prefecture Test □□□', () => {
         .spyOn(prismaService.prefecture, 'findUnique')
         .mockResolvedValue(prismaMockPrefecture);
 
-      // テスト対象のfindByCode
-      const result = await prefectureService.findByCode(code);
+      // テスト対象のfindByCodeOrFail
+      const result = await prefectureService.findByCodeOrFail(code);
 
       // 検証
       expect(result).toEqual(

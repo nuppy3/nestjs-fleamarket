@@ -2,7 +2,9 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
 // StoreはPrismaの返却値Storeと重複するので、StoreEntityにリネーム
+import { NotFoundException } from '@nestjs/common';
 import { Prefecture, Store } from '../../generated/prisma';
+import { PrefecturesService } from '../prefectures/prefectures.service';
 import { CreateStoreDto } from './dto/store.dto';
 import { Store as StoreEntity } from './stores.model';
 import { StoresService } from './stores.service';
@@ -14,6 +16,7 @@ const mockPrismaService = {
     findMany: jest.fn(),
     create: jest.fn(),
   },
+  prefecture: { findUnique: jest.fn() },
 };
 
 // describe():関連する複数のテストケースをグループ化
@@ -41,7 +44,7 @@ describe('StoresService Test', () => {
     // @Module({
     //   imports: [PrismaModule],
     //   controllers: [StoresController],
-    //   providers: [StoresService],
+    //   providers: [StoresService, PrefecturesService],
     // })
     //---------------------------------
     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
@@ -53,6 +56,7 @@ describe('StoresService Test', () => {
         StoresService,
         // PrismaServiceはmock(mockPrismaService)に切り替える
         { provide: PrismaService, useValue: mockPrismaService },
+        PrefecturesService,
       ],
     }).compile();
 
@@ -196,8 +200,11 @@ describe('StoresService Test', () => {
         businessHours: '10:00-20:00',
       };
 
+      // ------------------------------------------
       // Prisma mock Data 設定
-      const mockValue: PrismaStoreWithPrefecture = {
+      // ------------------------------------------
+      // 「Prisma Store Mock Data」
+      const mockStoreValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
         name: '山田電気 能登店',
         status: 'published',
@@ -222,7 +229,24 @@ describe('StoresService Test', () => {
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         },
       };
-      jest.spyOn(prismaService.store, 'create').mockResolvedValue(mockValue);
+      jest
+        .spyOn(prismaService.store, 'create')
+        .mockResolvedValue(mockStoreValue);
+
+      // 「Prisma Prefecture Mock Data」
+      const mockPrefectureValue: Prefecture = {
+        id: '000d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '17',
+        kanaName: 'イシカワケン',
+        status: 'published',
+        kanaEn: 'ishikawa',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      };
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(mockPrefectureValue);
 
       // テスト対象service呼び出し
       const result = await storesService.create(
@@ -297,9 +321,7 @@ describe('StoresService Test', () => {
             businessHours: storeDto.businessHours,
             holidays: storeDto.holidays,
             userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-            // store serviceの暫定ロジックにて以下のprefectureIdを返却しているため以下を指定している
-            // store serviceの修正後にこちらも要修正
-            prefectureId: 'ce1a0a09-642b-40b6-af95-06939ea68453',
+            prefectureId: '000d2683-7012-462c-b7d0-7e452ba0f1ab',
           },
         }),
       );
@@ -482,6 +504,37 @@ describe('StoresService Test', () => {
             phoneNumber: storeDto.phoneNumber,
           }),
         }),
+      );
+    });
+
+    it('異常系①: Prefectureの情報が存在しない。NotFoundExceptionの検証。', async () => {
+      // storesService.create()の引数作成（登録対象の店舗情報）
+      const storeDto: CreateStoreDto = {
+        name: '山田電気 能登店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+        prefectureCode: '99',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '石川県北区赤羽３丁目',
+        businessHours: '10:00-20:00',
+      };
+
+      // Prisma Prefecture(都道府県)のレスポンスを作成（null:該当なし）
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(null);
+
+      // test対象service呼び出し、結果検証
+      // ConflictExceptionがスローされることをテスト
+      await expect(
+        storesService.create(storeDto, '633931d5-2b25-45f1-8006-c137af49e53d'),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `prefectureCodeに該当する都道府県情報が存在しません。 prefectureCode: ${storeDto.prefectureCode}`,
+        ),
       );
     });
   });

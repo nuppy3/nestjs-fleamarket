@@ -81,11 +81,13 @@ export class PrefecturesService {
 
   /**
    * prefectureコードを元に都道府県情報を取得し返却します。
+   * 存在しない場合はNotFoundExceptionを投げます。
    *
    * @param code prefectureコード
    * @returns 都道府県情報(Prefectureドメイン＋id)
+   * @throws NotFoundException 該当する都道府県が見つからない場合
    */
-  async findByCode(code: string): Promise<Prefecture & { id: string }> {
+  async findByCodeOrFail(code: string): Promise<Prefecture & { id: string }> {
     // Prefectureを取得
     const prefecture = await this.prismaService.prefecture.findUnique({
       where: { code },
