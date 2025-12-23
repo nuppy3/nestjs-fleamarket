@@ -1,22 +1,22 @@
 import { Expose } from 'class-transformer';
 import {
-  ArrayUnique,
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
+    ArrayUnique,
+    IsArray,
+    IsEmail,
+    IsEnum,
+    IsIn,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    MaxLength,
 } from 'class-validator';
-import { type Prefecture } from '../../prefectures/prefecture.model';
+import { type Prefecture } from '../../prefectures/prefectures.model';
 import {
-  Store,
-  StoreStatus,
-  WEEKDAY_LABELS,
-  WEEKDAYS,
-  type Weekday,
+    Store,
+    StoreStatus,
+    WEEKDAY_LABELS,
+    WEEKDAYS,
+    type Weekday,
 } from '../stores.model';
 
 export class CreateStoreDto {

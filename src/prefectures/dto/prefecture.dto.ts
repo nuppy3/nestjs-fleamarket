@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { Prefecture, PrefectureStatus } from '../prefecture.model';
+import { Prefecture, PrefectureStatus } from '../prefectures.model';
 
 export class CreatePrefectureDto {
   @IsString()

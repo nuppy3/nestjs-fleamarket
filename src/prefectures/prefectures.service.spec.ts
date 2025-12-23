@@ -6,7 +6,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
-import { Prefecture } from './prefecture.model';
+import { Prefecture } from './prefectures.model';
 import { PrefecturesService } from './prefectures.service';
 
 const mockPrismaSercie = {
