@@ -22,7 +22,7 @@ export class PrefecturesController {
   constructor(private readonly prefecturesService: PrefecturesService) {}
 
   @Get()
-  async findAll(): Promise<PrefectureResponseDto> {
+  async findAll(): Promise<PrefectureResponseDto[]> {
     // Prefecture情報[]取得
     const domains = await this.prefecturesService.findAll();
     // domain → dto
@@ -34,7 +34,7 @@ export class PrefecturesController {
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
-    ) as PrefectureResponseDto;
+    ) as PrefectureResponseDto[];
   }
 
   @Post()
