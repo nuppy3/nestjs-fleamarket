@@ -3,10 +3,14 @@ import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
 // StoreはPrismaの返却値Storeと重複するので、StoreEntityにリネーム
 import { NotFoundException } from '@nestjs/common';
-import { Prefecture, Store } from '../../generated/prisma';
+// PrismaのスキーマはXXXXPrismaという名前にリネーム
+import {
+  Prefecture as PrefecturePrisma,
+  Store as StorePrisma,
+} from '../../generated/prisma';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { CreateStoreDto } from './dto/store.dto';
-import { Store as StoreEntity } from './stores.model';
+import { Store } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -25,15 +29,17 @@ describe('StoresService Test', () => {
   let storesService: StoresService;
   let prismaService: PrismaService;
   // 正常系データ: Prismaの返却値(StoreはPrismaの型)
-  let prismaMockStores: (Store & { prefecture: Prefecture | null })[];
+  let prismaMockStores: (StorePrisma & {
+    prefecture: PrefecturePrisma | null;
+  })[];
   // 期待値: seriveの返却値(StoreEntityはStoreドメイン ※Storeという名前が重複するためStoreEntityにリネーム)
-  let expectedStores: (StoreEntity & {
+  let expectedStores: (Store & {
     id: string;
   })[];
   // Prismaの型：Store + Prefectrue
   // prefectureのidを取得していないので除外するためPartialとして定義(Omitだと都度除外しないといけないのでPartialで対応)
-  type PrismaStoreWithPrefecture = Store & {
-    prefecture: Partial<Prefecture | null>;
+  type PrismaStoreWithPrefecture = StorePrisma & {
+    prefecture: Partial<PrefecturePrisma | null>;
   };
 
   // 前処理: テスト全体の前に1回だけ実行される
@@ -93,7 +99,9 @@ describe('StoresService Test', () => {
       // Storeの中にネストされたPrefectureがあった場合は、mockResulvedValueに直接[{...}]で
       // mockデータを指定すると型エラー関連の警告で怒られる。→ mockValuesとして定数を外だしして
       // 型を明示して解決
-      const mockValues: (Store & { prefecture: Prefecture | null })[] = [
+      const mockValues: (StorePrisma & {
+        prefecture: PrefecturePrisma | null;
+      })[] = [
         {
           id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
           name: '山田電気 赤羽店',
@@ -234,7 +242,7 @@ describe('StoresService Test', () => {
         .mockResolvedValue(mockStoreValue);
 
       // 「Prisma Prefecture Mock Data」
-      const mockPrefectureValue: Prefecture = {
+      const mockPrefectureValue: PrefecturePrisma = {
         id: '000d2683-7012-462c-b7d0-7e452ba0f1ab',
         name: '石川県',
         code: '17',
@@ -545,8 +553,10 @@ describe('StoresService Test', () => {
  */
 // 型は、Prisma.StoreGetPayload<{ include: { prefecture: true } }>[]が便利だが、@prisma/clientの
 // import問題なのか、エラーになったので、(Store & { prefecture: Prefecture | null })[]としている。
-function createMockStores(): (Store & { prefecture: Prefecture | null })[] {
-  const stores: (Store & { prefecture: Prefecture | null })[] = [
+function createMockStores(): (StorePrisma & {
+  prefecture: PrefecturePrisma | null;
+})[] {
+  const stores: (StorePrisma & { prefecture: PrefecturePrisma | null })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山田電気 赤羽店',
@@ -634,8 +644,8 @@ function createMockStores(): (Store & { prefecture: Prefecture | null })[] {
 }
 
 // 期待値作成：serviceの返却値
-function createExpectStores(): (StoreEntity & { id: string })[] {
-  const stores: (StoreEntity & { id: string })[] = [
+function createExpectStores(): (Store & { id: string })[] {
+  const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山田電気 赤羽店',
