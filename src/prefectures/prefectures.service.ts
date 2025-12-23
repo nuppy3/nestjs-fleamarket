@@ -18,6 +18,7 @@ export class PrefecturesService {
       orderBy: { code: 'asc' },
     });
     // prisma→domain
+    // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Prefecture & { id: string })[] = prefectures.map(
       (prefecture) => ({
         ...prefecture,
