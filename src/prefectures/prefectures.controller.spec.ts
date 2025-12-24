@@ -94,7 +94,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
     // rejected（エラー）のケースが存在しないため発生。
     //
     // カバレッジを通すだけであれば適当なErrorを作成してテストを通すこともできるが、実際に発生しうる
-    // PrismaのError（DB接続エラー）をモックして実装してみた
+    // PrismaのError（DB接続エラー）をモックして実装してみた。
     //-------------------------------
     it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
       const connectionError = new PrismaClientKnownRequestError(
