@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrefectureResponseDto } from './dto/prefecture.dto';
 import { PrefecturesController } from './prefectures.controller';
@@ -72,7 +73,43 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       // 検証
       expect(result).toEqual(expectedPrefectureDtos);
     });
-    it('正常系：取得データが０件、dto[]の空配列が返却される', () => {});
+    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+      // mock data 作成(空配列)
+      jest.spyOn(prefecturesService, 'findAll').mockResolvedValue([]);
+      // test対象Controller呼び出し
+      const result = await prefecturesContorller.findAll();
+      // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
+      expect(result).toEqual([]);
+    });
+    //-------------------------------
+    // カバレッジ100%対応：
+    // async findAll(): Promise<PrefectureResponseDto[]> {
+    // の、<PrefectureResponseDto[]> {  が黄色くハイライトされてしまう問題。
+    // このメソッドが「正常系（成功時）」しかテストされていため発生。
+    //
+    // async 関数は内部で Promise を返す ため、Jest（istanbul）のカバレッジでは以下の2つの「分岐」を
+    // 考慮します：
+    // resolved（成功） した場合のパス（正常に値が返る）
+    // rejected（エラー） した場合のパス（throw または Promise.reject）
+    // rejected（エラー）のケースが存在しないため発生。
+    //
+    // カバレッジを通すだけであれば適当なErrorを作成してテストを通すこともできるが、実際に発生しうる
+    // PrismaのError（DB接続エラー）をモックして実装してみた
+    //-------------------------------
+    it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prefecturesService, 'findAll')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(prefecturesContorller.findAll()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
   });
 
   //--------------------------------
