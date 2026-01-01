@@ -21,10 +21,34 @@ import { PrefecturesService } from './prefectures.service';
 export class PrefecturesController {
   constructor(private readonly prefecturesService: PrefecturesService) {}
 
+  /**
+   * 都道府県情報取得（店舗の有無関係なし）
+   * @returns 都道府県情報
+   */
   @Get()
   async findAll(): Promise<PrefectureResponseDto[]> {
     // Prefecture情報[]取得
     const domains = await this.prefecturesService.findAll();
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
+    return instanceToPlain(
+      plainToInstance(PrefectureResponseDto, domains, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as PrefectureResponseDto[];
+  }
+
+  /**
+   * 都道府県情報取得（店舗有りの都道府県のみ）
+   * @returns 都道府県情報（店舗有りの都道府県のみ）
+   */
+  @Get('with-stores')
+  async findAllwithStores(): Promise<PrefectureResponseDto[]> {
+    // Prefecture情報[]取得()
+    const domains = await this.prefecturesService.findAllWithStores();
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!

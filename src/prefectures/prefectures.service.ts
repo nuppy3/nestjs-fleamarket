@@ -12,7 +12,31 @@ import { Prefecture } from './prefectures.model';
 export class PrefecturesService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  /**
+   * Prefecture配列を返却します。(昇順)
+   * @returns Prefecture配列
+   */
   async findAll(): Promise<(Prefecture & { id: string })[]> {
+    // prisma経由でPrefecture情報配列取得
+    const prefectures = await this.prismaService.prefecture.findMany({
+      orderBy: { code: 'asc' },
+    });
+    // prisma→domain
+    // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
+    const domains: (Prefecture & { id: string })[] = prefectures.map(
+      (prefecture) => ({
+        ...prefecture,
+      }),
+    );
+
+    return domains;
+  }
+
+  /**
+   * Prefecture配列を返却します。(店舗有りの都道府県情報/昇順)
+   * @returns Prefecture配列
+   */
+  async findAllWithStores(): Promise<(Prefecture & { id: string })[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
       orderBy: { code: 'asc' },
