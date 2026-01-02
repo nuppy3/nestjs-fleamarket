@@ -39,6 +39,7 @@ export class PrefecturesService {
   async findAllWithStores(): Promise<(Prefecture & { id: string })[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
+      include: { store: true },
       orderBy: { code: 'asc' },
     });
     // prisma→domain

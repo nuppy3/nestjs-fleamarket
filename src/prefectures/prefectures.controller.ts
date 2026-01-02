@@ -45,8 +45,8 @@ export class PrefecturesController {
    * 都道府県情報取得（店舗有りの都道府県のみ）
    * @returns 都道府県情報（店舗有りの都道府県のみ）
    */
-  @Get('with-stores')
-  async findAllwithStores(): Promise<PrefectureResponseDto[]> {
+  @Get('covered')
+  async findCovered(): Promise<PrefectureResponseDto[]> {
     // Prefecture情報[]取得()
     const domains = await this.prefecturesService.findAllWithStores();
     // domain → dto
