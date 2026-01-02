@@ -43,6 +43,11 @@ export class PrefecturesController {
 
   /**
    * 都道府県情報取得（店舗有りの都道府県のみ）
+   * findAllWithStoresという名前について：「店舗が存在する都道府県をすべて取得する」という
+   * ユースケースそのものを表現している。(findAllWithStores() はその意図が一目でわかる。)
+   *
+   * controllerのfindCoveredはURLが /covered であることはHTTP表現の都合。
+   *
    * @returns 都道府県情報（店舗有りの都道府県のみ）
    */
   @Get('covered')
