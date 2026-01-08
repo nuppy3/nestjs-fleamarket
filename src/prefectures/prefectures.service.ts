@@ -40,9 +40,21 @@ export class PrefecturesService {
   async findAllWithStoreCount(): Promise<(Prefecture & { id: string })[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
-      include: { store: true },
+      include: { _count: { select: { store: true } } },
+      // 実際は以下のようにselectにて取得項目を絞るべきだが、includeの動作確認のため。
+      // select: {
+      //   id: true,
+      //   code: true,
+      //   name: true,
+      //   _count: {
+      //     select: {
+      //       store: true, // ← 紐づくstoresの件数だけ取得
+      //     },
+      //   },
+      // },
       orderBy: { code: 'asc' },
     });
+
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Prefecture & { id: string })[] = prefectures.map(
