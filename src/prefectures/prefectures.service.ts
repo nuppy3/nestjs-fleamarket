@@ -33,10 +33,11 @@ export class PrefecturesService {
   }
 
   /**
-   * Prefecture配列を返却します。(店舗有りの都道府県情報/昇順)
-   * @returns Prefecture配列
+   * Prefecture配列を返却します。(店舗有りの都道府県情報と紐づく店舗数/昇順)
+   *
+   * @returns Prefecture配列(店舗有りの都道府県情報と紐づく店舗数/昇順)
    */
-  async findAllWithStores(): Promise<(Prefecture & { id: string })[]> {
+  async findAllWithStoreCount(): Promise<(Prefecture & { id: string })[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
       include: { store: true },

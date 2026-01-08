@@ -43,8 +43,8 @@ export class PrefecturesController {
 
   /**
    * 都道府県情報取得（店舗有りの都道府県のみ）
-   * findAllWithStoresという名前について：「店舗が存在する都道府県をすべて取得する」という
-   * ユースケースそのものを表現している。(findAllWithStores() はその意図が一目でわかる。)
+   * findAllWithStoreCountという名前について：「店舗が存在する都道府県をすべてと、紐づく店舗数を
+   * 取得する」というユースケースそのものを表現している。
    *
    * controllerのfindCoveredはURLが /covered であることはHTTP表現の都合。
    *
@@ -53,7 +53,7 @@ export class PrefecturesController {
   @Get('covered')
   async findCovered(): Promise<PrefectureResponseDto[]> {
     // Prefecture情報[]取得()
-    const domains = await this.prefecturesService.findAllWithStores();
+    const domains = await this.prefecturesService.findAllWithStoreCount();
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
