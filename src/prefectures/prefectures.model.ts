@@ -16,6 +16,21 @@ export interface Prefecture {
   updatedAt: Date;
 }
 
+/**
+ * 都道府県情報 （Domain専用モデル(Domain層のモデル))
+ *
+ * Prisma(DB)から取得したDBデータ→domain→controllerする際に、domainで抱えきれないDBデータを
+ * 取得するような要件が発生した場合（CA/DDDを意識するとdomainをシンプルに設計する必要がある）、
+ * Domain専用モデルというDomain Entity（例: Prefecture）だけでは表現しきれないが、
+ * ドメインのビジネスロジックやユースケースに必要な情報をまとめたモデルを使用することがある。
+ *
+ * 当該Domain専用モデルではPrefectureドメインに加え、storeCountを保持している。
+ */
+export interface PrefectureWithCoverage {
+  readonly prefecture: Prefecture;
+  readonly storeCount: number;
+}
+
 // modern enumパターン（union)
 export const PrefectureStatus = {
   PUBLISHED: 'published', // 掲載中
