@@ -54,11 +54,25 @@ export class PrefecturesController {
   async findCovered(): Promise<PrefectureResponseDto[]> {
     // Prefecture情報[]取得()
     const domains = await this.prefecturesService.findAllWithStoreCount();
-    // domain → dto
+
+    // domain専用モデル(PrefectureWithCoverage)→POJO(プレーンデータ)
+    const plains = domains.map((domain) => ({
+      id: domain.id,
+      name: domain.prefecture.name,
+      code: domain.prefecture.code,
+      kanaName: domain.prefecture.kanaName,
+      status: domain.prefecture.status,
+      kanaEn: domain.prefecture.kanaEn,
+      createdAt: domain.prefecture.createdAt,
+      updatedAt: domain.prefecture.updatedAt,
+      storeCount: domain.storeCount,
+    }));
+
+    // domain(POJO) → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
     return instanceToPlain(
-      plainToInstance(PrefectureResponseDto, domains, {
+      plainToInstance(PrefectureResponseDto, plains, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
