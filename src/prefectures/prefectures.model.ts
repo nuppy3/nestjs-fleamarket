@@ -28,6 +28,7 @@ export interface Prefecture {
  */
 export interface PrefectureWithCoverage {
   readonly prefecture: Prefecture;
+  readonly id: string;
   readonly storeCount: number;
 }
 

@@ -6,7 +6,7 @@ import {
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
-import { Prefecture } from './prefectures.model';
+import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
 
 @Injectable()
 export class PrefecturesService {
@@ -37,7 +37,7 @@ export class PrefecturesService {
    *
    * @returns Prefecture配列(店舗有りの都道府県情報と紐づく店舗数/昇順)
    */
-  async findAllWithStoreCount(): Promise<(Prefecture & { id: string })[]> {
+  async findAllWithStoreCount(): Promise<PrefectureWithCoverage[]> {
     // prisma経由でPrefecture情報配列取得
     const prefectures = await this.prismaService.prefecture.findMany({
       include: { _count: { select: { store: true } } },
@@ -57,11 +57,11 @@ export class PrefecturesService {
 
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
-    const domains: (Prefecture & { id: string })[] = prefectures.map(
-      (prefecture) => ({
-        ...prefecture,
-      }),
-    );
+    const domains: PrefectureWithCoverage[] = prefectures.map((prefecture) => ({
+      prefecture: prefecture,
+      id: prefecture.id,
+      storeCount: prefecture._count.store,
+    }));
 
     return domains;
   }
