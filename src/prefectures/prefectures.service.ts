@@ -38,20 +38,18 @@ export class PrefecturesService {
    * @returns Prefecture配列(店舗有りの都道府県情報と紐づく店舗数/昇順)
    */
   async findAllWithStoreCount(): Promise<PrefectureWithCoverage[]> {
-    // prisma経由でPrefecture情報配列取得
+    // prisma経由でPrefecture情報配列取得（アクティブ店舗のあるPrefecture）
     const prefectures = await this.prismaService.prefecture.findMany({
-      include: { _count: { select: { store: true } } },
-      // 実際は以下のようにselectにて取得項目を絞るべきだが、includeの動作確認のため。
-      // select: {
-      //   id: true,
-      //   code: true,
-      //   name: true,
-      //   _count: {
-      //     select: {
-      //       store: true, // ← 紐づくstoresの件数だけ取得
-      //     },
-      //   },
-      // },
+      where: {
+        store: { some: { status: 'published' } },
+      },
+      include: {
+        _count: {
+          select: {
+            store: { where: { status: 'published' } },
+          },
+        },
+      },
       orderBy: { code: 'asc' },
     });
 
