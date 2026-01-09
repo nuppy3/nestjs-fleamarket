@@ -77,6 +77,12 @@ describe('□□□ Prefecture Test □□□', () => {
     });
   });
 
+  describe('findAllWithStoreCount', () => {
+    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', () => {});
+    it('正常系： データが0件の場合は空配列を返却する', () => {});
+    it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {});
+  });
+
   describe('create', () => {
     // serviceの引数作成
     const dto: CreatePrefectureDto = {
