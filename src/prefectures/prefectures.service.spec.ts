@@ -6,7 +6,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
-import { Prefecture } from './prefectures.model';
+import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
 import { PrefecturesService } from './prefectures.service';
 
 const mockPrismaSercie = {
@@ -78,9 +78,23 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   describe('findAllWithStoreCount', () => {
-    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', () => {});
+    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', () => {
+      // prisma mock data
+      const prismaMockData = createPrismaMockDataIncludeStoreCount();
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockResolvedValue(prismaMockData);
+    });
+
+    // テスト対象servie呼び出し
+    const results = prefectureService.findAllWithStoreCount();
+
+    // 検証
+    const expectedData = createExpectedPrefectureWithCoverageData();
+    expect(results).toEqual(expectedData);
+
     it('正常系： データが0件の場合は空配列を返却する', () => {});
-    it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {});
+    it('異常系①: その他エラーのテスト：元のエラーをそのままスローする', async () => {});
   });
 
   describe('create', () => {
@@ -229,6 +243,7 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 });
 
+// Prisma Mock Data 作成
 function createPrismaMockData(): PrismaPrefecture[] {
   const domains: PrismaPrefecture[] = [
     {
@@ -294,6 +309,37 @@ function createPrismaMockData(): PrismaPrefecture[] {
   ];
   return domains;
 }
+
+function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
+  _count: { store: number };
+})[] {
+  const domains: (PrismaPrefecture & { _count: { store: number } })[] = [
+    {
+      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ホッカイドウ',
+      status: 'published',
+      kanaEn: 'hokkaido',
+      _count: { store: 1 },
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+    {
+      id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+      name: '東京都',
+      code: '13',
+      kanaName: 'トウキョウト',
+      status: 'published',
+      kanaEn: 'tokyo-to',
+      _count: { store: 10 },
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+  ];
+  return domains;
+}
+
 // 期待値作成
 function createExpectedData(): (Prefecture & { id: string })[] {
   const domains: (Prefecture & { id: string })[] = [
@@ -356,6 +402,38 @@ function createExpectedData(): (Prefecture & { id: string })[] {
       kanaEn: 'tokyo-to',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+  ];
+  return domains;
+}
+
+function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
+  const domains: PrefectureWithCoverage[] = [
+    {
+      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      prefecture: {
+        name: '北海道',
+        code: '01',
+        kanaName: 'ホッカイドウ',
+        status: 'published',
+        kanaEn: 'hokkaido',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+      storeCount: 1,
+    },
+    {
+      id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+      storeCount: 10,
     },
   ];
   return domains;
