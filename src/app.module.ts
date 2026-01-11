@@ -5,6 +5,7 @@ import { ItemsModule } from './items/items.module';
 import { StoresModule } from './stores/stores.module';
 import { TodoItemsModule } from './todo-items/todo-items.module';
 import { PrefecturesModule } from './prefectures/prefectures.module';
+import { RegionsModule } from './regions/regions.module';
 
 @Module({
   // featureモジュール(子モジュール)、外部モジュールの登録
@@ -18,6 +19,7 @@ import { PrefecturesModule } from './prefectures/prefectures.module';
     AuthModule,
     StoresModule,
     PrefecturesModule,
+    RegionsModule,
   ],
   // コントローラー
   controllers: [],
