@@ -6,10 +6,11 @@ import {
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
 import { PrefecturesController } from './prefectures.controller';
-import { Prefecture } from './prefectures.model';
+import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
 
 const mockPrerectureService = {
   findAll: jest.fn(),
+  findAllWithStoreCount: jest.fn(),
   create: jest.fn(),
 };
 
@@ -66,7 +67,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   //--------------------------------
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
-      // service modk data 作成
+      // service mock data 作成
       const domains: (Prefecture & { id: string })[] = mockPrefectures;
       jest.spyOn(prefecturesService, 'findAll').mockResolvedValue(domains);
 
@@ -108,6 +109,52 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       );
       jest
         .spyOn(prefecturesService, 'findAll')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(prefecturesController.findAll()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------
+  // findCovered()
+  //--------------------------------
+  describe('findCovered', () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+      // service mock data 作成
+      const domains: PrefectureWithCoverage[] =
+        createSriviceMockDataWithCoverage();
+      jest
+        .spyOn(prefecturesService, 'findAllWithStoreCount')
+        .mockResolvedValue(domains);
+
+      // テスト対象Controller呼び出し
+      const result = await prefecturesController.findCovered();
+
+      // 検証
+      expect(result).toEqual(createExpectedPrefectureWithCoverageDtos());
+    });
+
+    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+      // mock data 作成(空配列)
+      jest
+        .spyOn(prefecturesService, 'findAllWithStoreCount')
+        .mockResolvedValue([]);
+      // test対象Controller呼び出し
+      const result = await prefecturesController.findCovered();
+      // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
+      expect(result).toEqual([]);
+    });
+
+    it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prefecturesService, 'findAllWithStoreCount')
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
@@ -305,6 +352,47 @@ function createSriviceMockData(): (Prefecture & { id: string })[] {
   return domains;
 }
 
+/**
+ * PrefectureServiceのMockデータを作成
+ * @returns
+ */
+function createSriviceMockDataWithCoverage(): PrefectureWithCoverage[] {
+  const domains: PrefectureWithCoverage[] = [
+    {
+      prefecture: {
+        name: '北海道',
+        code: '01',
+        kanaName: 'ホッカイドウ',
+        status: 'published',
+        kanaEn: 'hokkaido',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      storeCount: 1,
+    },
+    {
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+      id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+      storeCount: 10,
+    },
+  ];
+
+  return domains;
+}
+
+/**
+ * PrefectureResponseDto期待値作成
+ * @returns PrefectureResponseDto(期待値)
+ */
 function createExpectedPrefectureDtos(): PrefectureResponseDto[] {
   const dtos: PrefectureResponseDto[] = [
     {
@@ -360,6 +448,37 @@ function createExpectedPrefectureDtos(): PrefectureResponseDto[] {
       status: 'published',
       kanaEn: 'tokyo-to',
       statusLabel: '反映中',
+    },
+  ];
+
+  return dtos;
+}
+
+/**
+ * PrefectureResponseDto期待値作成
+ * @returns PrefectureResponseDto(期待値)
+ */
+function createExpectedPrefectureWithCoverageDtos(): PrefectureResponseDto[] {
+  const dtos: PrefectureResponseDto[] = [
+    {
+      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ホッカイドウ',
+      status: 'published',
+      kanaEn: 'hokkaido',
+      statusLabel: '反映中',
+      storeCount: 1,
+    },
+    {
+      id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+      name: '東京都',
+      code: '13',
+      kanaName: 'トウキョウト',
+      status: 'published',
+      kanaEn: 'tokyo-to',
+      statusLabel: '反映中',
+      storeCount: 10,
     },
   ];
 
