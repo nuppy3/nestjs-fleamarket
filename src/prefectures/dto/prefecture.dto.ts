@@ -88,5 +88,5 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
   kanaEn: string;
 
   @Expose()
-  storeCount: number;
+  storeCount?: number;
 }
