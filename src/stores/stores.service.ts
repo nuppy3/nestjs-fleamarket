@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
-import { Prefecture } from '../../generated/prisma';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
@@ -108,7 +107,7 @@ export class StoresService {
     } = createStoreDto;
 
     // prefectureCodeの妥当性チェック
-    let prefecture: Prefecture | undefined;
+    let prefecture;
     if (prefectureCode) {
       try {
         prefecture =

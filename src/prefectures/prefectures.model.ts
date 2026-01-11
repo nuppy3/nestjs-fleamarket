@@ -14,6 +14,7 @@ export interface Prefecture {
   kanaEn: string;
   createdAt: Date;
   updatedAt: Date;
+  // regionId?: string;
 }
 
 /**

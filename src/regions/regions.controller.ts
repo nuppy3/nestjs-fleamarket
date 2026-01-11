@@ -15,19 +15,20 @@ import { RegionsService } from './regions.service';
 export class RegionsController {
   constructor(private readonly regionsService: RegionsService) {}
 
-  @Post()
-  create(@Body() createRegionDto: CreateRegionDto) {
-    return this.regionsService.create(createRegionDto);
-  }
-
   @Get()
   findAll() {
-    return this.regionsService.findAll();
+    this.regionsService.findAll();
+    return 'test findAll';
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.regionsService.findOne(+id);
+  }
+
+  @Post()
+  create(@Body() createRegionDto: CreateRegionDto) {
+    return this.regionsService.create(createRegionDto);
   }
 
   @Patch(':id')

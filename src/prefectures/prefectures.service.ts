@@ -154,6 +154,7 @@ export class PrefecturesService {
       status: prefecture.status,
       createdAt: prefecture.createdAt,
       updatedAt: prefecture.updatedAt,
+      // regionId: prefecture.regionId ?? undefined,
     };
 
     return domain;
