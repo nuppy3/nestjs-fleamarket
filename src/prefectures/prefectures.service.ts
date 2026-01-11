@@ -56,7 +56,15 @@ export class PrefecturesService {
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: PrefectureWithCoverage[] = prefectures.map((prefecture) => ({
-      prefecture: prefecture,
+      prefecture: {
+        code: prefecture.code,
+        name: prefecture.name,
+        kanaName: prefecture.kanaName,
+        status: prefecture.status,
+        kanaEn: prefecture.kanaEn,
+        createdAt: prefecture.createdAt,
+        updatedAt: prefecture.updatedAt,
+      },
       id: prefecture.id,
       storeCount: prefecture._count.store,
     }));

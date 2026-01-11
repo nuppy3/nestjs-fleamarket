@@ -78,22 +78,30 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   describe('findAllWithStoreCount', () => {
-    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', () => {
+    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', async () => {
       // prisma mock data
       const prismaMockData = createPrismaMockDataIncludeStoreCount();
       jest
         .spyOn(prismaService.prefecture, 'findMany')
         .mockResolvedValue(prismaMockData);
+
+      // テスト対象servie呼び出し
+      const results = await prefectureService.findAllWithStoreCount();
+
+      // 検証
+      const expectedData = createExpectedPrefectureWithCoverageData();
+      expect(results).toEqual(expectedData);
     });
 
-    // テスト対象servie呼び出し
-    const results = prefectureService.findAllWithStoreCount();
+    it('正常系： データが0件の場合は空配列を返却する', async () => {
+      // prisma mock data
+      jest.spyOn(prismaService.prefecture, 'findMany').mockResolvedValue([]);
+      // test対象service呼び出し
+      const results = await prefectureService.findAllWithStoreCount();
+      // 検証
+      expect(results).toEqual([]);
+    });
 
-    // 検証
-    const expectedData = createExpectedPrefectureWithCoverageData();
-    expect(results).toEqual(expectedData);
-
-    it('正常系： データが0件の場合は空配列を返却する', () => {});
     it('異常系①: その他エラーのテスト：元のエラーをそのままスローする', async () => {});
   });
 
@@ -410,7 +418,6 @@ function createExpectedData(): (Prefecture & { id: string })[] {
 function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
   const domains: PrefectureWithCoverage[] = [
     {
-      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       prefecture: {
         name: '北海道',
         code: '01',
@@ -420,6 +427,7 @@ function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       },
+      id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       storeCount: 1,
     },
     {
