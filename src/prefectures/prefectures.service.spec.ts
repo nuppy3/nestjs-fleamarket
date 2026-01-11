@@ -102,7 +102,23 @@ describe('□□□ Prefecture Test □□□', () => {
       expect(results).toEqual([]);
     });
 
-    it('異常系①: その他エラーのテスト：元のエラーをそのままスローする', async () => {});
+    it('異常系①: その他エラーのテスト：元のエラーをそのままスローする', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: create()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのままスローされることをテスト
+      await expect(prefectureService.findAllWithStoreCount()).rejects.toThrow(
+        Error,
+      );
+      await expect(prefectureService.findAllWithStoreCount()).rejects.toThrow(
+        'Database connection failed',
+      );
+    });
   });
 
   describe('create', () => {
