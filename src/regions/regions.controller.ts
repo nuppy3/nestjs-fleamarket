@@ -4,10 +4,10 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
-  Post,
+  Patch
 } from '@nestjs/common';
-import { CreateRegionDto } from './dto/create-region.dto';
+import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { RegionResponseDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionsService } from './regions.service';
 
@@ -16,9 +16,19 @@ export class RegionsController {
   constructor(private readonly regionsService: RegionsService) {}
 
   @Get()
-  findAll() {
-    this.regionsService.findAll();
-    return 'test findAll';
+  async findAll() {
+    // エリア情報[]取得
+    const domains = await this.regionsService.findAll();
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, domains, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto[];
   }
 
   @Get(':id')
@@ -26,10 +36,10 @@ export class RegionsController {
     return this.regionsService.findOne(+id);
   }
 
-  @Post()
-  create(@Body() createRegionDto: CreateRegionDto) {
-    return this.regionsService.create(createRegionDto);
-  }
+  // @Post()
+  // create(@Body() createRegionDto: CreateRegionDto) {
+  //   return this.regionsService.create(createRegionDto);
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
