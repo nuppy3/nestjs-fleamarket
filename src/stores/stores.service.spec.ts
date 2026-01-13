@@ -251,6 +251,7 @@ describe('StoresService Test', () => {
         kanaEn: 'ishikawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
       };
       jest
         .spyOn(prismaService.prefecture, 'findUnique')
@@ -582,6 +583,7 @@ function createMockStores(): (StorePrisma & {
         kanaEn: 'tokyo-to',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
       },
     },
     {
@@ -609,6 +611,7 @@ function createMockStores(): (StorePrisma & {
         kanaEn: 'tokyo-to',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
       },
     },
 
@@ -637,6 +640,7 @@ function createMockStores(): (StorePrisma & {
         kanaEn: 'tokyo-to',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
       },
     },
   ];

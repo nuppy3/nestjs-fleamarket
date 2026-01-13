@@ -145,6 +145,7 @@ describe('□□□ Prefecture Test □□□', () => {
         status: 'published',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
       });
 
       // テスト対象service呼び出し
@@ -160,6 +161,7 @@ describe('□□□ Prefecture Test □□□', () => {
         status: 'published',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
       });
     });
 
@@ -279,6 +281,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'hokkaido',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
     },
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -289,6 +292,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'aomori',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
     },
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -299,6 +303,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'akita',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
     },
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -309,6 +314,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'iwate',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
     },
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -319,6 +325,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'yamagata',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
     },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -329,6 +336,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       kanaEn: 'tokyo-to',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
     },
   ];
   return domains;
@@ -348,6 +356,7 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       _count: { store: 1 },
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
     },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -359,6 +368,7 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       _count: { store: 10 },
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
     },
   ];
   return domains;
