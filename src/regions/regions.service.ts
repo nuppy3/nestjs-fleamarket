@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Region } from '../regions/regions.model';
 import { PrismaService } from './../prisma/prisma.service';
+import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 
 @Injectable()
@@ -21,7 +22,7 @@ export class RegionsService {
     return `This action returns a #${id} region`;
   }
 
-  create() {
+  create(createDto: CreateRegionDto) {
     return 'This action adds a new region';
   }
 
