@@ -44,20 +44,44 @@ describe('■■■ Region test ■■■', () => {
   });
 
   describe('findAll', () => {
-    it('正常系: Regionドメイン配列(全項目)を返却する', () => {});
-    // prisma mock data 作成
-    const mockData = createPrismaMockData();
-    jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockData);
+    it('正常系: Regionドメイン配列(全項目)を返却する', async () => {
+      // prisma mock data 作成
+      const mockData = createPrismaMockData();
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockData);
 
-    // test対象service呼び出し
-    const results = regionsService.findAll();
+      // test対象service呼び出し
+      const results = await regionsService.findAll();
 
-    // 検証
-    const expectedData = createExpectedData();
-    expect(results).toEqual(expectedData);
+      // 検証
+      const expectedData = createExpectedData();
+      expect(results).toEqual(expectedData);
+    });
 
-    it('正常系: Regionデータが０件の場合は空配列を返却する', () => {});
-    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', () => {});
+    it('正常系: Regionデータが０件の場合は空配列を返却する', async () => {
+      // prisma mock data 作成
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
+      // test対象service呼び出し
+      const results = await regionsService.findAll();
+      // 検証
+      expect(results).toEqual([]);
+    });
+
+    // エラーを隠蔽・変換せずに透過的に投げているか
+    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: create()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのままスローされることをテスト
+      await expect(regionsService.findAll()).rejects.toThrow(Error);
+      await expect(regionsService.findAll()).rejects.toThrow(
+        'Database connection failed',
+      );
+    });
   });
 });
 
