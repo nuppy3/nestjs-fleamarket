@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { RegionResponseDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
