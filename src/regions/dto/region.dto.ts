@@ -1,10 +1,38 @@
-// -------------------------------------------------
-// ResopnseDTO: 型安全なRegionドメインのサブセット
-
 import { Expose } from 'class-transformer';
+import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
 import { Region, RegionStatus } from '../regions.model';
 
+export class CreateRegionDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2)
+  code: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  kanaName: string;
+
+  // PrefectureStatusは厳密なEnumではない（modern Enum=union)のだが@IsEnum()が効くみたい！
+  @IsEnum(RegionStatus, {
+    message: `StoreStatus must be one of: ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
+  })
+  status: RegionStatus;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(40)
+  kanaEn: string;
+}
+
+// -------------------------------------------------
+// ResopnseDTO: 型安全なRegionドメインのサブセット
 // -------------------------------------------------
 export const RegionResponseKeys = [
   'name',

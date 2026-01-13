@@ -1,6 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
-import { RegionResponseDto } from './dto/region.dto';
+import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionsService } from './regions.service';
 
@@ -29,10 +39,11 @@ export class RegionsController {
     return this.regionsService.findOne(+id);
   }
 
-  // @Post()
-  // create(@Body() createRegionDto: CreateRegionDto) {
-  //   return this.regionsService.create(createRegionDto);
-  // }
+  @Post()
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
+  create(@Body() createRegionDto: CreateRegionDto) {
+    return this.regionsService.create(createRegionDto);
+  }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
