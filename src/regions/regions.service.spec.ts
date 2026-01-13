@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { Region as PrismaRegion } from '../../generated/prisma';
+import { PrismaService } from './../prisma/prisma.service';
 import { Region } from './regions.model';
 import { RegionsService } from './regions.service';
 
@@ -73,7 +73,7 @@ describe('■■■ Region test ■■■', () => {
 
       // モックの実装: create()が一般のエラーを投げるように設定
       jest
-        .spyOn(prismaService.prefecture, 'findMany')
+        .spyOn(prismaService.region, 'findMany')
         .mockRejectedValue(mockGenericError);
 
       // 元のエラー（Generic Error）がそのままスローされることをテスト

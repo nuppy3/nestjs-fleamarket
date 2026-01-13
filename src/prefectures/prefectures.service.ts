@@ -26,6 +26,7 @@ export class PrefecturesService {
     const domains: (Prefecture & { id: string })[] = prefectures.map(
       (prefecture) => ({
         ...prefecture,
+        regionId: prefecture.regionId ?? undefined,
       }),
     );
 
@@ -64,7 +65,8 @@ export class PrefecturesService {
         kanaEn: prefecture.kanaEn,
         createdAt: prefecture.createdAt,
         updatedAt: prefecture.updatedAt,
-      },
+        regionId: prefecture.regionId ?? undefined,
+      } satisfies Prefecture,
       id: prefecture.id,
       storeCount: prefecture._count.store,
     }));
@@ -90,10 +92,17 @@ export class PrefecturesService {
       });
 
       // prisma → domain
-      // Prefecture TBL の項目は全てnot nullなので、Object.assign()で詰め替えているが
-      // 今後、任意項目が追加された場合は、任意項目の値がない場合、Prismaはnullを返すので、undefined
-      // に変換する処理が必要なので、Object.assign()ではなく、一つ一つ項目をセット、変換する。
-      const domain: Prefecture & { id: string } = Object.assign({}, created);
+      const domain: Prefecture & { id: string } = {
+        code: created.code,
+        name: created.name,
+        kanaName: created.kanaName,
+        status: created.status,
+        kanaEn: created.kanaEn,
+        createdAt: created.createdAt,
+        updatedAt: created.updatedAt,
+        regionId: created.regionId ?? undefined,
+        id: created.id,
+      } satisfies Prefecture & { id: string };
 
       return domain;
       // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
@@ -154,7 +163,7 @@ export class PrefecturesService {
       status: prefecture.status,
       createdAt: prefecture.createdAt,
       updatedAt: prefecture.updatedAt,
-      // regionId: prefecture.regionId ?? undefined,
+      regionId: prefecture.regionId ?? undefined,
     };
 
     return domain;
