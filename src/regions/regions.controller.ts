@@ -38,7 +38,13 @@ export class RegionsController {
   findOne(@Param('id') id: string) {
     return this.regionsService.findOne(+id);
   }
-  a;
+
+  /**
+   * エリア情報登録（永続化）
+   *
+   * @param createRegionDto エリア登録対象DTO
+   * @returns エリア登録後のDTO
+   */
   @Post()
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
