@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { RegionResponseDto } from './dto/region.dto';
+import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { RegionsController } from './regions.controller';
-import { Region } from './regions.model';
+import { Region, RegionStatus } from './regions.model';
 import { RegionsService } from './regions.service';
 
 const mockRegionsService = {
@@ -104,8 +104,69 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   // create()
   //--------------------------------
   describe('create', () => {
-    it('正常系: ReginResponseDto(全項目)を返却する', () => {});
-    it('異常系: reginServiceにエラーが発生した場合、元のエラーをそのまま伝搬する', () => {});
+    it('正常系: ReginResponseDto(全項目)を返却する', async () => {
+      // controller 引数（dto)作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // service mock data 作成
+      const serviceMockData = {
+        id: '1024dc98-89a2-4db1-9431-b20feff57700',
+        code: '10',
+        name: '沖縄',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies Region & { id: string };
+      // mock data set
+      jest.spyOn(regionsService, 'create').mockResolvedValue(serviceMockData);
+
+      // テスト対象controller呼び出し
+      const result = await regionsController.create(dto);
+
+      // 検証
+      expect(result).toEqual({
+        id: '1024dc98-89a2-4db1-9431-b20feff57700',
+        code: '10',
+        name: '沖縄',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+        statusLabel: '反映中',
+      } satisfies RegionResponseDto);
+    });
+
+    it('異常系: reginServiceにエラーが発生した場合、元のエラーをそのまま伝搬する', async () => {
+      // controller 引数（dto)作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // service mock data(Error) 作成
+      const conectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest.spyOn(regionsService, 'create').mockRejectedValue(conectionError);
+
+      // テスト対象controller呼び出し
+      await expect(regionsController.create(dto)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+
+      // 検証
+    });
   });
 });
 
