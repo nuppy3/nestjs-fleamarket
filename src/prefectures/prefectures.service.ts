@@ -115,6 +115,7 @@ export class PrefecturesService {
       // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
       // if (e instanceof PrismaClientKnownRequestError) {
       if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
+        // P2002:一意制約エラー
         if (e.code === 'P2002') {
           const meta = e.meta as { target?: string[] } | undefined;
           const field = meta?.target?.join(', ') || '不明なフィールド';
