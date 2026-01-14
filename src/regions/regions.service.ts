@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Region as PrismaRegion } from 'generated/prisma';
 import { Region } from '../regions/regions.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
-
 @Injectable()
 export class RegionsService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -43,10 +43,35 @@ export class RegionsService {
     // dtoから直接作成してもいいが、念の為。
     const prismaInput = Object.assign({}, domain);
 
-    // エリア情報作成
-    const created = await this.prismaService.region.create({
-      data: prismaInput,
-    });
+    // エリア情報登録（永続化）
+    let created: PrismaRegion;
+    try {
+      created = await this.prismaService.region.create({
+        data: prismaInput,
+      });
+    } catch (e: unknown) {
+      // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
+      // 詳細は、以下のトラブルシューティングを参照
+      // https://nuppy3.atlassian.net/wiki/spaces/~712020c7a7ba463a644114a22001124373f0fc/pages/60162052/03_99
+
+      // Prismaの既知のリクエストエラーであるかをチェック
+
+      // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっているが、
+      // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
+      // if (e instanceof PrismaClientKnownRequestError) {
+      if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
+        // P2002:一意制約エラー
+        if (e.code === 'P2002') {
+          const meta = e.meta as { target?: string[] } | undefined;
+          const field = meta?.target?.join(', ') || '不明なフィールド';
+          // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる
+          throw new ConflictException(`指定された ${field} は既に存在します。`);
+        } else {
+          throw e;
+        }
+      }
+      throw e;
+    }
 
     // prisma → domain
     const savedDomain = {
