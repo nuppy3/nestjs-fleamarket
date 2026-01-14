@@ -1,7 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
-import { Region } from './regions.model';
+import { CreateRegionDto } from './dto/region.dto';
+import { Region, RegionStatus } from './regions.model';
 import { RegionsService } from './regions.service';
 
 const mockPrismaSercie = {
@@ -91,16 +92,84 @@ describe('■■■ Region test ■■■', () => {
   // create test
   //--------------------------------------
   describe('create', () => {
-    it('正常系： Region情報を登録(全項目)し、Regionドメイン(＋id)を返却する');
-    it('正常系： Region情報を登録(任意項目除外)し、Regionドメインを返却する');
-    it(
-      '正常系： Region情報を登録(任意項目をundefined)し、Regionドメインを返却する',
-    );
-    it('異常系①： Region情報を登録(全項目)し、一意制約(P2002)が発生');
-    it(
-      '異常系②： 一意制約(P2002)以外のPrismaエラーが発生した場合、そのまま元のエラーを伝搬(スロー)する',
-    );
-    it('異常系③： その他エラーのテスト: 元のエラーをそのまま伝搬(スロー)する');
+    it('正常系： Region情報を登録(全項目)し、Regionドメイン(＋id)を返却する', async () => {
+      // servic 引数 (dto) 作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // prisma modk data 作成
+      const prismaMockData = {
+        id: '106509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: 'published',
+        kanaEn: 'okinawa',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies PrismaRegion;
+
+      jest
+        .spyOn(prismaService.region, 'create')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await regionsService.create(dto);
+
+      // 期待値
+      const expectedData = {
+        id: '106509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: 'published',
+        kanaEn: 'okinawa',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies Region & { id: string };
+
+      // 検証
+      expect(result).toEqual(expectedData);
+    });
+
+    it('正常系： Region情報を登録(任意項目除外)し、Regionドメインを返却する', () => {
+      // prisma modk data 作成
+      // servic 引数 作成
+      // テスト対象service呼び出し
+      // 検証
+    });
+
+    it('正常系： Region情報を登録(任意項目をundefined)し、Regionドメインを返却する', () => {
+      // prisma modk data 作成
+      // servic 引数 作成
+      // テスト対象service呼び出し
+      // 検証
+    });
+
+    it('異常系①： Region情報を登録(全項目)し、一意制約(P2002)が発生', () => {
+      // prisma modk data 作成
+      // servic 引数 作成
+      // テスト対象service呼び出し
+      // 検証
+    });
+
+    it('異常系②： 一意制約(P2002)以外のPrismaエラーが発生した場合、そのまま元のエラーを伝搬(スロー)する', () => {
+      // prisma modk data 作成
+      // servic 引数 作成
+      // テスト対象service呼び出し
+      // 検証
+    });
+
+    it('異常系③： その他エラーのテスト: 元のエラーをそのまま伝搬(スロー)する', () => {
+      // prisma modk data 作成
+      // テスト対象service呼び出し
+      // 検証
+    });
   });
 });
 
