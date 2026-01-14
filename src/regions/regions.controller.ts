@@ -38,11 +38,23 @@ export class RegionsController {
   findOne(@Param('id') id: string) {
     return this.regionsService.findOne(+id);
   }
-
+  a;
   @Post()
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
-  create(@Body() createRegionDto: CreateRegionDto) {
-    return this.regionsService.create(createRegionDto);
+  async create(
+    @Body() createRegionDto: CreateRegionDto,
+  ): Promise<RegionResponseDto> {
+    // エリア情報登録（永続化）
+    const domain = await this.regionsService.create(createRegionDto);
+
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto;
   }
 
   @Patch(':id')
