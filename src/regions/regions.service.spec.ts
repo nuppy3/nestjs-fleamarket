@@ -1,4 +1,6 @@
+import { ConflictException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateRegionDto } from './dto/region.dto';
@@ -102,7 +104,7 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'okinawa',
       } satisfies CreateRegionDto;
 
-      // prisma modk data 作成
+      // prisma mock data 作成
       const prismaMockData = {
         id: '106509f2-0ba4-447c-8a98-473aa26e457a',
         name: '沖縄',
@@ -137,38 +139,126 @@ describe('■■■ Region test ■■■', () => {
       expect(result).toEqual(expectedData);
     });
 
+    // 任意項目なし
     it('正常系： Region情報を登録(任意項目除外)し、Regionドメインを返却する', () => {
-      // prisma modk data 作成
       // servic 引数 作成
+      // prisma mock data 作成
       // テスト対象service呼び出し
       // 検証
     });
 
+    // 任意項目なし
     it('正常系： Region情報を登録(任意項目をundefined)し、Regionドメインを返却する', () => {
-      // prisma modk data 作成
       // servic 引数 作成
+      // prisma mock data 作成
       // テスト対象service呼び出し
       // 検証
     });
 
-    it('異常系①： Region情報を登録(全項目)し、一意制約(P2002)が発生', () => {
-      // prisma modk data 作成
-      // servic 引数 作成
-      // テスト対象service呼び出し
-      // 検証
+    //--------------------
+    // エラーケースのテスト
+    //--------------------
+    it('異常系①： Region情報を登録(全項目)し、一意制約(P2002)が発生', async () => {
+      // servic 引数 (dto) 作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // prisma P2002 error mock data 作成
+      // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
+      // を返す場合、Prisma Client は例外をスローします。
+      // 一意制約、アクセス不可などは当該Errorは同じで、codeが違うだけ。
+      const mockP2002Error = new PrismaClientKnownRequestError(
+        'Unique constraint failed on the fields: (`code`)',
+        {
+          code: 'P2002',
+          clientVersion: 'test-version',
+          meta: { target: ['code'] }, // 一意制約違反のフィールド
+        },
+      );
+
+      // Pricmaが、P2002 エラーを返すように設定
+      // Errorを返却させたい場合はmockRejectedValue()でcreateのPrisma<Region & {id:string}>の
+      // 返却をアンラップして、Errorを返すようにする）
+      jest
+        .spyOn(prismaService.region, 'create')
+        .mockRejectedValue(mockP2002Error);
+
+      // テスト対象service呼び出し、検証
+      // ConflictExceptionがスローされることをテスト
+      await expect(regionsService.create(dto)).rejects.toThrow(
+        ConflictException,
+      );
+
+      // ConflictExceptionのmessage 検証
+      await expect(regionsService.create(dto)).rejects.toThrow(
+        '指定された code は既に存在します。',
+      );
     });
 
-    it('異常系②： 一意制約(P2002)以外のPrismaエラーが発生した場合、そのまま元のエラーを伝搬(スロー)する', () => {
-      // prisma modk data 作成
-      // servic 引数 作成
-      // テスト対象service呼び出し
-      // 検証
+    it('異常系②： 一意制約(P2002)以外のPrismaエラーが発生した場合、そのまま元のエラーを伝搬(スロー)する', async () => {
+      // servic 引数 (dto) 作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // prisma P2000(P2002以外のエラー) error mock data 作成
+      const mockP2000Error = new PrismaClientKnownRequestError(
+        'Unique constraint failed on the fields: (`code`)',
+        {
+          code: 'P2000',
+          clientVersion: 'test-version',
+        },
+      );
+
+      // prismaServiceのmock(Error)を設定
+      jest
+        .spyOn(prismaService.region, 'create')
+        .mockRejectedValue(mockP2000Error);
+
+      // テスト対象service呼び出し、結果を検証
+      await expect(regionsService.create(dto)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+
+      // Errorに以下が含まれることを検証（このテストはなくてもいいか）
+      // await expect(regionsService.create(dto)).rejects.toHaveProperty(
+      //   'code',
+      //   'P2000',
+      // );
     });
 
-    it('異常系③： その他エラーのテスト: 元のエラーをそのまま伝搬(スロー)する', () => {
-      // prisma modk data 作成
-      // テスト対象service呼び出し
-      // 検証
+    it('異常系③： その他エラーのテスト: 元のエラーをそのまま伝搬(スロー)する', async () => {
+      // servic 引数 (dto) 作成
+      const dto = {
+        name: '沖縄',
+        code: '10',
+        kanaName: 'おきなわ',
+        status: RegionStatus.PUBLISHED,
+        kanaEn: 'okinawa',
+      } satisfies CreateRegionDto;
+
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: create()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.region, 'create')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのまま再スローされることをテスト
+      await expect(regionsService.create(dto)).rejects.toThrow(Error);
+      await expect(regionsService.create(dto)).rejects.toThrow(
+        'Database connection failed',
+      );
     });
   });
 });
