@@ -99,6 +99,14 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       );
     });
   });
+
+  //--------------------------------
+  // create()
+  //--------------------------------
+  describe('create', () => {
+    it('正常系: ReginResponseDto(全項目)を返却する', () => {});
+    it('異常系: reginServiceにエラーが発生した場合、元のエラーをそのまま伝搬する', () => {});
+  });
 });
 
 function createServiceMockData(): (Region & { id: string })[] {
