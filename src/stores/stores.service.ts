@@ -19,9 +19,15 @@ export class StoresService {
   /**
    * findAll()：Store情報をDBから取得し、返却します。
    *
+   * @param filters 店舗情報取得時のフィルター条件
    * @returns Storeドメイン + id（DB取得情報をdomein+idオブジェクトに詰め替え）
    */
-  async findAll(): Promise<(Store & { id: string })[]> {
+  async findAll(
+    // filtersが存在しない場合はcontroller
+    filters: {
+      prefectureCode?: string;
+    } = {},
+  ): Promise<(Store & { id: string })[]> {
     // Store情報取得
     const resultStores = await this.prismaService.store.findMany({
       include: {

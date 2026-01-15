@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -24,12 +25,21 @@ export class StoresController {
   /**
    * findAll(): 店舗情報一覧を取得します。
    *
+   * クエリパラメータにprefectureCodeが指定：指定したprefectureCodeに関連する店舗のみを返却します。
+   * prefectureCode未指定：全店舗を返却します。
+   *
    * @returns 店舗情報一覧(Storeオブジェクト配列)
    */
   @Get()
-  async findAll(): Promise<StoreResponseDto[]> {
+  async findAll(
+    @Query('prefectureCode') prefectureCode?: string,
+  ): Promise<StoreResponseDto[]> {
     // 店舗情報取得
-    const stores = await this.storesService.findAll();
+    // prefectureCode以外にもフィルター条件が追加される可能性があるので{}で囲ってオブジェクトとする
+    // prefectureCodeがnull/undefined/''/数値の0/false の場合、{}を渡す。
+    const stores = await this.storesService.findAll(
+      prefectureCode ? { prefectureCode: '13' } : {},
+    );
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
