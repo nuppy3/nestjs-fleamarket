@@ -23,7 +23,7 @@ export class StoresService {
    * @returns Storeドメイン + id（DB取得情報をdomein+idオブジェクトに詰め替え）
    */
   async findAll(
-    // filtersが存在しない場合はcontroller
+    // filtersが存在しない場合は{}で初期化
     filters: {
       prefectureCode?: string;
     } = {},
@@ -33,7 +33,24 @@ export class StoresService {
       include: {
         prefecture: true,
       },
-      where: { status: 'published' },
+
+      // 以下でもいいが、「...(条件 && { 追加したいオブジェクト }) が非常にエレガント!!」であり
+      // Prismaのwhere句の実装では有益！！
+      //  where: filters.prefectureCode
+      //   ? { prefecture: { code: filters.prefectureCode } }
+      //   : {},
+
+      // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
+      // filters.prefectureCodeがtruthy(空文字・null・undefined以外など)の場合、
+      // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
+      where: {
+        status: 'published',
+        ...(filters.prefectureCode && {
+          prefecture: {
+            code: filters.prefectureCode,
+          },
+        }),
+      },
     });
 
     // prisma → domain
