@@ -38,7 +38,7 @@ export class StoresController {
     // prefectureCode以外にもフィルター条件が追加される可能性があるので{}で囲ってオブジェクトとする
     // prefectureCodeがnull/undefined/''/数値の0/false の場合、{}を渡す。
     const stores = await this.storesService.findAll(
-      prefectureCode ? { prefectureCode: '13' } : {},
+      prefectureCode ? { prefectureCode: prefectureCode } : {},
     );
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
