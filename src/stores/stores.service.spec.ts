@@ -81,8 +81,9 @@ describe('StoresService Test', () => {
     jest.clearAllMocks();
   });
 
-  describe('findAll', () => {
-    it('正常系:データがある場合は正しくドメイン型に変換して返す', async () => {
+  describe('■■■ findAll TEST ■■■', () => {
+    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし):
+      データがある場合は正しくドメイン型に変換して返す', async () => {
       // mockの返却値作成
       jest
         .spyOn(prismaService.store, 'findMany')
