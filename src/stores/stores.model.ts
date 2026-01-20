@@ -145,3 +145,28 @@ export const WEEKDAY_LABELS: Record<Weekday, string> = {
 export function getWeekdayLabel(weekday: Weekday): string {
   return WEEKDAY_LABELS[weekday];
 }
+
+/**
+ * 店舗一覧取得（findAll）で使用するフィルタ条件
+ *
+ * @example
+ * ```ts
+ * // 東京都の店舗のみ取得
+ * await storesService.findAll({ prefectureCode: "13" });
+ *
+ * // 全店舗取得（フィルタなし）
+ * await storesService.findAll();
+ * ```
+ */
+export interface StoreFilter {
+  // 都道府県コード（例: "01" = 北海道, "13" = 東京都）
+  // 指定がない場合は全店舗を対象とする
+  prefectureCode?: string;
+
+  // 将来追加予定の例（コメントアウト推奨）
+  // /**
+  //  * 店舗ステータスでフィルタ
+  //  * @see StorStatus
+  //  */
+  // status?: StorStatus;
+}

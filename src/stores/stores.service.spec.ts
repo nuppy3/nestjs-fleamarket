@@ -82,8 +82,20 @@ describe('StoresService Test', () => {
   });
 
   describe('■■■ findAll TEST ■■■', () => {
-    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし):
-      データがある場合は正しくドメイン型に変換して返す', async () => {
+    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし)', async () => {
+      // mockの返却値作成
+      jest
+        .spyOn(prismaService.store, 'findMany')
+        .mockResolvedValue(prismaMockStores);
+
+      // test対象呼び出し
+      const result = await storesService.findAll();
+
+      // 結果検証
+      expect(result).toEqual(expectedStores);
+    });
+
+    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし)', async () => {
       // mockの返却値作成
       jest
         .spyOn(prismaService.store, 'findMany')
