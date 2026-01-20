@@ -208,6 +208,20 @@ describe('StoresService Test', () => {
       // 検証
       expect(result).toEqual([]);
     });
+
+    // 実施する必要はない気がするが、一応
+    it('データが0件の場合は空配列を返す(filter有り)', async () => {
+      // 引数：filter(検索条件)
+      const filters = {
+        prefectureCode: '',
+      } satisfies StoreFilter;
+      // prisma mock データ
+      jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+      // テスト実施
+      const result = await storesService.findAll(filters);
+      // 検証
+      expect(result).toEqual([]);
+    });
   });
 
   describe('create', () => {
