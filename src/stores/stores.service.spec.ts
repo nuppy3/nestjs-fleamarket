@@ -10,7 +10,7 @@ import {
 } from '../../generated/prisma';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { CreateStoreDto } from './dto/store.dto';
-import { Store } from './stores.model';
+import { Store, StoreFilter } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -97,7 +97,9 @@ describe('StoresService Test', () => {
 
     it('正常系: Stroeドメイン配列(全項目)を返却する（filter有り)', async () => {
       // 引数作成
-      const filters = {};
+      const filters = {
+        prefectureCode: '13',
+      } satisfies StoreFilter;
 
       // mockの返却値作成
       jest
@@ -105,7 +107,7 @@ describe('StoresService Test', () => {
         .mockResolvedValue(prismaMockStores);
 
       // test対象呼び出し
-      const result = await storesService.findAll();
+      const result = await storesService.findAll(filters);
 
       // 結果検証
       expect(result).toEqual(expectedStores);
