@@ -7,7 +7,7 @@ import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Store, Weekday } from './stores.model';
+import { Store, StoreFilter, Weekday } from './stores.model';
 
 @Injectable()
 export class StoresService {
@@ -19,14 +19,22 @@ export class StoresService {
   /**
    * findAll()：Store情報をDBから取得し、返却します。
    *
-   * @param filters 店舗情報取得時のフィルター条件
+   * @param filters - 検索条件（すべて省略可能）
+   *                  - `prefectureCode`: 都道府県コード（例: "13" = 東京都）を指定すると、その都道府県に所属する店舗のみを返します
+   *                  - 指定がない場合は全店舗を対象とします
+   * @example
+   * ```ts
+   * // 東京都の店舗のみ取得
+   * await storesService.findAll({ prefectureCode: "13" });
+   *
+   * // 全店舗を取得（フィルタなし）
+   * await storesService.findAll();
+   * ```
    * @returns Storeドメイン + id（DB取得情報をdomein+idオブジェクトに詰め替え）
    */
   async findAll(
     // filtersが存在しない場合は{}で初期化
-    filters: {
-      prefectureCode?: string;
-    } = {},
+    filters: StoreFilter = {},
   ): Promise<(Store & { id: string })[]> {
     // Store情報取得
     const resultStores = await this.prismaService.store.findMany({

@@ -82,7 +82,7 @@ describe('StoresService Test', () => {
   });
 
   describe('■■■ findAll TEST ■■■', () => {
-    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし)', async () => {
+    it('正常系: Stroeドメイン配列(全項目)を返却する（filter無し)', async () => {
       // mockの返却値作成
       jest
         .spyOn(prismaService.store, 'findMany')
@@ -95,7 +95,10 @@ describe('StoresService Test', () => {
       expect(result).toEqual(expectedStores);
     });
 
-    it('正常系: Stroeドメイン配列(全項目)を返却する（filterなし)', async () => {
+    it('正常系: Stroeドメイン配列(全項目)を返却する（filter有り)', async () => {
+      // 引数作成
+      const filters = {};
+
       // mockの返却値作成
       jest
         .spyOn(prismaService.store, 'findMany')
