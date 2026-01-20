@@ -49,7 +49,16 @@ describe('StoresController TEST', () => {
   });
 
   describe('findAll', () => {
-    it('正常系：店舗情報のリストを返却する(DTOの全項目)', async () => {
+    it('正常系：店舗情報のリストを返却する(DTOの全項目) - RequestPrameter 無し', async () => {
+      // ServiceのMockデータを作成
+      jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+      // テスト対象Controller呼び出し
+      const resoult = await storesController.findAll();
+      // 検証
+      expect(resoult).toEqual(expectedStoreDtos);
+    });
+
+    it('正常系：店舗情報のリストを返却する(DTOの全項目) - prefectureCode 有り ', async () => {
       // ServiceのMockデータを作成
       jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
       // テスト対象Controller呼び出し
