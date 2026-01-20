@@ -59,10 +59,12 @@ describe('StoresController TEST', () => {
     });
 
     it('正常系：店舗情報のリストを返却する(DTOの全項目) - prefectureCode 有り ', async () => {
+      // 引数作成
+      const prefectureCode = '13';
       // ServiceのMockデータを作成
       jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
       // テスト対象Controller呼び出し
-      const resoult = await storesController.findAll();
+      const resoult = await storesController.findAll(prefectureCode);
       // 検証
       expect(resoult).toEqual(expectedStoreDtos);
     });
