@@ -6,10 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import {
   CreatePrefectureDto,
   PrefectureResponseDto,
@@ -80,13 +83,24 @@ export class PrefecturesController {
     ) as PrefectureResponseDto[];
   }
 
+  /**
+   * 都道府県情報を作成します。
+   *
+   * @param createPrefectureDto 都道府県情報(作成対象)
+   * @param req Request情報 & RequestUser(tokenから取得したユーザIDなど)
+   * @returns
+   */
   @Post()
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
     @Body() createPrefectureDto: CreatePrefectureDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<PrefectureResponseDto> {
     // Prefecture作成
-    const domain = await this.prefecturesService.create(createPrefectureDto);
+    const domain = await this.prefecturesService.create(
+      createPrefectureDto,
+      req.user.id,
+    );
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(

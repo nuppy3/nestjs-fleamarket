@@ -61,15 +61,18 @@ enum ItemStatus {
 }
 
 model User {
-  id        String     @id @default(uuid()) @db.Uuid
-  name      String     @db.VarChar(255)
-  email     String     @unique @db.VarChar(255)
-  password  String     @db.VarChar(255)
-  status    UserStatus
-  createdAt DateTime   @default(now()) @db.Timestamp(0)
-  updatedAt DateTime   @updatedAt @db.Timestamp(0)
-  Items     Item[] // UserにItemsを持つ必要あるかな。。まぁ、Udemyの例がそうなのでいいか
-  stores    Store[]
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(255)
+  email       String       @unique @db.VarChar(255)
+  password    String       @db.VarChar(255)
+  status      UserStatus
+  createdAt   DateTime     @default(now()) @db.Timestamp(0)
+  updatedAt   DateTime     @updatedAt @db.Timestamp(0)
+  Items       Item[] // UserにItemsを持つ必要あるかな。。まぁ、Udemyの例がそうなのでいいか
+  stores      Store[]
+  // Prefecture[]は持たない。UserからPrefectureを辿らない。
+  // prefectures Prefecture[] 
+  prefectures Prefecture[]
 }
 
 enum UserStatus {
@@ -155,6 +158,15 @@ model Prefecture {
   //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
   regionId String? @db.Uuid
   region   Region? @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  // Userテーブルとの紐付け関連
+  // Userテーブルとのリレーションを定義
+  // @relation：参照元(Store)と参照先(User)のモデルとの関連付けを行う
+  //　・fields属性：参照元(Item)モデルのキーを指定。
+  //  ・references属性：参照先(User)モデルの主キーを指定
+  //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
+  userId String? @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum PrefectureStatus {

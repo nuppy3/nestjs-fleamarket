@@ -76,6 +76,7 @@ export class PrefecturesService {
 
   async create(
     createPrefectureDto: CreatePrefectureDto,
+    userId: string,
   ): Promise<Prefecture & { id: string }> {
     // dto取得
     const { name, code, kanaName, status, kanaEn } = createPrefectureDto;
@@ -83,7 +84,7 @@ export class PrefecturesService {
     // dto → domain の詰め替えスキップ
 
     // domain → prismaインプットパラメータ
-    const prismaInput = { name, code, kanaName, status, kanaEn };
+    const prismaInput = { name, code, kanaName, status, kanaEn, userId };
 
     try {
       // 都道府県情報の登録
