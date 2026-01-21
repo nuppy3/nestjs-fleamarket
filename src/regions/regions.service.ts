@@ -30,9 +30,13 @@ export class RegionsService {
    * エリア情報作成
    *
    * @param createDto 作成対象のエリア情報
+   * @param userId ユーザーID
    * @returns 作成されたエリア情報
    */
-  async create(createDto: CreateRegionDto): Promise<Region & { id: string }> {
+  async create(
+    createDto: CreateRegionDto,
+    userId: string,
+  ): Promise<Region & { id: string }> {
     // dto → domain
     // domain詰め替えはスキップしてもいいが、念の為。
     // → Regionドメインはinterfaceではなくclass化しているのでconstructorで初期化しやすい
@@ -41,7 +45,14 @@ export class RegionsService {
 
     // domain → prisma(input)
     // dtoから直接作成してもいいが、念の為。
-    const prismaInput = Object.assign({}, domain);
+    const prismaInput = {
+      code: domain.code,
+      name: domain.name,
+      kanaName: domain.kanaName,
+      status: domain.status,
+      kanaEn: domain.kanaEn,
+      userId: userId,
+    };
 
     // エリア情報登録（永続化）
     let created: PrismaRegion;
