@@ -17,7 +17,14 @@ export class RegionsService {
     // prisma → domain
     // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Region & { id: string })[] = regions.map((region) => ({
-      ...region,
+      id: region.id,
+      code: region.code,
+      name: region.name,
+      kanaName: region.kanaName,
+      status: region.status,
+      kanaEn: region.kanaEn,
+      createdAt: region.createdAt,
+      updatedAt: region.updatedAt,
     }));
     return domains;
   }

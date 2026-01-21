@@ -94,6 +94,9 @@ describe('■■■ Region test ■■■', () => {
   // create test
   //--------------------------------------
   describe('create', () => {
+    // 共通引数：ユーザーID
+    const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
     it('正常系： Region情報を登録(全項目)し、Regionドメイン(＋id)を返却する', async () => {
       // servic 引数 (dto) 作成
       const dto = {
@@ -114,6 +117,7 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'okinawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       } satisfies PrismaRegion;
 
       jest
@@ -121,7 +125,7 @@ describe('■■■ Region test ■■■', () => {
         .mockResolvedValue(prismaMockData);
 
       // テスト対象service呼び出し
-      const result = await regionsService.create(dto);
+      const result = await regionsService.create(dto, userId);
 
       // 期待値
       const expectedData = {
@@ -190,12 +194,12 @@ describe('■■■ Region test ■■■', () => {
 
       // テスト対象service呼び出し、検証
       // ConflictExceptionがスローされることをテスト
-      await expect(regionsService.create(dto)).rejects.toThrow(
+      await expect(regionsService.create(dto, userId)).rejects.toThrow(
         ConflictException,
       );
 
       // ConflictExceptionのmessage 検証
-      await expect(regionsService.create(dto)).rejects.toThrow(
+      await expect(regionsService.create(dto, userId)).rejects.toThrow(
         '指定された code は既に存在します。',
       );
     });
@@ -225,7 +229,7 @@ describe('■■■ Region test ■■■', () => {
         .mockRejectedValue(mockP2000Error);
 
       // テスト対象service呼び出し、結果を検証
-      await expect(regionsService.create(dto)).rejects.toThrow(
+      await expect(regionsService.create(dto, userId)).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
 
@@ -255,8 +259,8 @@ describe('■■■ Region test ■■■', () => {
         .mockRejectedValue(mockGenericError);
 
       // 元のエラー（Generic Error）がそのまま再スローされることをテスト
-      await expect(regionsService.create(dto)).rejects.toThrow(Error);
-      await expect(regionsService.create(dto)).rejects.toThrow(
+      await expect(regionsService.create(dto, userId)).rejects.toThrow(Error);
+      await expect(regionsService.create(dto, userId)).rejects.toThrow(
         'Database connection failed',
       );
     });
@@ -278,6 +282,7 @@ function createPrismaMockData(): PrismaRegion[] {
       kanaEn: 'hokkaidou',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
@@ -288,6 +293,7 @@ function createPrismaMockData(): PrismaRegion[] {
       kanaEn: 'tohoku',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '0324dc98-89a2-4db1-9431-b20feff57700',
@@ -298,6 +304,7 @@ function createPrismaMockData(): PrismaRegion[] {
       kanaEn: 'kantou',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '0424dc98-89a2-4db1-9431-b20feff57700',
@@ -308,6 +315,7 @@ function createPrismaMockData(): PrismaRegion[] {
       kanaEn: 'tokai',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '0524dc98-89a2-4db1-9431-b20feff57700',
@@ -318,6 +326,7 @@ function createPrismaMockData(): PrismaRegion[] {
       kanaEn: 'hokuriku',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
   return mockData;

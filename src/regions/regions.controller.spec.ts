@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { RegionsController } from './regions.controller';
 import { Region, RegionStatus } from './regions.model';
@@ -104,6 +106,11 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   // create()
   //--------------------------------
   describe('create', () => {
+    // 共通引数：ユーザーID
+    const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> = {
+      user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+    };
+
     it('正常系: ReginResponseDto(全項目)を返却する', async () => {
       // controller 引数（dto)作成
       const dto = {
@@ -129,7 +136,12 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       jest.spyOn(regionsService, 'create').mockResolvedValue(serviceMockData);
 
       // テスト対象controller呼び出し
-      const result = await regionsController.create(dto);
+      const result = await regionsController.create(
+        dto,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        request as ExpressRequest & { user: RequestUser },
+      );
 
       // 検証
       expect(result).toEqual({
@@ -161,9 +173,14 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       jest.spyOn(regionsService, 'create').mockRejectedValue(conectionError);
 
       // テスト対象controller呼び出し
-      await expect(regionsController.create(dto)).rejects.toThrow(
-        PrismaClientKnownRequestError,
-      );
+      await expect(
+        regionsController.create(
+          dto,
+          // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+          // 完全に一致しないため、保守性がやや低下する可能性があるため）
+          request as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(PrismaClientKnownRequestError);
 
       // 検証
     });
