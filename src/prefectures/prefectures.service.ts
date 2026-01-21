@@ -24,10 +24,22 @@ export class PrefecturesService {
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Prefecture & { id: string })[] = prefectures.map(
-      (prefecture) => ({
-        ...prefecture,
-        regionId: prefecture.regionId ?? undefined,
-      }),
+      (prefecture) =>
+        ({
+          // ...prefecture,
+          // regionId: prefecture.regionId ?? undefined,
+
+          // 上記スプレッド構文で全展開だと限界が訪れたので、必要項目をチクチクセットするように修正
+          id: prefecture.id,
+          code: prefecture.code,
+          name: prefecture.name,
+          kanaName: prefecture.kanaName,
+          status: prefecture.status,
+          kanaEn: prefecture.kanaEn,
+          createdAt: prefecture.createdAt,
+          updatedAt: prefecture.updatedAt,
+          regionId: prefecture.regionId ?? undefined,
+        }) satisfies Prefecture & { id: string },
     );
 
     return domains;

@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import {
   CreatePrefectureDto,
@@ -177,6 +179,12 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         kanaEn: 'ishikawa',
         status: 'published',
       };
+      // 引数：リクエストパラメータ作成
+      // const request = {} satisfies ExpressRequest & { user: RequestUser };
+      const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> =
+        {
+          user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+        };
 
       // service mock data 作成(domain + id)
       const domainWithId: Prefecture & { id: string } = {
@@ -192,7 +200,12 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       jest.spyOn(prefecturesService, 'create').mockResolvedValue(domainWithId);
 
       // test対象controller呼び出し
-      const result = await prefecturesController.create(requestDto);
+      const result = await prefecturesController.create(
+        requestDto,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        request as ExpressRequest & { user: RequestUser },
+      );
 
       // 期待値作成(dto→plainToInstanceした時のオブジェクト)
       const expecedData: PrefectureResponseDto = {

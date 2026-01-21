@@ -67,6 +67,7 @@ describe('□□□ Prefecture Test □□□', () => {
       // 検証
       expect(result).toEqual(expectedPrefectures);
     });
+
     it('正常系: データが0件の場合は空配列を返却する', async () => {
       // prisma mock data 作成(Prismaは０件の場合、空配列を返却する仕様)
       jest.spyOn(prismaService.prefecture, 'findMany').mockResolvedValue([]);
@@ -130,6 +131,7 @@ describe('□□□ Prefecture Test □□□', () => {
       kanaEn: 'ishikawa',
       status: 'published',
     };
+    const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
     // ----------------------------------------------------------------
     // 1. 正常ケースのテスト
@@ -146,10 +148,11 @@ describe('□□□ Prefecture Test □□□', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+        userId: userId,
       });
 
       // テスト対象service呼び出し
-      const result = await prefectureService.create(dto);
+      const result = await prefectureService.create(dto, userId);
 
       // 検証
       expect(result).toEqual({
@@ -191,12 +194,12 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // test対象service呼び出し、結果検証
       // ConflictExceptionがスローされることをテスト
-      await expect(prefectureService.create(dto)).rejects.toThrow(
+      await expect(prefectureService.create(dto, userId)).rejects.toThrow(
         ConflictException,
       );
 
       // ConflictExceptionのmessageが正しいことを検証
-      await expect(prefectureService.create(dto)).rejects.toThrow(
+      await expect(prefectureService.create(dto, userId)).rejects.toThrow(
         '指定された code は既に存在します。',
       );
     });
@@ -213,14 +216,13 @@ describe('□□□ Prefecture Test □□□', () => {
         .mockRejectedValue(mockP2000Error);
 
       // serviceを呼び出し、結果を検証
-      await expect(prefectureService.create(dto)).rejects.toThrow(
+      await expect(prefectureService.create(dto, userId)).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
       // Errorに以下が含まれることを検証（このテストはなくてもいいか）
-      await expect(prefectureService.create(dto)).rejects.toHaveProperty(
-        'code',
-        'P2000',
-      );
+      await expect(
+        prefectureService.create(dto, userId),
+      ).rejects.toHaveProperty('code', 'P2000');
     });
 
     it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {
@@ -233,8 +235,10 @@ describe('□□□ Prefecture Test □□□', () => {
         .mockRejectedValue(mockGenericError);
 
       // 元のエラー（Generic Error）がそのまま再スローされることをテスト
-      await expect(prefectureService.create(dto)).rejects.toThrow(Error);
-      await expect(prefectureService.create(dto)).rejects.toThrow(
+      await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+        Error,
+      );
+      await expect(prefectureService.create(dto, userId)).rejects.toThrow(
         'Database connection failed',
       );
     });
@@ -282,6 +286,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -293,6 +298,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -304,6 +310,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -315,6 +322,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -326,6 +334,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -337,6 +346,7 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
   return domains;
@@ -357,6 +367,7 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -369,6 +380,7 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
     },
   ];
   return domains;
