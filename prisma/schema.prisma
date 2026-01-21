@@ -73,6 +73,7 @@ model User {
   // Prefecture[]は持たない。UserからPrefectureを辿らない。
   // prefectures Prefecture[] 
   prefectures Prefecture[]
+  regions     Region[]
 }
 
 enum UserStatus {
@@ -194,6 +195,15 @@ model Region {
   updatedAt   DateTime     @updatedAt @db.Timestamp(0)
   // Prefectureテーブルとのリレーション(1:N)
   prefectures Prefecture[]
+
+  // Userテーブルとの紐付け関連
+  // Userテーブルとのリレーションを定義
+  // @relation：参照元(Store)と参照先(User)のモデルとの関連付けを行う
+  //　・fields属性：参照元(Item)モデルのキーを指定。
+  //  ・references属性：参照先(User)モデルの主キーを指定
+  //  ・onDelete: Cascade ： 関連するUserが削除されると、紐づくStoreも削除される
+  userId String? @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum RegionStatus {
