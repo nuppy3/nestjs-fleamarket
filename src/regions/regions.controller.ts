@@ -6,10 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { Request as ExpressRequest } from 'express';
+import { RequestUser } from 'src/types/requestUser';
 import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionsService } from './regions.service';
@@ -49,6 +52,7 @@ export class RegionsController {
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   async create(
     @Body() createRegionDto: CreateRegionDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<RegionResponseDto> {
     // エリア情報登録（永続化）
     const domain = await this.regionsService.create(createRegionDto);
