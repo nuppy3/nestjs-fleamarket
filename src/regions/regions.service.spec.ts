@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import { Region, RegionStatus } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
-import { Region, RegionStatus } from './regions.model';
 import { RegionsService } from './regions.service';
 
 const mockPrismaSercie = {

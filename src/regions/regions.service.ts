@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Region as PrismaRegion } from 'generated/prisma';
-import { Region } from '../regions/regions.model';
 import { PrismaService } from './../prisma/prisma.service';
+import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 @Injectable()

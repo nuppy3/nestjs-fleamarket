@@ -2,9 +2,9 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
+import { Region, RegionStatus } from './domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { RegionsController } from './regions.controller';
-import { Region, RegionStatus } from './regions.model';
 import { RegionsService } from './regions.service';
 
 const mockRegionsService = {

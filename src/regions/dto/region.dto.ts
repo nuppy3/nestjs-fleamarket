@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
-import { Region, RegionStatus } from '../regions.model';
+import { Region, RegionStatus } from '../domain/regions.model';
 
 export class CreateRegionDto {
   @IsString()
