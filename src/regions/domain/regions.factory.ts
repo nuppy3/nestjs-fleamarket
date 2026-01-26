@@ -7,10 +7,13 @@ import { Region } from './regions.model';
  */
 export class RegionFactory {
   static fromCreateDto(dto: CreateRegionDto) {
-    // TODO
-    // 将来的には、Region.createNew()を用意して、Region.createNewを呼び出すだけにする
-    // その際、RegionドメインのcreateNew()の中だけでnew Region()できるようにする。
-    // 他からnew Region()できないように。
-    return new Region(dto.code, dto.name, dto.kanaName, dto.status, dto.kanaEn);
+    // Region作成
+    return Region.createNew(
+      dto.code,
+      dto.name,
+      dto.kanaName,
+      dto.status,
+      dto.kanaEn,
+    );
   }
 }

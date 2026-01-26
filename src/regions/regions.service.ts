@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Region as PrismaRegion } from 'generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
@@ -46,9 +47,9 @@ export class RegionsService {
   ): Promise<Region & { id: string }> {
     // dto → domain
     // domain詰め替えはスキップしてもいいが、念の為。
-    // → Regionドメインはinterfaceではなくclass化しているのでconstructorで初期化しやすい
-    const { code, name, kanaName, status, kanaEn } = createDto;
-    const domain = new Region(code, name, kanaName, status, kanaEn);
+    // RegionFactoryを作成したので、以下のdto展開は不要
+    // const { code, name, kanaName, status, kanaEn } = createDto;
+    const domain = RegionFactory.fromCreateDto(createDto);
 
     // domain → prisma(input)
     // dtoから直接作成してもいいが、念の為。
