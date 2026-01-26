@@ -53,6 +53,7 @@ export class RegionsService {
 
     // domain → prisma(input)
     // dtoから直接作成してもいいが、念の為。
+    // 完全にDDDを意識するとMapper(toPrismaCreate())に移管するのがよい
     const prismaInput = {
       code: domain.code,
       name: domain.name,
