@@ -49,6 +49,28 @@ export class Region {
       new Date(),
     );
   }
+
+  // domainの再構築（DB等からの再構築用（すでに日付がある場合））
+  static reConstruct(
+    code: string,
+    name: string,
+    kanaName: string,
+    status: RegionStatus,
+    kanaEn: string,
+    createdAt: Date,
+    updatedAt: Date,
+  ): Region {
+    // createdAt,updatedAtはデフォルトでdomain作成時時刻
+    return new Region(
+      code,
+      name,
+      kanaName,
+      status,
+      kanaEn,
+      createdAt,
+      updatedAt,
+    );
+  }
 }
 
 export const RegionStatus = {
