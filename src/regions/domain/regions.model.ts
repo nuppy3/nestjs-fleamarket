@@ -30,19 +30,21 @@ export class Region {
 
   // 新規作成用の静的メソッド（factory method）
   static createNew(
-    code: string,
-    name: string,
-    kanaName: string,
-    status: RegionStatus,
-    kanaEn: string,
+    // 以下のpropsを使っているコード(domainをベースに不要項目をomit)、いいね！
+    props: Omit<Region, 'createdAt' | 'updatedAt'>,
+    // code: string,
+    // name: string,
+    // kanaName: string,
+    // status: RegionStatus,
+    // kanaEn: string,
   ): Region {
     // createdAt,updatedAtはデフォルトでdomain作成時時刻
     return new Region(
-      code,
-      name,
-      kanaName,
-      status,
-      kanaEn,
+      props.code,
+      props.name,
+      props.kanaName,
+      props.status,
+      props.kanaEn,
       new Date(),
       new Date(),
     );
