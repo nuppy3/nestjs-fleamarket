@@ -1,9 +1,23 @@
-import { Region as PrismaRegion } from 'generated/prisma';
+import { Prisma, Region as PrismaRegion } from 'generated/prisma';
 import { Region } from '../domain/regions.model';
 
 export class RegionMapper {
   // domain → prismaInput
-  static toPrismaCreate() {}
+  // 戻り値の型(Prisma.RegionCreateInput)はPrismaが自動生成した型（Prisma.XXXCreateInput）
+  static toPrismaCreate(
+    domain: Region,
+    userId: string,
+  ): Prisma.RegionCreateInput {
+    const prismaInput = {
+      code: domain.code,
+      name: domain.name,
+      kanaName: domain.kanaName,
+      status: domain.status,
+      kanaEn: domain.kanaEn,
+      userId: userId,
+    };
+    return prismaInput;
+  }
 
   // メソッド名をtoDomainにしているが、API→Domainなどのケースが発生したら
   // リネームする（prismaToDomainなど）

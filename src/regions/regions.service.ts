@@ -55,14 +55,16 @@ export class RegionsService {
     // domain → prisma(input)
     // dtoから直接作成してもいいが、念の為。
     // 完全にDDDを意識するとMapper(toPrismaCreate())に移管するのがよい
-    const prismaInput = {
-      code: domain.code,
-      name: domain.name,
-      kanaName: domain.kanaName,
-      status: domain.status,
-      kanaEn: domain.kanaEn,
-      userId: userId,
-    };
+    // 移管したので、以下をコメントアウト
+    // const prismaInput = {
+    //   code: domain.code,
+    //   name: domain.name,
+    //   kanaName: domain.kanaName,
+    //   status: domain.status,
+    //   kanaEn: domain.kanaEn,
+    //   userId: userId,
+    // };
+    const prismaInput = RegionMapper.toPrismaCreate(domain, userId);
 
     // エリア情報登録（永続化）
     let created: PrismaRegion;
