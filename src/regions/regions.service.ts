@@ -5,6 +5,7 @@ import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
+import { RegionMapper } from './infrastructure/region. mapper';
 @Injectable()
 export class RegionsService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -94,16 +95,18 @@ export class RegionsService {
     }
 
     // prisma → domain
-    const savedDomain = {
-      id: created.id,
-      code: created.code,
-      name: created.name,
-      kanaName: created.kanaName,
-      status: created.status,
-      kanaEn: created.kanaEn,
-      createdAt: created.createdAt,
-      updatedAt: created.updatedAt,
-    } satisfies Region & { id: string };
+    // 以下の詰め替え処理をMapper(toDomain)に移管
+    // const savedDomain = {
+    //   id: created.id,
+    //   code: created.code,
+    //   name: created.name,
+    //   kanaName: created.kanaName,
+    //   status: created.status,
+    //   kanaEn: created.kanaEn,
+    //   createdAt: created.createdAt,
+    //   updatedAt: created.updatedAt,
+    // } satisfies Region & { id: string };
+    const savedDomain = RegionMapper.toDomain(created);
 
     return savedDomain;
   }
