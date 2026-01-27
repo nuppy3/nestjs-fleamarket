@@ -168,5 +168,5 @@ export interface StoreFilter {
   //  * 店舗ステータスでフィルタ
   //  * @see StorStatus
   //  */
-  // status?: StorStatus;
+  status?: StoreStatus;
 }

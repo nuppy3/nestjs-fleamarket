@@ -13,9 +13,15 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import type { Request as ExpressRequest } from 'express';
+
 import { RequestUser } from 'src/types/requestUser';
-import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
+import {
+  CreateStoreDto,
+  FindAllStoresQueryDto,
+  StoreResponseDto,
+} from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { StoreFilter } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -32,14 +38,25 @@ export class StoresController {
    */
   @Get()
   async findAll(
-    @Query('prefectureCode') prefectureCode?: string,
+    // @Query('prefectureCode') prefectureCode?: string,
+    // @Query('status') status?: StoreStatus,
+    // 上記のクエリパラメータをDTOに集約
+    @Query() query: FindAllStoresQueryDto,
   ): Promise<StoreResponseDto[]> {
     // 店舗情報取得
     // prefectureCode以外にもフィルター条件が追加される可能性があるので{}で囲ってオブジェクトとする
     // prefectureCodeがnull/undefined/''/数値の0/false の場合、{}を渡す。
-    const stores = await this.storesService.findAll(
-      prefectureCode ? { prefectureCode: prefectureCode } : {},
-    );
+    const filters = {
+      prefectureCode: query.prefectureCode && query.prefectureCode,
+      status: query.status && query.status,
+    } satisfies StoreFilter;
+
+    // const stores = await this.storesService.findAll(
+    //   prefectureCode ? { prefectureCode: prefectureCode } : {},
+    //   status ? { status: status } : {},
+    // );
+    const stores = await this.storesService.findAll(filters ? filters : {});
+
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!

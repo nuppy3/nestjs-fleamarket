@@ -1,22 +1,23 @@
 import { Expose } from 'class-transformer';
 import {
-    ArrayUnique,
-    IsArray,
-    IsEmail,
-    IsEnum,
-    IsIn,
-    IsNotEmpty,
-    IsOptional,
-    IsString,
-    MaxLength,
+  ArrayUnique,
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
 } from 'class-validator';
 import { type Prefecture } from '../../prefectures/prefectures.model';
 import {
-    Store,
-    StoreStatus,
-    WEEKDAY_LABELS,
-    WEEKDAYS,
-    type Weekday,
+  Store,
+  StoreFilter,
+  StoreStatus,
+  WEEKDAY_LABELS,
+  WEEKDAYS,
+  type Weekday,
 } from '../stores.model';
 
 export class CreateStoreDto {
@@ -77,6 +78,18 @@ export class CreateStoreDto {
     message: `holiday must be one of: ${WEEKDAYS.join(', ')}`,
   })
   holidays?: Weekday[]; // 休日は複数の曜日なので配列型
+
+  constructor(
+    name: string,
+    status: StoreStatus,
+    email: string,
+    phoneNumber: string,
+  ) {
+    this.name = name;
+    this.status = status;
+    this.email = email;
+    this.phoneNumber = phoneNumber;
+  }
 }
 
 // ------------------------------------
@@ -125,7 +138,6 @@ export class StoreResponseDto implements StoreResponseShape {
   name: string;
   @Expose()
   kanaName?: string;
-
   @Expose()
   status: StoreStatus;
   // ステータスを日本語に変換（@Transformではなくgetterで）
@@ -191,8 +203,39 @@ export class StoreResponseDto implements StoreResponseShape {
   // domainはあくまで「ビジネスルール」だけ持つべきであり、idやcreatedAt、updatedAtなどはDTO
   // で持つ。
   // あれ??、でもplainToInstanceでdomain→dto変換してるから、このconstructor使われてなくね？
-  constructor(domain: Store, id: string) {
+  // constructor(domain: Store, id: string) {
+  //   this.id = id;
+  //   Object.assign(this, domain);
+  // }
+  constructor(
+    id: string,
+    name: string,
+    status: StoreStatus,
+    email: string,
+    phoneNumber: string,
+    createdAt: Date,
+    updatedAt: Date,
+  ) {
     this.id = id;
-    Object.assign(this, domain);
+    this.name = name;
+    this.status = status;
+    this.email = email;
+    this.phoneNumber = phoneNumber;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
+}
+
+export class FindAllStoresQueryDto implements StoreFilter {
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  @IsString() // 任意項目だが入力された際のValidation
+  @MaxLength(40) // 任意項目だが入力された際のValidation
+  prefectureCode?: string;
+
+  // StoreStatusは厳密なEnumではない（modern Enum=union)のだが@IsEnum()が効くみたい！
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
+  @IsEnum(StoreStatus, {
+    message: `StoreStatus must be one of: ${StoreStatus.EDITING}, ${StoreStatus.PUBLISHED}, ${StoreStatus.SUSPENDED}`,
+  })
+  status?: StoreStatus;
 }

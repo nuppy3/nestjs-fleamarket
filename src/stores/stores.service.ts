@@ -52,7 +52,10 @@ export class StoresService {
       // filters.prefectureCodeがtruthy(空文字・null・undefined以外など)の場合、
       // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
       where: {
-        status: 'published',
+        // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
+        // 非常に便利な性質があります。
+        // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
+        status: filters.status,
         ...(filters.prefectureCode && {
           prefecture: {
             code: filters.prefectureCode,
