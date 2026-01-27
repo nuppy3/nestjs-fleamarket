@@ -36,6 +36,10 @@ export class StoresService {
     // filtersが存在しない場合は{}で初期化
     filters: StoreFilter = {},
   ): Promise<(Store & { id: string })[]> {
+    console.log('*** service ***');
+    console.log('filters: ');
+    console.log(filters);
+
     // Store情報取得
     const resultStores = await this.prismaService.store.findMany({
       include: {
@@ -49,7 +53,7 @@ export class StoresService {
       //   : {},
 
       // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
-      // filters.prefectureCodeがtruthy(空文字・null・undefined以外など)の場合、
+      // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
       // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
       where: {
         // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという

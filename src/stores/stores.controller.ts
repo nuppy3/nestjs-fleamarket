@@ -21,7 +21,6 @@ import {
   StoreResponseDto,
 } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { StoreFilter } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -40,22 +39,16 @@ export class StoresController {
   async findAll(
     // @Query('prefectureCode') prefectureCode?: string,
     // @Query('status') status?: StoreStatus,
-    // 上記のクエリパラメータをDTOに集約
+    // 上記のクエリパラメータをDTOに集約（DTOの場合@Query()の中のパラメータは省略可
+    // クエリパラメータ無しの場合、queryは{}からオブジェクトが渡される
     @Query() query: FindAllStoresQueryDto,
   ): Promise<StoreResponseDto[]> {
     // 店舗情報取得
-    // prefectureCode以外にもフィルター条件が追加される可能性があるので{}で囲ってオブジェクトとする
-    // prefectureCodeがnull/undefined/''/数値の0/false の場合、{}を渡す。
-    const filters = {
-      prefectureCode: query.prefectureCode && query.prefectureCode,
-      status: query.status && query.status,
-    } satisfies StoreFilter;
-
-    // const stores = await this.storesService.findAll(
-    //   prefectureCode ? { prefectureCode: prefectureCode } : {},
-    //   status ? { status: status } : {},
-    // );
-    const stores = await this.storesService.findAll(filters ? filters : {});
+    const filters = query; // validation(dto)で入力チェック済みなので、そのまま渡す。
+    const stores = await this.storesService.findAll(filters);
+    console.log('*** controller ***');
+    console.log('filters: ');
+    console.log(filters);
 
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
