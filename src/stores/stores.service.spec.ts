@@ -95,22 +95,32 @@ describe('StoresService Test', () => {
       expect(result).toEqual(expectedStores);
     });
 
-    it('正常系: Stroeドメイン配列(全項目)を返却する（filter有り)', async () => {
-      // 引数作成
-      const filters = {
-        prefectureCode: '13',
-      } satisfies StoreFilter;
+    describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
+      it('正常系: prefectureCodeを指定した場合、その都道府県内の店舗のみ取得', async () => {
+        // 引数作成
+        const filters = {
+          prefectureCode: '13',
+        } satisfies StoreFilter;
 
-      // mockの返却値作成
-      jest
-        .spyOn(prismaService.store, 'findMany')
-        .mockResolvedValue(prismaMockStores);
+        // mockの返却値作成
+        jest
+          .spyOn(prismaService.store, 'findMany')
+          .mockResolvedValue(prismaMockStores);
 
-      // test対象呼び出し
-      const result = await storesService.findAll(filters);
+        // test対象呼び出し
+        const result = await storesService.findAll(filters);
 
-      // 結果検証
-      expect(result).toEqual(expectedStores);
+        // 結果検証
+        expect(result).toEqual(expectedStores);
+      });
+
+      it('正常系: statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
+      it('正常系: 店舗名を指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
+      it('正常系: statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
+      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
     });
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（1件)', async () => {
