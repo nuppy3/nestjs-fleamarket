@@ -20,13 +20,29 @@ import {
   type Weekday,
 } from '../stores.model';
 
+/**
+ * CreateStoreDto
+ *
+ * 【特記事項】tsconfig.jsonに「"strictPropertyInitialization": true,」を指定すると
+ * オブジェクト(DTOなどのclass)の初期化を促すチェックが入る（constructorなどで初期化しないと
+ * 必須項目であってもnullやundefinedがセットされ、xxxx.nameのようにプロパティにアクセスすると
+ * エラーが発生する可能性あると判断される）
+ *
+ * 一般的には、constructoreを用意し、初期化すればいいのだが、リクエストパラメータを受け取る際の
+ * DTOはNestJSが new するので、「!」 を使って「フレームワークに任せるぜ」と宣言するのがBP。
+ *
+ * strictPropertyInitialization は true のままにする。
+ * DTO の必須プロパティには ! をつける。（例: name!: string;）
+ * DTO の任意プロパティには ? をつける。（例: kanaName?: string;）
+ * constructor は無しでOK！
+ */
 export class CreateStoreDto {
   // idはリクエストパラメーターで取得しない
   // id: number;
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)
-  name: string;
+  name!: string;
 
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
@@ -37,7 +53,7 @@ export class CreateStoreDto {
   @IsEnum(StoreStatus, {
     message: `StoreStatus must be one of: ${StoreStatus.EDITING}, ${StoreStatus.PUBLISHED}, ${StoreStatus.SUSPENDED}`,
   })
-  status: StoreStatus;
+  status!: StoreStatus;
 
   @IsOptional()
   @IsString()
@@ -46,7 +62,7 @@ export class CreateStoreDto {
 
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsOptional()
   @IsString()
@@ -61,7 +77,7 @@ export class CreateStoreDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(13)
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @IsOptional()
   @IsNotEmpty()
@@ -79,17 +95,18 @@ export class CreateStoreDto {
   })
   holidays?: Weekday[]; // 休日は複数の曜日なので配列型
 
-  constructor(
-    name: string,
-    status: StoreStatus,
-    email: string,
-    phoneNumber: string,
-  ) {
-    this.name = name;
-    this.status = status;
-    this.email = email;
-    this.phoneNumber = phoneNumber;
-  }
+  // constructore不要：上記の特記事項参照
+  // constructor(
+  //   name: string,
+  //   status: StoreStatus,
+  //   email: string,
+  //   phoneNumber: string,
+  // ) {
+  //   this.name = name;
+  //   this.status = status;
+  //   this.email = email;
+  //   this.phoneNumber = phoneNumber;
+  // }
 }
 
 // ------------------------------------

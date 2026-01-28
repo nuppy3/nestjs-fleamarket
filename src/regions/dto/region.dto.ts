@@ -3,46 +3,63 @@ import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
 import { Region, RegionStatus } from '../domain/regions.model';
 
+/**
+ * CreateRegionDto
+ *
+ * 【特記事項】tsconfig.jsonに「"strictPropertyInitialization": true,」を指定すると
+ * オブジェクト(DTOなどのclass)の初期化を促すチェックが入る（constructorなどで初期化しないと
+ * 必須項目であってもnullやundefinedがセットされ、xxxx.nameのようにプロパティにアクセスすると
+ * エラーが発生する可能性あると判断される）
+ *
+ * 一般的には、constructoreを用意し、初期化すればいいのだが、リクエストパラメータを受け取る際の
+ * DTOはNestJSが new するので、「!」 を使って「フレームワークに任せるぜ」と宣言するのがBP。
+ *
+ * strictPropertyInitialization は true のままにする。
+ * DTO の必須プロパティには ! をつける。（例: name!: string;）
+ * DTO の任意プロパティには ? をつける。（例: kanaName?: string;）
+ * constructor は無しでOK！
+ */
 export class CreateRegionDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)
-  name: string;
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(2)
-  code: string;
+  code!: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)
-  kanaName: string;
+  kanaName!: string;
 
   // PrefectureStatusは厳密なEnumではない（modern Enum=union)のだが@IsEnum()が効くみたい！
   @IsEnum(RegionStatus, {
     message: `StoreStatus must be one of: ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
   })
-  status: RegionStatus;
+  status!: RegionStatus;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)
-  kanaEn: string;
+  kanaEn!: string;
 
-  constructor(
-    name: string,
-    code: string,
-    kanaName: string,
-    status: RegionStatus,
-    kanaEn: string,
-  ) {
-    this.name = name;
-    this.code = code;
-    this.kanaName = kanaName;
-    this.status = status;
-    this.kanaEn = kanaEn;
-  }
+  // constructor不要：上記の特記事項参照
+  // constructor(
+  //   name: string,
+  //   code: string,
+  //   kanaName: string,
+  //   status: RegionStatus,
+  //   kanaEn: string,
+  // ) {
+  //   this.name = name;
+  //   this.code = code;
+  //   this.kanaName = kanaName;
+  //   this.status = status;
+  //   this.kanaEn = kanaEn;
+  // }
 }
 
 // -------------------------------------------------
@@ -73,19 +90,19 @@ export type RegionResponseShape = Pick<
 export class RegionResponseDto implements RegionResponseShape {
   // ドメインにidは不要。ResponseDtoにidを付与。→ベストプラクティス!!
   @Expose()
-  readonly id: string;
+  readonly id!: string;
 
   @Expose()
-  name: string;
+  name!: string;
 
   @Expose()
-  code: string;
+  code!: string;
 
   @Expose()
-  kanaName: string;
+  kanaName!: string;
 
   @Expose()
-  status: PrefectureStatus;
+  status!: PrefectureStatus;
 
   @Expose()
   get statusLabel(): string {
@@ -100,24 +117,25 @@ export class RegionResponseDto implements RegionResponseShape {
   }
 
   @Expose()
-  kanaEn: string;
+  kanaEn!: string;
 
   @Expose()
   prefectureCount?: number;
 
-  constructor(
-    id: string,
-    name: string,
-    code: string,
-    kanaName: string,
-    status: RegionStatus,
-    kanaEn: string,
-  ) {
-    this.id = id;
-    this.name = name;
-    this.code = code;
-    this.kanaName = kanaName;
-    this.status = status;
-    this.kanaEn = kanaEn;
-  }
+  // constructor不要：上記の特記事項参照
+  // constructor(
+  //   id: string,
+  //   name: string,
+  //   code: string,
+  //   kanaName: string,
+  //   status: RegionStatus,
+  //   kanaEn: string,
+  // ) {
+  //   this.id = id;
+  //   this.name = name;
+  //   this.code = code;
+  //   this.kanaName = kanaName;
+  //   this.status = status;
+  //   this.kanaEn = kanaEn;
+  // }
 }

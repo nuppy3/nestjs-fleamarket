@@ -14,19 +14,14 @@ export class CreateItemDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(40)
-  name: string;
+  name!: string;
 
   @IsInt()
   @Min(1)
-  price: number;
+  price!: number;
 
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
   @MaxLength(100) // 任意項目だが入力された際のValidation
   description?: string;
-
-  constructor(name: string, price: number) {
-    this.name = name;
-    this.price = price;
-  }
 }
