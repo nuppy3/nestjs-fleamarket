@@ -24,4 +24,9 @@ export class CreateItemDto {
   @IsString() // 任意項目だが入力された際のValidation
   @MaxLength(100) // 任意項目だが入力された際のValidation
   description?: string;
+
+  constructor(name: string, price: number) {
+    this.name = name;
+    this.price = price;
+  }
 }

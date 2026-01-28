@@ -28,6 +28,20 @@ export class CreatePrefectureDto {
   @IsNotEmpty()
   @MaxLength(40)
   kanaEn: string;
+
+  constructor(
+    name: string,
+    code: string,
+    kanaName: string,
+    status: PrefectureStatus,
+    kanaEn: string,
+  ) {
+    this.name = name;
+    this.code = code;
+    this.kanaName = kanaName;
+    this.status = status;
+    this.kanaEn = kanaEn;
+  }
 }
 
 // -------------------------------------------------
@@ -89,4 +103,18 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
 
   @Expose()
   storeCount?: number;
+
+  constructor(
+    name: string,
+    code: string,
+    kanaName: string,
+    status: PrefectureStatus,
+    kanaEn: string,
+  ) {
+    this.name = name;
+    this.code = code;
+    this.kanaName = kanaName;
+    this.status = status;
+    this.kanaEn = kanaEn;
+  }
 }

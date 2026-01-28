@@ -29,6 +29,20 @@ export class CreateRegionDto {
   @IsNotEmpty()
   @MaxLength(40)
   kanaEn: string;
+
+  constructor(
+    name: string,
+    code: string,
+    kanaName: string,
+    status: RegionStatus,
+    kanaEn: string,
+  ) {
+    this.name = name;
+    this.code = code;
+    this.kanaName = kanaName;
+    this.status = status;
+    this.kanaEn = kanaEn;
+  }
 }
 
 // -------------------------------------------------
@@ -90,4 +104,20 @@ export class RegionResponseDto implements RegionResponseShape {
 
   @Expose()
   prefectureCount?: number;
+
+  constructor(
+    id: string,
+    name: string,
+    code: string,
+    kanaName: string,
+    status: RegionStatus,
+    kanaEn: string,
+  ) {
+    this.id = id;
+    this.name = name;
+    this.code = code;
+    this.kanaName = kanaName;
+    this.status = status;
+    this.kanaEn = kanaEn;
+  }
 }
