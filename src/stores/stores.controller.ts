@@ -21,6 +21,7 @@ import {
   StoreResponseDto,
 } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { StoreFilter } from './stores.model';
 import { StoresService } from './stores.service';
 
 @Controller('stores')
@@ -44,7 +45,7 @@ export class StoresController {
     @Query() query: FindAllStoresQueryDto,
   ): Promise<StoreResponseDto[]> {
     // 店舗情報取得
-    const filters = query; // validation(dto)で入力チェック済みなので、そのまま渡す。
+    const filters: StoreFilter = query; // validation(dto)で入力チェック済みなので、そのまま渡す。
     const stores = await this.storesService.findAll(filters);
     console.log('*** controller ***');
     console.log('filters: ');
