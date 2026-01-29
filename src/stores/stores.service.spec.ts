@@ -119,7 +119,7 @@ describe('StoresService Test', () => {
      *         },
      *       });
      */
-    describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
+    describe('findAllの絞り込み(filter)テスト', () => {
       it('正常系(1): prefectureCodeを指定した場合、Prismaのwhere句に正しく反映されること', async () => {
         // 引数作成
         const filters = {

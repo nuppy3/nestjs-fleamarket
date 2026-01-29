@@ -64,16 +64,107 @@ describe('StoresController TEST', () => {
       expect(resoult).toEqual(expectedStoreDtos);
     });
 
-    describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
-      it('正常系：店舗情報のリストを返却する(DTOの全項目) - prefectureCode 有り ', async () => {
-        // 引数作成
-        const prefectureCode = '13';
+    describe('findAllの絞り込み(filter)テスト', () => {
+      it('正常系(1)：prefectureCodeを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
-        // テスト対象Controller呼び出し
-        const resoult = await storesController.findAll(prefectureCode);
-        // 検証
-        expect(resoult).toEqual(expectedStoreDtos);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          prefectureCode: '13',
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith({
+          prefectureCode: '13',
+        });
+      });
+
+      it('正常系(2)：statusを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成：中身は適当
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          status: 'published',
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        // filterのテストは以下の結果検証は不要
+        // expect(result).toEqual(expectedStoreDtos);
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+
+      it('正常系(3)：店舗を指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成：中身は適当
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          status: 'published',
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        // filterのテストは以下の結果検証は不要
+        // expect(result).toEqual(expectedStoreDtos);
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+
+      it('正常系(4)：XXXXXを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成：中身は適当
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          status: 'published',
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        // filterのテストは以下の結果検証は不要
+        // expect(result).toEqual(expectedStoreDtos);
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+    });
+
+    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
+      // queryの変換処理はcontrolerで実施していないし、
+      // controllerで複合ケースの試験は不要な気もするが一応
+      it('(1)+(2) 都道府県コード＋statusを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          prefectureCode: '13',
+          status: 'published',
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith({
+          prefectureCode: '13',
+          status: 'published',
+        });
       });
     });
 
