@@ -10,7 +10,7 @@ import {
 } from '../../generated/prisma';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { CreateStoreDto } from './dto/store.dto';
-import { Store, StoreFilter } from './stores.model';
+import { Store, StoreFilter, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -95,8 +95,32 @@ describe('StoresService Test', () => {
       expect(result).toEqual(expectedStores);
     });
 
+    /**
+     * findAllの絞り込み(filter)テストは、toEqual()の検証ではなく、toHaveBeenCalledWithを
+     * 用いて、Prismaが期待通りの引数で呼び出されているかをメインに検証する。
+     *
+     * Prismaはmockしているので、返却値はmockでセットされるため、レスpンス(Prisma/service)を
+     * toEqual()にて検証しても意味がない。
+     *
+     * ＜テスト観点＞
+     * serviceクラスの引数(filters)によって、どのようにPrismaのwhere句などの条件が変更されるか
+     * 期待値との検証を行う。
+     * 従って、mockResolvedValue()でセットするPrismaのmock dataは、何でもいい。
+     *
+     * toHaveBeenCalledWith()に渡された引数と期待値が合うか。
+     *  重要ポイント：PrismaService.store.findMany()はMock化するが、findMany()は「誰が、
+     *  どんな引数で呼んだか」を記録してくれているので、モックでも「実際に渡された引数」で「実際の
+     *  PrismaService.findManyの引数(型、値)」で渡されているかチェックするという強力なツール!!
+     *
+     *  例：  expect(prismaService.store, 'findMany').toHaveBeenCalledWith({
+     *         where: {
+     *          status: StoreStatus.PUBLISHED,
+     *          // 他のプロパティが undefined であることも含めてチェックされる ← 何気にこれ重要!!
+     *         },
+     *       });
+     */
     describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
-      it('正常系: prefectureCodeを指定した場合、その都道府県内の店舗のみ取得', async () => {
+      it('正常系(1): prefectureCodeを指定した場合、その都道府県内の店舗のみ取得', async () => {
         // 引数作成
         const filters = {
           prefectureCode: '13',
@@ -107,20 +131,90 @@ describe('StoresService Test', () => {
           .spyOn(prismaService.store, 'findMany')
           .mockResolvedValue(prismaMockStores);
 
-        // test対象呼び出し
-        const result = await storesService.findAll(filters);
+        // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+        // 引数: statusを指定
+        await storesService.findAll(filters);
 
         // 結果検証
-        expect(result).toEqual(expectedStores);
+        // 上記にも記載しているが、toEqual()での検証は不要
+        // expect(result).toEqual(expectedStores);
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          // 以下は期待値
+          where: {
+            prefecture: {
+              code: '13',
+            },
+          },
+        });
       });
 
-      it('正常系: statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
-      it('正常系: 店舗名を指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
-      it('正常系: statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
-      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系: xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系(2): statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {
+        // prisma mock data 作成：中身は何でもいい
+        jest
+          .spyOn(prismaService.store, 'findMany')
+          .mockResolvedValue(prismaMockStores);
+
+        // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+        // 引数: statusを指定
+        const filters: StoreFilter = { status: 'published' };
+        await storesService.findAll(filters);
+
+        // 結果検証
+        // 上記にも記載しているが、toEqual()での検証は不要
+        // expect(result).toEqual(expectedStores);
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          // 以下は期待値
+          where: {
+            status: StoreStatus.PUBLISHED,
+          },
+        });
+      });
+
+      it('正常系(3): 店舗名を指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
+      it('正常系(3): statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+    });
+
+    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
+      it('(1)+(2): status と 都道府県コードを両方指定した場合、AND条件で絞り込まれること', async () => {
+        // prisma modk data(中身は何でもOK)
+        jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+
+        // test対象service呼び出し: statusと都道府県コードを指定
+        const filters: StoreFilter = {
+          status: StoreStatus.PUBLISHED,
+          prefectureCode: '13',
+        };
+
+        await storesService.findAll(filters);
+        // 検証
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          where: {
+            status: StoreStatus.PUBLISHED,
+            prefecture: {
+              code: '13',
+            },
+          },
+        });
+      });
     });
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（1件)', async () => {
