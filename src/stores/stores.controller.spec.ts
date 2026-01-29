@@ -1,7 +1,11 @@
 import { Test } from '@nestjs/testing';
 import type { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
-import { CreateStoreDto, StoreResponseDto } from './dto/store.dto';
+import {
+  CreateStoreDto,
+  FindAllStoresQueryDto,
+  StoreResponseDto,
+} from './dto/store.dto';
 import { StoresController } from './stores.controller';
 import { Store } from './stores.model';
 import { StoresService } from './stores.service';
@@ -53,20 +57,24 @@ describe('StoresController TEST', () => {
       // ServiceのMockデータを作成
       jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
       // テスト対象Controller呼び出し
-      const resoult = await storesController.findAll();
+      // 引数: 絞り込み条件無し
+      const query: FindAllStoresQueryDto = {};
+      const resoult = await storesController.findAll(query);
       // 検証
       expect(resoult).toEqual(expectedStoreDtos);
     });
 
-    it('正常系：店舗情報のリストを返却する(DTOの全項目) - prefectureCode 有り ', async () => {
-      // 引数作成
-      const prefectureCode = '13';
-      // ServiceのMockデータを作成
-      jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
-      // テスト対象Controller呼び出し
-      const resoult = await storesController.findAll(prefectureCode);
-      // 検証
-      expect(resoult).toEqual(expectedStoreDtos);
+    describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
+      it('正常系：店舗情報のリストを返却する(DTOの全項目) - prefectureCode 有り ', async () => {
+        // 引数作成
+        const prefectureCode = '13';
+        // ServiceのMockデータを作成
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+        // テスト対象Controller呼び出し
+        const resoult = await storesController.findAll(prefectureCode);
+        // 検証
+        expect(resoult).toEqual(expectedStoreDtos);
+      });
     });
 
     it('正常系： 店舗情報のリストを返却する(domainの任意項目undefined→DTOの任意項目除外）', async () => {
@@ -100,7 +108,9 @@ describe('StoresController TEST', () => {
       );
 
       // テスト対象呼び出し
-      const result = await storesController.findAll();
+      // 引数: 絞り込み条件無し
+      const query: FindAllStoresQueryDto = {};
+      const result = await storesController.findAll(query);
       // 検証
       expect(result).toEqual(
         // 期待値：DTOから任意項目を削除
@@ -143,7 +153,9 @@ describe('StoresController TEST', () => {
     });
     it('正常系： データなし', async () => {
       jest.spyOn(storesService, 'findAll').mockResolvedValue([]);
-      const result = await storesController.findAll();
+      // 引数: 絞り込み条件無し
+      const query: FindAllStoresQueryDto = {};
+      const result = await storesController.findAll(query);
       expect(result).toEqual([]);
     });
   });

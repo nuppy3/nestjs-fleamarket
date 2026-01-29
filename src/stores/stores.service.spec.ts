@@ -120,7 +120,7 @@ describe('StoresService Test', () => {
      *       });
      */
     describe('findAllの絞り込み(filter)テスト：Stroeドメイン配列(全項目)を返却する', () => {
-      it('正常系(1): prefectureCodeを指定した場合、その都道府県内の店舗のみ取得', async () => {
+      it('正常系(1): prefectureCodeを指定した場合、Prismaのwhere句に正しく反映されること', async () => {
         // 引数作成
         const filters = {
           prefectureCode: '13',
@@ -153,7 +153,7 @@ describe('StoresService Test', () => {
         });
       });
 
-      it('正常系(2): statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {
+      it('正常系(2): statusを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {
         // prisma mock data 作成：中身は何でもいい
         jest
           .spyOn(prismaService.store, 'findMany')
@@ -180,16 +180,16 @@ describe('StoresService Test', () => {
         });
       });
 
-      it('正常系(3): 店舗名を指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
-      it('正常系(3): statusを指定した場合、そのステータスの店舗のみが取得できること)', async () => {});
-      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
-      it('正常系(3): xxxxを指定した場合、そのxxxxの店舗のみが取得できること)', async () => {});
+      it('正常系(3): 店舗名を指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): statusを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
     });
 
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2): status と 都道府県コードを両方指定した場合、AND条件で絞り込まれること', async () => {
+      it('(1)+(2): status と 都道府県コードを両方指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
 
