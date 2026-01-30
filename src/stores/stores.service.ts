@@ -60,6 +60,9 @@ export class StoresService {
         // 非常に便利な性質があります。
         // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
         status: filters.status,
+        ...(filters.name && {
+          name: { contains: filters.name },
+        }),
         ...(filters.prefectureCode && {
           prefecture: {
             code: filters.prefectureCode,

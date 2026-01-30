@@ -12,10 +12,10 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(20)
-  name: string;
+  name!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsStrongPassword({
     minLength: 8,
@@ -24,8 +24,8 @@ export class CreateUserDto {
     minSymbols: 1,
     minUppercase: 1,
   })
-  password: string;
+  password!: string;
 
   @IsEnum(UserStatus)
-  status: UserStatus;
+  status!: UserStatus;
 }
