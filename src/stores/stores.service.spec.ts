@@ -180,7 +180,29 @@ describe('StoresService Test', () => {
         });
       });
 
-      it('正常系(3): 店舗名を指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
+      it('正常系(3): name(店舗名)を指定した場合、Prismaのwhere句に正しく反映されること)', async () => {
+        // prisma mock data 作成（中身は適当)
+        jest
+          .spyOn(prismaService.store, 'findMany')
+          .mockResolvedValue(prismaMockStores);
+
+        // テスト対象service呼び出し
+        const filters: StoreFilter = { name: '赤羽' };
+        await storesService.findAll(filters);
+
+        // PrismaのWhere句の検証
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          where: {
+            name: { contains: filters.name },
+          },
+        });
+      });
+
       it('正常系(3): statusを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
@@ -189,7 +211,7 @@ describe('StoresService Test', () => {
     });
 
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2): status と 都道府県コードを両方指定した場合、正しくWhere句が組み立てられること', async () => {
+      it('(1)+(2)+(3): status/都道府県コード/nameを指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
 
@@ -197,6 +219,7 @@ describe('StoresService Test', () => {
         const filters: StoreFilter = {
           status: StoreStatus.PUBLISHED,
           prefectureCode: '13',
+          name: '赤羽',
         };
 
         await storesService.findAll(filters);
@@ -209,6 +232,7 @@ describe('StoresService Test', () => {
           },
           where: {
             status: StoreStatus.PUBLISHED,
+            name: { contains: filters.name },
             prefecture: {
               code: '13',
             },

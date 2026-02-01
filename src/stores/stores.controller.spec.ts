@@ -110,7 +110,7 @@ describe('StoresController TEST', () => {
         // テスト対象Controller呼び出し:適当なクエリを渡す
         // 引数: 一応意味のあるモノにしたが、中身は適当でよい
         const query: FindAllStoresQueryDto = {
-          status: 'published',
+          name: '赤羽',
         };
         await storesController.findAll(query);
 
@@ -118,9 +118,9 @@ describe('StoresController TEST', () => {
         // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
         // filterのテストは以下の結果検証は不要
         // expect(result).toEqual(expectedStoreDtos);
-        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
-          query,
-        );
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith({
+          name: '赤羽',
+        });
       });
 
       it('正常系(4)：XXXXXを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
@@ -147,7 +147,7 @@ describe('StoresController TEST', () => {
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
       // queryの変換処理はcontrolerで実施していないし、
       // controllerで複合ケースの試験は不要な気もするが一応
-      it('(1)+(2) 都道府県コード＋statusを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+      it('(1)+(2)+(3) 都道府県コード＋statusを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
 
@@ -156,6 +156,7 @@ describe('StoresController TEST', () => {
         const query: FindAllStoresQueryDto = {
           prefectureCode: '13',
           status: 'published',
+          name: '赤羽',
         };
         await storesController.findAll(query);
 
@@ -164,6 +165,7 @@ describe('StoresController TEST', () => {
         expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith({
           prefectureCode: '13',
           status: 'published',
+          name: '赤羽',
         });
       });
     });
