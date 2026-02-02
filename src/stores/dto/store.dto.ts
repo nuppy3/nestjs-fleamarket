@@ -1,4 +1,4 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -240,6 +240,38 @@ export class StoreResponseDto implements StoreResponseShape {
     this.phoneNumber = phoneNumber;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+}
+
+/**
+ * ページ化されたStoreレスポンスDTO
+ * ページ全体を表すラッパーDTO：data/metaでStoreDTOとMetaDTOを持つ
+ *
+ * @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント。
+ *        ネストしたオブジェクトの変換に必須。
+ *        ネストしたDTO（data が StoreResponseDto[] の場合など）で変換を正しくしたいとき。
+ *
+ * なぜ必要か？
+ * plainToInstance や ValidationPipe（transform: true時）が動くときに、ネスト部分を
+ * 正しくクラスに変換するため
+ * 例：{ data: [{ id: "1", name: "店A" }, ...] } → data[0] が
+ * StoreResponseDto インスタンスになる
+ * これがないと、getter（statusLabel, holidaysLabel）が呼ばれなかったり、ネストした
+ * バリデーションが効かなかったりする
+ *
+ */
+export class PaginatedStoreResponseDto {
+  @Type(() => StoreResponseDto)
+  data: StoreResponseDto[];
+
+  // @Type(() => PaginationMetaDto)
+  // meta: PaginationMetaDto;
+
+  constructor(
+    data: StoreResponseDto[],
+    //meta: PaginationMetaDto
+  ) {
+    this.data = data;
   }
 }
 
