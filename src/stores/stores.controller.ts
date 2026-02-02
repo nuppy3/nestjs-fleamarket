@@ -18,6 +18,7 @@ import { RequestUser } from 'src/types/requestUser';
 import {
   CreateStoreDto,
   FindAllStoresQueryDto,
+  PaginatedStoreResponseDto,
   StoreResponseDto,
 } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -43,7 +44,7 @@ export class StoresController {
     // 上記のクエリパラメータをDTOに集約（DTOの場合@Query()の中のパラメータは省略可
     // クエリパラメータ無しの場合、queryは{}からオブジェクトが渡される
     @Query() query: FindAllStoresQueryDto,
-  ): Promise<StoreResponseDto[]> {
+  ): Promise<PaginatedStoreResponseDto> {
     // 店舗情報取得
     const filters: StoreFilter = query; // validation(dto)で入力チェック済みなので、そのまま渡す。
     const stores = await this.storesService.findAll(filters);
@@ -54,13 +55,27 @@ export class StoresController {
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
-    return instanceToPlain(
+    const plainData = instanceToPlain(
       plainToInstance(StoreResponseDto, stores, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
     ) as StoreResponseDto[];
+
+    // ページ全体のplain object(DTO): {data/meta} を作成
+    const responsePlainDto = {
+      data: plainData,
+      meta: {
+        totalCount: 10,
+        limit: 20,
+        offset: 0,
+      },
+    } satisfies PaginatedStoreResponseDto;
+
+    // memo: もし、PaginatedStoreResponseDtoに@Expose()やgetterでの変換処理などを追加したい
+    //       場合は、plainToInstance()をかます必要がある。
+    return responsePlainDto;
   }
 
   @Get(':id')

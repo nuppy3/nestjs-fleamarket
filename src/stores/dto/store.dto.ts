@@ -244,6 +244,26 @@ export class StoreResponseDto implements StoreResponseShape {
 }
 
 /**
+ * ページネーション情報DTO(metaデータ)
+ */
+export class PaginationMetaDto {
+  // 総件数
+  totalCount: number;
+
+  // 1ページあたりの件数
+  limit: number;
+
+  // 開始位置
+  offset: number;
+
+  constructor(totalCount: number, limit: number, offset: number) {
+    this.totalCount = totalCount;
+    this.limit = limit;
+    this.offset = offset;
+  }
+}
+
+/**
  * ページ化されたStoreレスポンスDTO
  * ページ全体を表すラッパーDTO：data/metaでStoreDTOとMetaDTOを持つ
  *
@@ -261,17 +281,16 @@ export class StoreResponseDto implements StoreResponseShape {
  *
  */
 export class PaginatedStoreResponseDto {
+  // @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント
   @Type(() => StoreResponseDto)
   data: StoreResponseDto[];
 
-  // @Type(() => PaginationMetaDto)
-  // meta: PaginationMetaDto;
+  @Type(() => PaginationMetaDto)
+  meta: PaginationMetaDto;
 
-  constructor(
-    data: StoreResponseDto[],
-    //meta: PaginationMetaDto
-  ) {
+  constructor(data: StoreResponseDto[], meta: PaginationMetaDto) {
     this.data = data;
+    this.meta = meta;
   }
 }
 
