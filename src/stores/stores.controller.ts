@@ -47,7 +47,7 @@ export class StoresController {
   ): Promise<PaginatedStoreResponseDto> {
     // 店舗情報取得
     const filters: StoreFilter = query; // validation(dto)で入力チェック済みなので、そのまま渡す。
-    const stores = await this.storesService.findAll(filters);
+    const paginated = await this.storesService.findAll(filters);
     console.log('*** controller ***');
     console.log('filters: ');
     console.log(filters);
@@ -56,7 +56,8 @@ export class StoresController {
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
     const plainData = instanceToPlain(
-      plainToInstance(StoreResponseDto, stores, {
+      // paginated.data： (Store & {id:string})[]
+      plainToInstance(StoreResponseDto, paginated.data, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
@@ -67,7 +68,7 @@ export class StoresController {
     const responsePlainDto = {
       data: plainData,
       meta: {
-        totalCount: 10,
+        totalCount: paginated.meta.totalCount,
         limit: 20,
         offset: 0,
       },
