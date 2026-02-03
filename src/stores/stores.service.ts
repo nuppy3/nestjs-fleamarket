@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture } from '../prefectures/prefectures.model';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,12 +31,14 @@ export class StoresService {
    * // 全店舗を取得（フィルタなし）
    * await storesService.findAll();
    * ```
-   * @returns Storeドメイン + id（DB取得情報をdomein+idオブジェクトに詰め替え）
+   * @returns ページネーションされた情報：
+   *          1. Storeドメイン + id（DB取得情報をdomein+idオブジェクトに詰め替え）
+   *          2. meta情報(Store情報のそう件数)
    */
   async findAll(
     // filtersが存在しない場合は{}で初期化
     filters: StoreFilter = {},
-  ): Promise<(Store & { id: string })[]> {
+  ): Promise<PaginatedResult<Store & { id: string }>> {
     console.log('*** service ***');
     console.log('filters: ');
     console.log(filters);
@@ -146,7 +149,15 @@ export class StoresService {
       domains.push(domain);
     }
 
-    return domains;
+    // 返却オブジェクト: ページネーションされたStoreドメイン情報
+    const paginated: PaginatedResult<Store & { id: string }> = {
+      data: domains,
+      meta: {
+        totalCount: count,
+      },
+    };
+
+    return paginated;
   }
 
   findOne(id: number) {
