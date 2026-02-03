@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
-// StoreはPrismaの返却値Storeと重複するので、StoreEntityにリネーム
 import { NotFoundException } from '@nestjs/common';
 // PrismaのスキーマはXXXXPrismaという名前にリネーム
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import {
   Prefecture as PrefecturePrisma,
   Store as StorePrisma,
@@ -19,6 +19,7 @@ const mockPrismaService = {
     // fn()はmock関数(振る舞いはテスト実施時に指定)
     findMany: jest.fn(),
     create: jest.fn(),
+    count: jest.fn(),
   },
   prefecture: { findUnique: jest.fn() },
 };
@@ -32,10 +33,8 @@ describe('StoresService Test', () => {
   let prismaMockStores: (StorePrisma & {
     prefecture: PrefecturePrisma | null;
   })[];
-  // 期待値: seriveの返却値(StoreEntityはStoreドメイン ※Storeという名前が重複するためStoreEntityにリネーム)
-  let expectedStores: (Store & {
-    id: string;
-  })[];
+  // 期待値: seriveの返却値
+  let expectedStores: PaginatedResult<Store & { id: string }>;
   // Prismaの型：Store + Prefectrue
   // prefectureのidを取得していないので除外するためPartialとして定義(Omitだと都度除外しないといけないのでPartialで対応)
   type PrismaStoreWithPrefecture = StorePrisma & {
@@ -84,9 +83,12 @@ describe('StoresService Test', () => {
   describe('■■■ findAll TEST ■■■', () => {
     it('正常系: Stroeドメイン配列(全項目)を返却する（filter無し)', async () => {
       // mockの返却値作成
+      // findany()
       jest
         .spyOn(prismaService.store, 'findMany')
         .mockResolvedValue(prismaMockStores);
+      // count()
+      jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
 
       // test対象呼び出し
       const result = await storesService.findAll();
@@ -130,6 +132,8 @@ describe('StoresService Test', () => {
         jest
           .spyOn(prismaService.store, 'findMany')
           .mockResolvedValue(prismaMockStores);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
 
         // test対象呼び出し：結果は取得しない(「const result = 」は不要)
         // 引数: statusを指定
@@ -158,6 +162,8 @@ describe('StoresService Test', () => {
         jest
           .spyOn(prismaService.store, 'findMany')
           .mockResolvedValue(prismaMockStores);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
 
         // test対象呼び出し：結果は取得しない(「const result = 」は不要)
         // 引数: statusを指定
@@ -185,6 +191,8 @@ describe('StoresService Test', () => {
         jest
           .spyOn(prismaService.store, 'findMany')
           .mockResolvedValue(prismaMockStores);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
 
         // テスト対象service呼び出し
         const filters: StoreFilter = { name: '赤羽' };
@@ -214,6 +222,8 @@ describe('StoresService Test', () => {
       it('(1)+(2)+(3): status/都道府県コード/nameを指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(0);
 
         // test対象service呼び出し: statusと都道府県コードを指定
         const filters: StoreFilter = {
@@ -269,28 +279,35 @@ describe('StoresService Test', () => {
       ];
       // mockの返却値作成
       jest.spyOn(prismaService.store, 'findMany').mockResolvedValue(mockValues);
+      jest.spyOn(prismaService.store, 'count').mockResolvedValue(1);
+
       // テスト実施
       const result = await storesService.findAll();
       // 検証
-      expect(result).toEqual([
-        {
-          id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '山田電気 赤羽店',
-          status: 'published',
-          email: 'yamada-akabane@test.co.jp',
-          phoneNumber: '03-1122-9901',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          kanaName: undefined,
-          // prefecture: undefined,
-          holidays: undefined,
-          zipCode: undefined,
-          address: undefined,
-          businessHours: undefined,
-          userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-          prefecture: undefined,
+      expect(result).toEqual({
+        data: [
+          {
+            id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '山田電気 赤羽店',
+            status: 'published',
+            email: 'yamada-akabane@test.co.jp',
+            phoneNumber: '03-1122-9901',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            kanaName: undefined,
+            // prefecture: undefined,
+            holidays: undefined,
+            zipCode: undefined,
+            address: undefined,
+            businessHours: undefined,
+            userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+            prefecture: undefined,
+          },
+        ],
+        meta: {
+          totalCount: 1,
         },
-      ]);
+      } satisfies PaginatedResult<Store & { id: string }>);
     });
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（複数件)', async () => {
@@ -309,32 +326,46 @@ describe('StoresService Test', () => {
           return Object.assign({}, store);
         }),
       );
+      jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
+
       // テスト実施
       const result = await storesService.findAll();
+
       // 検証
-      expect(result).toEqual(
-        // 期待値の任意項目をundefinedに書き換え
-        expectedStores.map((store) => {
-          store.kanaName = undefined;
-          // store.prefecture = undefined;
-          store.holidays = undefined;
-          store.zipCode = undefined;
-          store.address = undefined;
-          store.businessHours = undefined;
-          store.prefecture = undefined;
-          return Object.assign({}, store);
-        }),
-      );
+      // 期待値の中の定義を外だしで可読性を向上可能であるが、以下でやってみた。
+      expect(result).toEqual({
+        data:
+          // 期待値の任意項目をundefinedに書き換え
+          expectedStores.data.map((store) => {
+            store.kanaName = undefined;
+            // store.prefecture = undefined;
+            store.holidays = undefined;
+            store.zipCode = undefined;
+            store.address = undefined;
+            store.businessHours = undefined;
+            store.prefecture = undefined;
+            return Object.assign({}, store);
+          }),
+        meta: {
+          totalCount: 3,
+        },
+      } satisfies PaginatedResult<Store & { id: string }>);
     });
 
-    // // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
+    // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
     it('データが0件の場合は空配列を返す', async () => {
       // prisma mock データ
       jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+      jest.spyOn(prismaService.store, 'count').mockResolvedValue(0);
       // テスト実施
       const result = await storesService.findAll();
       // 検証
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: {
+          totalCount: 0,
+        },
+      } satisfies PaginatedResult<Store & { id: string }>);
     });
 
     // 実施する必要はない気がするが、一応
@@ -345,10 +376,16 @@ describe('StoresService Test', () => {
       } satisfies StoreFilter;
       // prisma mock データ
       jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+      jest.spyOn(prismaService.store, 'count').mockResolvedValue(0);
       // テスト実施
       const result = await storesService.findAll(filters);
       // 検証
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: {
+          totalCount: 0,
+        },
+      } satisfies PaginatedResult<Store & { id: string }>);
     });
   });
 
@@ -812,7 +849,7 @@ function createMockStores(): (StorePrisma & {
 }
 
 // 期待値作成：serviceの返却値
-function createExpectStores(): (Store & { id: string })[] {
+function createExpectStores(): PaginatedResult<Store & { id: string }> {
   const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -891,5 +928,13 @@ function createExpectStores(): (Store & { id: string })[] {
     },
   ];
 
-  return stores;
+  // ページネーションされたStoreドメインオブジェクト
+  const paginatedResult: PaginatedResult<Store & { id: string }> = {
+    data: stores,
+    meta: {
+      totalCount: 3,
+    },
+  };
+
+  return paginatedResult;
 }
