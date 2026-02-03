@@ -95,6 +95,30 @@ describe('StoresService Test', () => {
 
       // 結果検証
       expect(result).toEqual(expectedStores);
+
+      // 念の為、where句も検証
+      expect(jest.spyOn(prismaService.store, 'findMany')).toHaveBeenCalledWith({
+        include: { prefecture: true },
+        where: {},
+      });
+
+      expect(jest.spyOn(prismaService.store, 'count')).toHaveBeenCalledWith({
+        where: {},
+      });
+    });
+
+    it('Promise.all が正しく並列で呼ばれていることを確認', async () => {
+      // mock data 何でもいい
+      // あと、jest.spyOn(prismaService.store, 'findMany') っていう呼び方ではなく、以下でも
+      // テスト通った。。。なぜ。。。
+      mockPrismaService.store.findMany.mockResolvedValue([]);
+      mockPrismaService.store.count.mockResolvedValue(5);
+
+      await storesService.findAll({});
+
+      // Promise.all が呼ばれた証拠として、両方が呼ばれていることを確認
+      expect(mockPrismaService.store.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrismaService.store.count).toHaveBeenCalledTimes(1);
     });
 
     /**
