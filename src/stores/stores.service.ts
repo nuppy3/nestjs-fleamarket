@@ -41,35 +41,64 @@ export class StoresService {
     console.log(filters);
 
     // Store情報取得
-    const resultStores = await this.prismaService.store.findMany({
-      include: {
-        prefecture: true,
-      },
+    // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
+    // Promise.all は結果を [dataの結果, countの結果] という配列で返すので分割代入で
+    // 一発取得するとシンプル（const [resultStores, count] = ・・・）
+    const [resultStores, count] = await Promise.all([
+      // findMany()
+      this.prismaService.store.findMany({
+        include: {
+          prefecture: true,
+        },
 
-      // 以下でもいいが、「...(条件 && { 追加したいオブジェクト }) が非常にエレガント!!」であり
-      // Prismaのwhere句の実装では有益！！
-      //  where: filters.prefectureCode
-      //   ? { prefecture: { code: filters.prefectureCode } }
-      //   : {},
+        // 以下でもいいが、「...(条件 && { 追加したいオブジェクト }) が非常にエレガント!!」であり
+        // Prismaのwhere句の実装では有益！！
+        //  where: filters.prefectureCode
+        //   ? { prefecture: { code: filters.prefectureCode } }
+        //   : {},
 
-      // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
-      // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
-      // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
-      where: {
-        // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
-        // 非常に便利な性質があります。
-        // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
-        status: filters.status,
-        ...(filters.name && {
-          name: { contains: filters.name },
-        }),
-        ...(filters.prefectureCode && {
-          prefecture: {
-            code: filters.prefectureCode,
-          },
-        }),
-      },
-    });
+        // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
+        // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
+        // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
+        where: {
+          // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
+          // 非常に便利な性質があります。
+          // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
+          status: filters.status,
+          ...(filters.name && {
+            name: { contains: filters.name },
+          }),
+          ...(filters.prefectureCode && {
+            prefecture: {
+              code: filters.prefectureCode,
+            },
+          }),
+        },
+      }),
+
+      // count(): 店舗情報一覧の総件数
+      this.prismaService.store.count({
+        // count() はレコードの存在数だけを数えるので、リレーション（prefecture）を読み込む必要がない
+        // include: {
+        //   prefecture: true,
+        // },
+
+        where: {
+          status: filters.status,
+          ...(filters.name && {
+            name: { contains: filters.name },
+          }),
+          ...(filters.prefectureCode && {
+            prefecture: {
+              code: filters.prefectureCode,
+            },
+          }),
+        },
+      }),
+    ]);
+
+    // Stroe一覧の件数取得は上記のように「Promise.all」を使って複数の非同期処理を並列実行
+    // await this.prismaService.store.count(・・・・);
 
     // prisma → domain
     // stores.map((strore) => {})
