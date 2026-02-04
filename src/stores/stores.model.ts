@@ -140,7 +140,7 @@ export const WEEKDAY_LABELS: Record<Weekday, string> = {
  * 曜日変換メソッド(安全＋再利用性）
  * 使用例：getWeekdayLabel('MONDAY'); // => "月"
  * @param weekday
- * @returns
+ * @returns 日本語変換されたWeekday
  */
 export function getWeekdayLabel(weekday: Weekday): string {
   return WEEKDAY_LABELS[weekday];

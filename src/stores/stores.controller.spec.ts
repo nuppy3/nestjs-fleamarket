@@ -1,9 +1,12 @@
 import { Test } from '@nestjs/testing';
 import type { Request as ExpressRequest } from 'express';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { RequestUser } from 'src/types/requestUser';
 import {
   CreateStoreDto,
   FindAllStoresQueryDto,
+  PaginatedStoreResponseDto,
+  PaginationMetaDto,
   StoreResponseDto,
 } from './dto/store.dto';
 import { StoresController } from './stores.controller';
@@ -21,8 +24,8 @@ describe('StoresController TEST', () => {
   // DI対象モジュールの宣言
   let storesController: StoresController; // テスト対象
   let storesService: StoresService; // Controllerから呼ばれるServiceはMock化
-  let mockStores: (Store & { id: string })[];
-  let expectedStoreDtos: StoreResponseDto[];
+  let mockStores: PaginatedResult<Store & { id: string }>;
+  let expectedStoreDto: PaginatedStoreResponseDto;
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
@@ -42,7 +45,7 @@ describe('StoresController TEST', () => {
     // serviceの正常系返却値(Storeドメイン＋id配列のmock)
     mockStores = createMockStoresWithId();
     // Controllerの返却値の期待値(StoreResponseDto配列)
-    expectedStoreDtos = createExpectedStoreDtos();
+    expectedStoreDto = createExpectedStoreDto();
   });
 
   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
@@ -61,7 +64,7 @@ describe('StoresController TEST', () => {
       const query: FindAllStoresQueryDto = {};
       const resoult = await storesController.findAll(query);
       // 検証
-      expect(resoult).toEqual(expectedStoreDtos);
+      expect(resoult).toEqual(expectedStoreDto);
     });
 
     describe('findAllの絞り込み(filter)テスト', () => {
@@ -97,7 +100,7 @@ describe('StoresController TEST', () => {
         // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
         // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
         // filterのテストは以下の結果検証は不要
-        // expect(result).toEqual(expectedStoreDtos);
+        // expect(result).toEqual(expectedStoreDto);
         expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
           query,
         );
@@ -117,7 +120,7 @@ describe('StoresController TEST', () => {
         // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
         // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
         // filterのテストは以下の結果検証は不要
-        // expect(result).toEqual(expectedStoreDtos);
+        // expect(result).toEqual(expectedStoreDto);
         expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith({
           name: '赤羽',
         });
@@ -137,7 +140,7 @@ describe('StoresController TEST', () => {
         // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
         // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
         // filterのテストは以下の結果検証は不要
-        // expect(result).toEqual(expectedStoreDtos);
+        // expect(result).toEqual(expectedStoreDto);
         expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
           query,
         );
@@ -176,17 +179,23 @@ describe('StoresController TEST', () => {
         // --- DTOの任意項目をundefinedに書き換え ---
         // （{})であたらしい{}オブジェクトを作成し、...storeのスプレッド構文でコピーした後、
         //  任意の項目を更新している： 元のStoreオブジェクトに影響なし
-        // 「アロー関数でオブジェクトを返すときは、必ず ( ) で囲む！」
-        mockStores.map((store) => ({
-          ...store,
-          kanaName: undefined,
-          zipCode: undefined,
-          address: undefined,
-          // prefecture: undefined,
-          holidays: undefined,
-          businessHours: undefined,
-          prefecture: undefined,
-        })),
+        // 「.map()のアロー関数でオブジェクトを返すときは、必ず ( ) で囲む！」
+        {
+          data: mockStores.data.map((store) => ({
+            ...store,
+            kanaName: undefined,
+            zipCode: undefined,
+            address: undefined,
+            // prefecture: undefined,
+            holidays: undefined,
+            businessHours: undefined,
+            prefecture: undefined,
+          })),
+          meta: {
+            totalCount: 1,
+          },
+        } satisfies PaginatedResult<Store & { id: string }>,
+
         // 以下でもOK：以下はわかりやすいが、上記より少し遅いらしい。
         // {
         // const tmpStore = Object.assign({}, store);
@@ -205,53 +214,68 @@ describe('StoresController TEST', () => {
       const query: FindAllStoresQueryDto = {};
       const result = await storesController.findAll(query);
       // 検証
-      expect(result).toEqual(
-        // 期待値：DTOから任意項目を削除
-        expectedStoreDtos.map((dto) =>
-          // ({
-          //   id: dto.id,
-          //   name: dto.name,
-          //   status: dto.status,
-          //   statusLabel: dto.statusLabel,
-          //   email: dto.email,
-          //   phoneNumber: dto.phoneNumber,
-          //   createdAt: dto.createdAt,
-          //   updatedAt: dto.updatedAt,
-          // }) as StoreResponseDto,
-          // 上記でもいいが、型安全のためOmitにして遊んでみた。GPT的には以下がいいらしい。が、どっちでもいい。
-          {
-            const expectedDto: Omit<
-              StoreResponseDto,
-              | 'kanaName'
-              | 'zipCode'
-              | 'address'
-              | 'prefecture'
-              | 'businessHours'
-              | 'holidays'
-              | 'holidaysLabel'
-            > = {
-              id: dto.id,
-              name: dto.name,
-              status: dto.status,
-              statusLabel: dto.statusLabel,
-              email: dto.email,
-              phoneNumber: dto.phoneNumber,
-              createdAt: dto.createdAt,
-              updatedAt: dto.updatedAt,
-            };
-            return expectedDto;
-          },
-        ),
-      );
+      expect(result).toEqual({
+        data:
+          // 期待値：DTOから任意項目を削除
+          expectedStoreDto.data.map((dto) =>
+            // ({
+            //   id: dto.id,
+            //   name: dto.name,
+            //   status: dto.status,
+            //   statusLabel: dto.statusLabel,
+            //   email: dto.email,
+            //   phoneNumber: dto.phoneNumber,
+            //   createdAt: dto.createdAt,
+            //   updatedAt: dto.updatedAt,
+            // }) as StoreResponseDto,
+            // 上記でもいいが、型安全のためOmitにして遊んでみた。GPT的には以下がいいらしい。が、どっちでもいい。
+            {
+              const expectedDto: Omit<
+                StoreResponseDto,
+                | 'kanaName'
+                | 'zipCode'
+                | 'address'
+                | 'prefecture'
+                | 'businessHours'
+                | 'holidays'
+                | 'holidaysLabel'
+              > = {
+                id: dto.id,
+                name: dto.name,
+                status: dto.status,
+                statusLabel: dto.statusLabel,
+                email: dto.email,
+                phoneNumber: dto.phoneNumber,
+                createdAt: dto.createdAt,
+                updatedAt: dto.updatedAt,
+              };
+              return expectedDto;
+            },
+          ),
+        meta: {
+          totalCount: 1,
+          limit: 20,
+          offset: 0,
+        },
+      } as PaginatedStoreResponseDto);
     });
+
     it('正常系： データなし', async () => {
-      jest.spyOn(storesService, 'findAll').mockResolvedValue([]);
+      jest.spyOn(storesService, 'findAll').mockResolvedValue({
+        data: [],
+        meta: { totalCount: 0 },
+      } satisfies PaginatedResult<Store & { id: string }>);
+
       // 引数: 絞り込み条件無し
-      const query: FindAllStoresQueryDto = {};
+      const query: FindAllStoresQueryDto = { name: 'ほげほげほげ' };
       const result = await storesController.findAll(query);
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: { totalCount: 0, limit: 20, offset: 0 },
+      } satisfies PaginatedStoreResponseDto);
     });
   });
+
   describe('create TEST', () => {
     it('正常系： 店舗情報作成（DTOの全項目あり）し、DTO全項目を返却する', async () => {
       // create()の引数作成
@@ -438,7 +462,7 @@ describe('StoresController TEST', () => {
 /**
  * Serviceの返却値(Store+idの配列)を作成
  */
-function createMockStoresWithId(): (Store & { id: string })[] {
+function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
   const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -516,13 +540,19 @@ function createMockStoresWithId(): (Store & { id: string })[] {
       },
     },
   ];
-  return stores;
+
+  return {
+    data: stores,
+    meta: {
+      totalCount: 3,
+    },
+  } satisfies PaginatedResult<Store & { id: string }>;
 }
 
 /**
- * Controllerの期待値/返却値(Store+idの配列)を作成
+ * Controllerの期待値/返却値(data: Store+idの配列/ meta: totalCount/limit/offset)を作成
  */
-function createExpectedStoreDtos(): StoreResponseDto[] {
+function createExpectedStoreDto(): PaginatedStoreResponseDto {
   const stores: StoreResponseDto[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -603,7 +633,15 @@ function createExpectedStoreDtos(): StoreResponseDto[] {
       },
     },
   ];
-  return stores;
+
+  return {
+    data: stores,
+    meta: {
+      totalCount: 3,
+      limit: 20,
+      offset: 0,
+    } satisfies PaginationMetaDto,
+  } satisfies PaginatedStoreResponseDto;
 }
 
 /**

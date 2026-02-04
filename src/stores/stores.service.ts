@@ -36,7 +36,11 @@ export class StoresService {
    *          2. meta情報(Store情報のそう件数)
    */
   async findAll(
-    // filtersが存在しない場合は{}で初期化
+    // filtersが存在しない(filters === undefined のとき)場合は{}で初期化
+    // memo: filtersがnullの際は{}で初期化されない。ただ、リクエストパラメータで?name=nullと
+    // いうパラメータがリクエストされたとしても、controllerはname='null'という文字列で受け取るため
+    // serviceにnullが渡ってくることはない。（とはいえ、controllerとserviceの両方で入力は
+    // 制限すべきではあるが、今回は実施していない）
     filters: StoreFilter = {},
   ): Promise<PaginatedResult<Store & { id: string }>> {
     console.log('*** service ***');

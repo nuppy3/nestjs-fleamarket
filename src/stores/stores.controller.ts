@@ -65,6 +65,7 @@ export class StoresController {
     ) as StoreResponseDto[];
 
     // ページ全体のplain object(DTO): {data/meta} を作成
+    // TODO limitとoffsetは暫定
     const responsePlainDto = {
       data: plainData,
       meta: {

@@ -297,6 +297,8 @@ export class PaginatedStoreResponseDto {
 export class FindAllStoresQueryDto implements StoreFilter {
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
+  // ↓空文字が来た場合、空文字で検索しに行くため、IsNotEmpty()は不要
+  // @IsNotEmpty()
   @MaxLength(40) // 任意項目だが入力された際のValidation
   name?: string;
 
