@@ -302,6 +302,13 @@ export class FindAllStoresQueryDto implements StoreFilter {
   @MaxLength(40) // 任意項目だが入力された際のValidation
   name?: string;
 
+  // エリアコード
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  @IsString() // 任意項目だが入力された際のValidation
+  @MaxLength(2) // 任意項目だが入力された際のValidation
+  regionCode?: string;
+
+  // 都道府県コード
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
   @MaxLength(2) // 任意項目だが入力された際のValidation
