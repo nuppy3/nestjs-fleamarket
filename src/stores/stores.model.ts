@@ -162,6 +162,10 @@ export interface StoreFilter {
   // 店舗名
   name?: string;
 
+  // エリアコード（例: "01" = 北海道, "02" = 東北）
+  // 指定がない場合は全店舗を対象とする
+  regionCode?: string;
+
   // 都道府県コード（例: "01" = 北海道, "13" = 東京都）
   // 指定がない場合は全店舗を対象とする
   prefectureCode?: string;
