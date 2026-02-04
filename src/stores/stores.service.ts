@@ -37,10 +37,11 @@ export class StoresService {
    */
   async findAll(
     // filtersが存在しない(filters === undefined のとき)場合は{}で初期化
-    // memo: filtersがnullの際は{}で初期化されない。ただ、リクエストパラメータで?name=nullと
-    // いうパラメータがリクエストされたとしても、controllerはname='null'という文字列で受け取るため
-    // serviceにnullが渡ってくることはない。（とはいえ、controllerとserviceの両方で入力は
-    // 制限すべきではあるが、今回は実施していない）
+    // memo: filtersがnullの際は{}で初期化されない。が、nullを渡そうとしても
+    // 「型 'null' の引数を型 'StoreFilter | undefined' のパラメーターに割り当てることはできません。」
+    // で、tslint？が弾いてくれる。
+    // また、リクエストパラメータで?name=nullというパラメータがリクエストされたとしても、
+    // controllerはname='null'という文字列で受け取るためserviceにnullが渡ってくることはない。
     filters: StoreFilter = {},
   ): Promise<PaginatedResult<Store & { id: string }>> {
     console.log('*** service ***');
