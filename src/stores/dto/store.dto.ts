@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { type Prefecture } from '../../prefectures/prefectures.model';
 import {
+  SortOrder,
   Store,
   StoreFilter,
   StoreStatus,
@@ -294,6 +295,9 @@ export class PaginatedStoreResponseDto {
   }
 }
 
+/**
+ * 店舗情報検索フィルターDTO
+ */
 export class FindAllStoresQueryDto implements StoreFilter {
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
@@ -320,4 +324,10 @@ export class FindAllStoresQueryDto implements StoreFilter {
     message: `StoreStatus must be one of: ${StoreStatus.EDITING}, ${StoreStatus.PUBLISHED}, ${StoreStatus.SUSPENDED}`,
   })
   status?: StoreStatus;
+
+  @IsOptional()
+  @IsEnum(SortOrder, {
+    message: `SortOrder must be one of: ${SortOrder.ASC}, ${SortOrder.DESC}`,
+  })
+  sortOrder?: SortOrder;
 }

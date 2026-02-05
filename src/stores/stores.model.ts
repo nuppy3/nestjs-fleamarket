@@ -170,10 +170,24 @@ export interface StoreFilter {
   // 指定がない場合は全店舗を対象とする
   prefectureCode?: string;
 
-  // 将来追加予定の例（コメントアウト推奨）
-  // /**
-  //  * 店舗ステータスでフィルタ
-  //  * @see StorStatus
-  //  */
+  /**
+   * 店舗ステータスでフィルタ
+   * @see StorStatus
+   */
   status?: StoreStatus;
+
+  /**
+   * ソートオーダー
+   */
+  sortOrder?: SortOrder;
 }
+
+/**
+ * ソートオーダー(昇順/降順)
+ */
+export const SortOrder = {
+  ASC: 'asc', // 昇順
+  DESC: 'desc', // 降順
+} as const;
+// SortOrder（モダンenum=union）の型を定義
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];

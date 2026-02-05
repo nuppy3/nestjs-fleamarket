@@ -95,6 +95,9 @@ export class StoresService {
           //   },
           // }),
         },
+        ...(filters.sortOrder && {
+          orderBy: { kanaName: filters.sortOrder },
+        }),
       }),
 
       // count(): 店舗情報一覧の総件数
