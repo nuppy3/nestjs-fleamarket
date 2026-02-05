@@ -10,7 +10,7 @@ import {
   StoreResponseDto,
 } from './dto/store.dto';
 import { StoresController } from './stores.controller';
-import { Store } from './stores.model';
+import { SortOrder, Store, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
 
 // fn()はmock関数(振る舞いはテスト実施時に指定)
@@ -146,14 +146,14 @@ describe('StoresController TEST', () => {
         );
       });
 
-      it('正常系(5)：XXXXXを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+      it('正常系(5)：sortOrderを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成：中身は適当
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
 
         // テスト対象Controller呼び出し:適当なクエリを渡す
         // 引数: 一応意味のあるモノにしたが、中身は適当でよい
         const query: FindAllStoresQueryDto = {
-          regionCode: '03',
+          sortOrder: SortOrder.ASC,
         };
         await storesController.findAll(query);
 
@@ -190,7 +190,7 @@ describe('StoresController TEST', () => {
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
       // queryの変換処理はcontrolerで実施していないし、
       // controllerで複合ケースの試験は不要な気もするが一応
-      it('(1)+(2)+(3)+(4) 都道府県コード/status/name/エリアコードを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+      it('(1)+(2)+(3)+(4)+(5) 都道府県コード/status/name/エリアコード/ソート条件を指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
 
@@ -198,9 +198,10 @@ describe('StoresController TEST', () => {
         // 引数: 一応意味のあるモノにしたが、中身は適当でよい
         const query: FindAllStoresQueryDto = {
           prefectureCode: '13',
-          status: 'published',
+          status: StoreStatus.PUBLISHED,
           name: '赤羽',
           regionCode: '03',
+          sortOrder: SortOrder.ASC,
         };
         await storesController.findAll(query);
 
@@ -211,6 +212,7 @@ describe('StoresController TEST', () => {
           status: 'published',
           name: '赤羽',
           regionCode: '03',
+          sortOrder: 'asc',
         });
       });
     });

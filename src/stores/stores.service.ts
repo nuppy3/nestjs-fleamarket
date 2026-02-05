@@ -72,7 +72,13 @@ export class StoresService {
           // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
           // 非常に便利な性質があります。
           // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
+          // 以下のnameなどと同様に...(filters.name && {をカマしても同様のクエリが作成されるが
+          // statusのケースのように単純な条件の場合は以下がBP。
           status: filters.status,
+          // ...(filters.name && { をカマさず、上記のstatusと同様に「name: { contains: filters.name }」
+          // と実装してしまうと、注意が必要 → もし filters.name が undefined だった場合、
+          // Prismaは { name: { contains: undefined } } と解釈しようとして、エラーを投げるか
+          // 意図しない挙動になるバージョンがあります
           ...(filters.name && {
             name: { contains: filters.name },
           }),

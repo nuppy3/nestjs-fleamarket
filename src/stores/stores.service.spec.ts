@@ -10,7 +10,7 @@ import {
 } from '../../generated/prisma';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { CreateStoreDto } from './dto/store.dto';
-import { Store, StoreFilter, StoreStatus } from './stores.model';
+import { SortOrder, Store, StoreFilter, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -272,6 +272,42 @@ describe('StoresService Test', () => {
         });
       });
 
+      it('正常系(5): sortOrderを指定した場合、Prismaのwhere句に正しく反映されること', async () => {
+        // 引数作成
+        const filters = {
+          sortOrder: 'asc',
+        } satisfies StoreFilter;
+
+        // mockの返却値作成
+        jest
+          .spyOn(prismaService.store, 'findMany')
+          .mockResolvedValue(prismaMockStores);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
+
+        // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+        // 引数: statusを指定
+        await storesService.findAll(filters);
+
+        // 結果検証
+        // 上記にも記載しているが、toEqual()での検証は不要
+        // expect(result).toEqual(expectedStores);
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          // 以下は期待値
+          where: {
+            status: undefined,
+          },
+          orderBy: {
+            kanaName: 'asc',
+          },
+        });
+      });
+
       it('正常系(3): statusを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
@@ -280,7 +316,7 @@ describe('StoresService Test', () => {
     });
 
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)+(3)+(4): status/都道府県コード/name/エリアコードを指定した場合、正しくWhere句が組み立てられること', async () => {
+      it('(1)+(2)+(3)+(4)+(5): status/都道府県コード/name/エリアコード/ソート条件を指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
         // count()
@@ -292,6 +328,7 @@ describe('StoresService Test', () => {
           prefectureCode: '13',
           name: '赤羽',
           regionCode: '03',
+          sortOrder: SortOrder.ASC,
         };
 
         await storesService.findAll(filters);
@@ -312,6 +349,7 @@ describe('StoresService Test', () => {
               },
             },
           },
+          orderBy: { kanaName: 'asc' },
         });
       });
     });
