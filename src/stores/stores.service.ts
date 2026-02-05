@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prefecture } from './../prefectures/prefectures.model';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
-import { Prefecture } from '../prefectures/prefectures.model';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
@@ -76,11 +76,24 @@ export class StoresService {
           ...(filters.name && {
             name: { contains: filters.name },
           }),
-          ...(filters.prefectureCode && {
+          ...((filters.prefectureCode || filters.regionCode) && {
             prefecture: {
-              code: filters.prefectureCode,
+              ...(filters.prefectureCode && { code: filters.prefectureCode }),
+              ...(filters.regionCode && {
+                region: { code: filters.regionCode },
+              }),
             },
           }),
+          // [重要] 以下は削除：prefectureCodeとregionCodeをANDで指定するためには、以下だとprefecture:
+          // に対するQueryが重複してしまい、後がち（上書き）されてしまうので、上記のようにprefecture:
+          // のコードの中に含める必要がある。
+          // ...(filters.regionCode && {
+          //   prefecture: {
+          //     region: {
+          //       code: filters.regionCode,
+          //     },
+          //   },
+          // }),
         },
       }),
 
@@ -96,9 +109,12 @@ export class StoresService {
           ...(filters.name && {
             name: { contains: filters.name },
           }),
-          ...(filters.prefectureCode && {
+          ...((filters.prefectureCode || filters.regionCode) && {
             prefecture: {
-              code: filters.prefectureCode,
+              ...(filters.prefectureCode && { code: filters.prefectureCode }),
+              ...(filters.regionCode && {
+                region: { code: filters.regionCode },
+              }),
             },
           }),
         },
