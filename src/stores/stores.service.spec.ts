@@ -235,6 +235,43 @@ describe('StoresService Test', () => {
         });
       });
 
+      it('正常系(4): regionCodeを指定した場合、Prismaのwhere句に正しく反映されること', async () => {
+        // 引数作成
+        const filters = {
+          regionCode: '03',
+        } satisfies StoreFilter;
+
+        // mockの返却値作成
+        jest
+          .spyOn(prismaService.store, 'findMany')
+          .mockResolvedValue(prismaMockStores);
+        // count()
+        jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
+
+        // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+        // 引数: statusを指定
+        await storesService.findAll(filters);
+
+        // 結果検証
+        // 上記にも記載しているが、toEqual()での検証は不要
+        // expect(result).toEqual(expectedStores);
+        expect(
+          jest.spyOn(prismaService.store, 'findMany'),
+        ).toHaveBeenCalledWith({
+          include: {
+            prefecture: true,
+          },
+          // 以下は期待値
+          where: {
+            prefecture: {
+              region: {
+                code: '03',
+              },
+            },
+          },
+        });
+      });
+
       it('正常系(3): statusを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
@@ -243,7 +280,7 @@ describe('StoresService Test', () => {
     });
 
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)+(3): status/都道府県コード/nameを指定した場合、正しくWhere句が組み立てられること', async () => {
+      it('(1)+(2)+(3)+(4): status/都道府県コード/name/エリアコードを指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
         // count()
@@ -254,6 +291,7 @@ describe('StoresService Test', () => {
           status: StoreStatus.PUBLISHED,
           prefectureCode: '13',
           name: '赤羽',
+          regionCode: '03',
         };
 
         await storesService.findAll(filters);
@@ -269,6 +307,9 @@ describe('StoresService Test', () => {
             name: { contains: filters.name },
             prefecture: {
               code: '13',
+              region: {
+                code: '03',
+              },
             },
           },
         });
