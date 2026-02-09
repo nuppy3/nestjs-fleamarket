@@ -3,12 +3,13 @@ import { Prefecture } from './../prefectures/prefectures.model';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
+import { Prisma } from 'generated/prisma';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
-import { Store, StoreFilter, Weekday } from './stores.model';
+import { SortOrder, Store, StoreFilter, Weekday } from './stores.model';
 
 @Injectable()
 export class StoresService {
@@ -47,6 +48,9 @@ export class StoresService {
     console.log('*** service ***');
     console.log('filters: ');
     console.log(filters);
+
+    // order〜by句の構築
+    const orderBy = this.buildStoreOrderBy(filters);
 
     // Store情報取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
@@ -101,9 +105,11 @@ export class StoresService {
           //   },
           // }),
         },
-        ...(filters.sortOrder && {
-          orderBy: { kanaName: filters.sortOrder },
-        }),
+        // order byの指定が複雑化してきたのでメソッド化し、以下をコメント
+        // ...(filters.sortOrder && {
+        //   orderBy: { kanaName: filters.sortOrder },
+        // }),
+        orderBy,
       }),
 
       // count(): 店舗情報一覧の総件数
@@ -335,5 +341,53 @@ export class StoresService {
 
   remove(id: number) {
     return `This action removes a #${id} store`;
+  }
+
+  /**
+   * Storeの Order By 条件の構築
+   */
+  private buildStoreOrderBy(
+    filters: StoreFilter,
+  ): Prisma.StoreOrderByWithRelationInput[] {
+    // Order By 条件の構築
+    // StoreOrderByWithRelationInput: Prismaが自動生成する型で、「Storeモデルを
+    // ソート（orderBy）するときに使える条件の型」
+    // Prismaの findMany や findFirst などで orderBy を指定するときに使う、型安全なソートオプションの型です。
+    const orderBy: Prisma.StoreOrderByWithRelationInput[] = [];
+
+    // 以下のif文(sortByが指定されている場合以降）を正規化
+    // sortBy、sortOrderの指定がない場合、defaultのソートを指定
+    // keyof Store を使うと、存在しないフィールド名を指定するとコンパイルエラーになる(型安全にデフォルトフィールドを指定)
+    // そこまでやる必要はないが、型安全実装をしてみた。
+    const defaultSortField: keyof Store = 'kanaName';
+    const sortField = filters.sortBy ?? defaultSortField;
+    const sortDirection = filters.sortOrder ?? SortOrder.ASC;
+    // orderByを構築
+    orderBy.push({
+      [sortField]: sortDirection,
+    });
+
+    // sortByが指定されている場合
+    // if (filters.sortBy) {
+    //   if (filters.sortOrder) {
+    //     orderBy.push({
+    //       [filters.sortBy]: filters.sortOrder,
+    //     });
+    //     // defaultのソート
+    //   } else {
+    //     orderBy.push({
+    //       [filters.sortBy]: SortOrder.ASC,
+    //     });
+    //   }
+    // } else {
+    //   // sortOrderのみ指定されていた場合、kanaName(default)でソート
+    //   if (filters.sortOrder) {
+    //     orderBy.push({
+    //       kanaName: filters.sortOrder,
+    //     });
+    //   }
+    // }
+
+    return orderBy;
   }
 }

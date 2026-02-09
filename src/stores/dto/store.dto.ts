@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { type Prefecture } from '../../prefectures/prefectures.model';
 import {
+  SortBy,
   SortOrder,
   Store,
   StoreFilter,
@@ -324,6 +325,12 @@ export class FindAllStoresQueryDto implements StoreFilter {
     message: `StoreStatus must be one of: ${StoreStatus.EDITING}, ${StoreStatus.PUBLISHED}, ${StoreStatus.SUSPENDED}`,
   })
   status?: StoreStatus;
+
+  @IsOptional()
+  @IsEnum(SortBy, {
+    message: `SortOrder must be one of: ${SortBy.KANANAME}, ${SortBy.ID}`,
+  })
+  sortBy?: SortBy;
 
   @IsOptional()
   @IsEnum(SortOrder, {

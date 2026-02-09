@@ -177,10 +177,25 @@ export interface StoreFilter {
   status?: StoreStatus;
 
   /**
+   * ソートフィールド
+   */
+  sortBy?: SortBy;
+
+  /**
    * ソートオーダー
    */
   sortOrder?: SortOrder;
 }
+
+/**
+ * ソートフィールと
+ */
+export const SortBy = {
+  KANANAME: 'kanaName',
+  ID: 'id',
+} as const;
+// SortBy（モダンenum=union）の型を定義
+export type SortBy = (typeof SortBy)[keyof typeof SortBy];
 
 /**
  * ソートオーダー(昇順/降順)
