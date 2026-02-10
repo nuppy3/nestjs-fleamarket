@@ -70,8 +70,8 @@ export class StoresController {
       data: plainData,
       meta: {
         totalCount: paginated.meta.totalCount,
-        page: 1,
-        size: 20,
+        page: paginated.meta.page,
+        size: paginated.meta.size,
       },
     } satisfies PaginatedStoreResponseDto;
 

@@ -52,6 +52,13 @@ export class StoresService {
     // order〜by句の構築
     const orderBy = this.buildStoreOrderBy(filters);
 
+    // ページネーション計算
+    // size指定が無けれのデフォルト設定 (また、size〜100までに制限)
+    const size = Math.min(100, filters.size ?? 20);
+    // page指定が無ければデフォルト設定
+    filters.page = filters.page ?? 1;
+    const skip = (filters.page - 1) * size;
+
     // Store情報取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.all は結果を [dataの結果, countの結果] という配列で返すので分割代入で
@@ -105,6 +112,11 @@ export class StoresService {
           //   },
           // }),
         },
+        // Limit
+        take: size,
+        // Offset (最初のXX件を飛ばす)
+        skip: skip,
+
         // order byの指定が複雑化してきたのでメソッド化し、以下をコメント
         // ...(filters.sortOrder && {
         //   orderBy: { kanaName: filters.sortOrder },
@@ -190,8 +202,8 @@ export class StoresService {
       data: domains,
       meta: {
         totalCount: count,
-        page: 1,
-        size: 20,
+        page: filters.page,
+        size: size,
       },
     };
 

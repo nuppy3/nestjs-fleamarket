@@ -5,12 +5,13 @@ import {
   IsEmail,
   IsEnum,
   IsIn,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { type Prefecture } from '../../prefectures/prefectures.model';
@@ -340,11 +341,11 @@ export class FindAllStoresQueryDto implements StoreFilter {
   sortOrder?: SortOrder;
 
   @IsOptional()
-  @IsNumber()
-  @MaxLength(4)
+  @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
+  @Min(0) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
   // @MaxLength(3)
-  @Max(3)
+  @Max(100)
   // string → number 変換
   // main.tsにてグローバルでValidationPipe({transform: true})としてtransformを有効化
   // していれば、@IsNumber()がついていれば、個別でNumber変換(@Type()での型変換)は不要。
@@ -354,9 +355,10 @@ export class FindAllStoresQueryDto implements StoreFilter {
   page?: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
+  @Min(0) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
-  @Max(3)
+  @Max(100)
   // string → number 変換
   @Type(() => Number)
   size?: number;
