@@ -10,6 +10,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { type Prefecture } from '../../prefectures/prefectures.model';
 import {
   SortBy,
@@ -251,17 +252,15 @@ export class StoreResponseDto implements StoreResponseShape {
 export class PaginationMetaDto {
   // 総件数
   totalCount: number;
-
+  // ページ
+  page: number;
   // 1ページあたりの件数
-  limit: number;
+  size: number;
 
-  // 開始位置
-  offset: number;
-
-  constructor(totalCount: number, limit: number, offset: number) {
+  constructor(totalCount: number, page: number, size: number) {
     this.totalCount = totalCount;
-    this.limit = limit;
-    this.offset = offset;
+    this.page = page;
+    this.size = size;
   }
 }
 
@@ -282,7 +281,7 @@ export class PaginationMetaDto {
  * バリデーションが効かなかったりする
  *
  */
-export class PaginatedStoreResponseDto {
+export class PaginatedStoreResponseDto implements PaginatedResult<StoreResponseDto> {
   // @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント
   @Type(() => StoreResponseDto)
   data: StoreResponseDto[];

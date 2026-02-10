@@ -190,6 +190,8 @@ export class StoresService {
       data: domains,
       meta: {
         totalCount: count,
+        page: 1,
+        size: 20,
       },
     };
 

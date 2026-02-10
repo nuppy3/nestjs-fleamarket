@@ -6,9 +6,9 @@ export interface PaginatedResult<T> {
   meta: {
     // 総件数
     totalCount: number;
+    // ページ
+    page: number;
     // 1ページあたりの件数
-    limit?: number;
-    // 開始位置
-    offset?: number;
+    size: number;
   };
 }
