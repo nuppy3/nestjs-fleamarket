@@ -6,8 +6,10 @@ import {
   IsEnum,
   IsIn,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
 } from 'class-validator';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
@@ -336,4 +338,26 @@ export class FindAllStoresQueryDto implements StoreFilter {
     message: `SortOrder must be one of: ${SortOrder.ASC}, ${SortOrder.DESC}`,
   })
   sortOrder?: SortOrder;
+
+  @IsOptional()
+  @IsNumber()
+  @MaxLength(4)
+  // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
+  // @MaxLength(3)
+  @Max(3)
+  // string → number 変換
+  // main.tsにてグローバルでValidationPipe({transform: true})としてtransformを有効化
+  // していれば、@IsNumber()がついていれば、個別でNumber変換(@Type()での型変換)は不要。
+  // であるが、main.tsはtransform: tureがなかったので、個別で@Typeにて変換。
+  // → 個別でやることが多いらしい。
+  @Type(() => Number)
+  page?: number;
+
+  @IsOptional()
+  @IsNumber()
+  // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
+  @Max(3)
+  // string → number 変換
+  @Type(() => Number)
+  size?: number;
 }

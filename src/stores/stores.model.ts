@@ -185,6 +185,16 @@ export interface StoreFilter {
    * ソートオーダー
    */
   sortOrder?: SortOrder;
+
+  /**
+   * ページ(ページネーション)
+   */
+  page?: number;
+
+  /**
+   * 1ページあたりの件数
+   */
+  size?: number;
 }
 
 /**
