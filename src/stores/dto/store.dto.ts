@@ -342,7 +342,7 @@ export class FindAllStoresQueryDto implements StoreFilter {
 
   @IsOptional()
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
-  @Min(0) // 0以上
+  @Min(1) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
   // @MaxLength(3)
   @Max(100)
@@ -356,7 +356,7 @@ export class FindAllStoresQueryDto implements StoreFilter {
 
   @IsOptional()
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
-  @Min(0) // 0以上
+  @Min(1) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
   @Max(100)
   // string → number 変換

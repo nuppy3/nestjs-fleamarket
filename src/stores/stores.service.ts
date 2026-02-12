@@ -53,8 +53,10 @@ export class StoresService {
     const orderBy = this.buildStoreOrderBy(filters);
 
     // ページネーション計算
-    // size指定が無けれのデフォルト設定 (また、size〜100までに制限)
-    const size = Math.min(100, filters.size ?? 20);
+    // size指定が無けれのデフォルト設定 (また、size〜100までに制限、マイナスの場合は1に置換)
+    // マイナスを１に置換：Math.max(1, filters.size) そのまえに、undefindの場合は
+    // 20に置換（filters.size ?? 20）
+    const size = Math.min(100, Math.max(1, filters.size ?? 20));
     // page指定が無ければデフォルト設定
     filters.page = filters.page ?? 1;
     const skip = (filters.page - 1) * size;

@@ -16,7 +16,9 @@ async function bootstrap() {
   //   methods: ['GET', 'POST'],
   // });
   // nushi add: class validationをグローバルに適用
-  app.useGlobalPipes(new ValidationPipe());
+  // transform: trueにすることで、controllerへのパラメータに対して型変換を行う。
+  // 例： Dtoに@Type(() => Number とするとstring → number に自動変換される
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // 🔹 Swagger 設定
   const config = new DocumentBuilder()
