@@ -345,7 +345,7 @@ export class FindAllStoresQueryDto implements StoreFilter {
   @Min(1) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
   // @MaxLength(3)
-  @Max(100)
+  @Max(10000)
   // string → number 変換
   // main.tsにてグローバルでValidationPipe({transform: true})としてtransformを有効化
   // していれば、@IsNumber()がついていれば、個別でNumber変換(@Type()での型変換)は不要。

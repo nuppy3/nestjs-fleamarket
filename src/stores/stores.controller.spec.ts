@@ -259,6 +259,8 @@ describe('StoresController TEST', () => {
           })),
           meta: {
             totalCount: 1,
+            page: 1,
+            size: 20,
           },
         } satisfies PaginatedResult<Store & { id: string }>,
 
@@ -611,6 +613,8 @@ function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
     data: stores,
     meta: {
       totalCount: 3,
+      page: 1,
+      size: 20,
     },
   } satisfies PaginatedResult<Store & { id: string }>;
 }
@@ -704,8 +708,8 @@ function createExpectedStoreDto(): PaginatedStoreResponseDto {
     data: stores,
     meta: {
       totalCount: 3,
-      limit: 20,
-      offset: 0,
+      size: 20,
+      page: 1,
     } satisfies PaginationMetaDto,
   } satisfies PaginatedStoreResponseDto;
 }

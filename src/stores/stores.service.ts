@@ -3,6 +3,7 @@ import { Prefecture } from './../prefectures/prefectures.model';
 
 // uuidはDBでデフォルト登録するため不要
 // import { v4 as uuid } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { PrefecturesService } from '../prefectures/prefectures.service';
@@ -14,6 +15,7 @@ import { SortOrder, Store, StoreFilter, Weekday } from './stores.model';
 @Injectable()
 export class StoresService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     private readonly prefectureService: PrefecturesService,
   ) {}
@@ -53,12 +55,17 @@ export class StoresService {
     const orderBy = this.buildStoreOrderBy(filters);
 
     // ページネーション計算
-    // size指定が無けれのデフォルト設定 (また、size〜100までに制限、マイナスの場合は1に置換)
+    // size指定が無けれのデフォルト設定 (また、size〜100までに制限、マイナスの場合はdefaultに置換)
     // マイナスを１に置換：Math.max(1, filters.size) そのまえに、undefindの場合は
     // 20に置換（filters.size ?? 20）
-    const size = Math.min(100, Math.max(1, filters.size ?? 20));
-    // page指定が無ければデフォルト設定
-    filters.page = filters.page ?? 1;
+    const defaultSize =
+      this.configService.get<number>('STORE_DEFAULT_PAGE_SIZE') ?? 20;
+    const size = Math.min(100, Math.max(1, filters.size ?? defaultSize));
+
+    // page指定が無ければデフォルト設定(上限値:10000)
+    const defaultPage =
+      this.configService.get<number>('STORE_DEFAULT_PAGE') ?? 1;
+    filters.page = Math.min(10000, Math.max(1, filters.page ?? defaultPage));
     const skip = (filters.page - 1) * size;
 
     // Store情報取得
