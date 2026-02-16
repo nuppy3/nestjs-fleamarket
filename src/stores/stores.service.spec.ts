@@ -524,7 +524,7 @@ describe('StoresService Test', () => {
         );
       });
 
-      describe('正常系9: pageの強化位置テスト', () => {
+      describe('正常系9: pageの境界値テスト', () => {
         it.each([
           {
             name: '未指定 → デフォルト1(他のテストケースで実施されるが一応）',
@@ -532,21 +532,69 @@ describe('StoresService Test', () => {
             expectedSkip: 0,
           },
           {
-            name: '未指定 → デフォルト1(他のテストケースで実施されるが一応）',
-            filters: { page: undefined } satisfies StoreFilter,
-            expectedSkip: 0,
-          },
-          {
             name: '0を指定 → 0はcontrollerのvalidationで弾くが一応テスト',
-            filters: { page: undefined } satisfies StoreFilter,
+            filters: { page: 0 } satisfies StoreFilter,
             expectedSkip: 0,
           },
           {
-            name: '未指定 → デフォルト1(他のテストケースで実施されるが一応）',
-            filters: { page: undefined } satisfies StoreFilter,
+            name: '下限値(デフォルト値とイコール)：1を指定 → expectedSkip:0',
+            filters: { page: 1 } satisfies StoreFilter,
             expectedSkip: 0,
           },
-        ]);
+          {
+            name: 'デフォルト値の境界値(上)：2を指定 → expectedSkip:20',
+            filters: { page: 2 } satisfies StoreFilter,
+            expectedSkip: 20,
+          },
+          {
+            name: '上限値：10000を指定 → expectedSkip:199980',
+            filters: { page: 10000 } satisfies StoreFilter,
+            expectedSkip: 199980,
+          },
+          {
+            name: '上限値超過：10001を指定 → expectedSkip:199980',
+            filters: { page: 10001 } satisfies StoreFilter,
+            expectedSkip: 199980,
+          },
+          {
+            name: 'マイナス値：-1を指定 → expectedSkip:0',
+            filters: { page: -1 } satisfies StoreFilter,
+            expectedSkip: 0,
+          },
+        ])(
+          '$name の場合、Prismaのwhere句に正しく反映されること',
+          async ({ filters, expectedSkip }) => {
+            // mockの返却値作成
+            jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
+            // count()
+            jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
+
+            // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+            // 引数: statusを指定
+            await storesService.findAll(filters);
+
+            // 結果検証
+            // 上記にも記載しているが、toEqual()での検証は不要
+            // expect(result).toEqual(expectedStores);
+
+            expect(
+              jest.spyOn(prismaService.store, 'findMany'),
+            ).toHaveBeenCalledWith({
+              include: {
+                prefecture: true,
+              },
+              // 以下は期待値
+              where: { status: undefined },
+              take: 20,
+              skip: expectedSkip,
+              orderBy: [
+                {
+                  kanaName: 'asc',
+                },
+              ],
+            });
+          },
+        );
       });
 
       it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること)', async () => {});
@@ -583,7 +631,7 @@ describe('StoresService Test', () => {
     });
 
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)+(3)+(4)+(5)+(6)+(7)+(8): status/都道府県コード/name/エリアコード/ソート条件を指定した場合、正しくWhere句が組み立てられること', async () => {
+      it('(1)+(2)+(3)+(4)+(5)+(6)+(7)+(8)+(9): status/都道府県コード/name/エリアコード/ソート条件を指定した場合、正しくWhere句が組み立てられること', async () => {
         // prisma modk data(中身は何でもOK)
         jest.spyOn(prismaService.store, 'findMany').mockResolvedValue([]);
         // count()
@@ -598,6 +646,7 @@ describe('StoresService Test', () => {
           sortOrder: SortOrder.ASC,
           sortBy: 'id',
           size: 20,
+          page: 2,
         };
 
         await storesService.findAll(filters);
@@ -620,7 +669,7 @@ describe('StoresService Test', () => {
           },
           orderBy: [{ id: 'asc' }],
           take: 20,
-          skip: 0,
+          skip: 20,
         });
       });
     });

@@ -59,9 +59,10 @@ export class StoresController {
       // paginated.data： (Store & {id:string})[]
       plainToInstance(StoreResponseDto, paginated.data, {
         // @Expose() がないプロパティは全部消える
-        // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
     ) as StoreResponseDto[];
 
     // ページ全体のplain object(DTO): {data/meta} を作成

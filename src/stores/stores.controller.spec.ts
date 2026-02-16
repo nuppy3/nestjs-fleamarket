@@ -281,6 +281,8 @@ describe('StoresController TEST', () => {
       // 引数: 絞り込み条件無し
       const query: FindAllStoresQueryDto = {};
       const result = await storesController.findAll(query);
+      console.log('result: ');
+      console.log(result);
       // 検証
       expect(result).toEqual({
         data:
@@ -322,8 +324,8 @@ describe('StoresController TEST', () => {
           ),
         meta: {
           totalCount: 1,
-          limit: 20,
-          offset: 0,
+          page: 1,
+          size: 20,
         },
       } as PaginatedStoreResponseDto);
     });
@@ -331,7 +333,7 @@ describe('StoresController TEST', () => {
     it('正常系： データなし', async () => {
       jest.spyOn(storesService, 'findAll').mockResolvedValue({
         data: [],
-        meta: { totalCount: 0 },
+        meta: { totalCount: 0, page: 1, size: 20 },
       } satisfies PaginatedResult<Store & { id: string }>);
 
       // 引数: 絞り込み条件無し
@@ -339,7 +341,7 @@ describe('StoresController TEST', () => {
       const result = await storesController.findAll(query);
       expect(result).toEqual({
         data: [],
-        meta: { totalCount: 0, limit: 20, offset: 0 },
+        meta: { totalCount: 0, size: 20, page: 1 },
       } satisfies PaginatedStoreResponseDto);
     });
   });
