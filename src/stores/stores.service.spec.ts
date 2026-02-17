@@ -528,7 +528,7 @@ describe('StoresService Test', () => {
         );
       });
 
-      describe('正常系9: pageの境界値テスト', () => {
+      describe('正常系(9): pageの境界値テスト', () => {
         it.each([
           {
             name: '未指定 → デフォルト1(他のテストケースで実施されるが一応）',
@@ -693,6 +693,7 @@ describe('StoresService Test', () => {
           phoneNumber: '03-1122-9901',
           createdAt: new Date('2025-04-05T10:00:00.000Z'),
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          code: null,
           kanaName: null,
           // prefecture: null,
           holidays: [],
@@ -721,6 +722,7 @@ describe('StoresService Test', () => {
             phoneNumber: '03-1122-9901',
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            code: undefined,
             kanaName: undefined,
             // prefecture: undefined,
             holidays: undefined,
@@ -846,6 +848,7 @@ describe('StoresService Test', () => {
       // 「Prisma Store Mock Data」
       const mockStoreValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
+        code: '00001',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -899,6 +902,7 @@ describe('StoresService Test', () => {
       // 検証
       expect(result).toEqual({
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
+        // code: '00001',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -988,6 +992,7 @@ describe('StoresService Test', () => {
       // Prismaはcreateの項目がundefined(key自体なし)でも、key: nullの形で返却する仕様
       const mockValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
+        code: null,
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -1014,6 +1019,7 @@ describe('StoresService Test', () => {
       // 検証
       expect(result).toEqual({
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
+        code: undefined,
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -1085,6 +1091,7 @@ describe('StoresService Test', () => {
       // Prismaはcreateの項目がundefined(key自体なし)でも、key: nullの形で返却する仕様
       const mockValue: PrismaStoreWithPrefecture = {
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
+        code: null,
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -1114,6 +1121,7 @@ describe('StoresService Test', () => {
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
+        code: undefined,
         phoneNumber: '03-1122-9901',
         kanaName: undefined,
         // prefecture: undefined,
@@ -1193,6 +1201,7 @@ function createMockStores(): (StorePrisma & {
   const stores: (StorePrisma & { prefecture: PrefecturePrisma | null })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
       name: '山田電気 赤羽店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -1222,6 +1231,7 @@ function createMockStores(): (StorePrisma & {
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
       name: '山田電気 江戸川店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -1252,6 +1262,7 @@ function createMockStores(): (StorePrisma & {
 
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
       name: '山田電気 銀座店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -1288,6 +1299,7 @@ function createExpectStores(): PaginatedResult<Store & { id: string }> {
   const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
       name: '山田電気 赤羽店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -1313,6 +1325,7 @@ function createExpectStores(): PaginatedResult<Store & { id: string }> {
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
       name: '山田電気 江戸川店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -1338,6 +1351,7 @@ function createExpectStores(): PaginatedResult<Store & { id: string }> {
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
       name: '山田電気 銀座店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
