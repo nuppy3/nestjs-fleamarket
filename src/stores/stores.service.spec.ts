@@ -28,6 +28,10 @@ const mockPrismaService = {
 // describe():関連する複数のテストケースをグループ化
 describe('StoresService Test', () => {
   // DIモジュール
+
+  // serviceのテストを実施する上でconfigServiceのDIは必須だが、使用しないので以下の警告スキップ
+  // コメントを入れている
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let configService: ConfigService;
   let storesService: StoresService;
   let prismaService: PrismaService;

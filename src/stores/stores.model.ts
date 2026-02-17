@@ -172,7 +172,7 @@ export interface StoreFilter {
 
   /**
    * 店舗ステータスでフィルタ
-   * @see StorStatus
+   * @see StoreStatus
    */
   status?: StoreStatus;
 
