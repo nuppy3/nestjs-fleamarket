@@ -333,6 +333,7 @@ export class StoresService {
     // prisma → domain
     const savedStore: Store & { id: string } = {
       id: created.id,
+      code: created.code ?? undefined,
       name: created.name,
       status: created.status,
       email: created.email,
