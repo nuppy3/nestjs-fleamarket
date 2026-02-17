@@ -186,7 +186,46 @@ describe('StoresController TEST', () => {
         );
       });
 
-      it('正常系(7)：XXXXXを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+      it('正常系(7)：sizeを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成：中身は適当
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          size: 20,
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        // filterのテストは以下の結果検証は不要
+        // expect(result).toEqual(expectedStoreDto);
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+      it('正常系(8)：pageを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+        // ServiceのMockデータを作成：中身は適当
+        jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+
+        // テスト対象Controller呼び出し:適当なクエリを渡す
+        // 引数: 一応意味のあるモノにしたが、中身は適当でよい
+        const query: FindAllStoresQueryDto = {
+          page: 1,
+        };
+        await storesController.findAll(query);
+
+        // 検証: Serviceを期待通りの引数で呼んでいるか → store.controler内で、特にqueryを
+        // 変換処理せずにserviceに渡してるので、当該試験はあまり意味がないが、一応
+        // filterのテストは以下の結果検証は不要
+        // expect(result).toEqual(expectedStoreDto);
+        expect(jest.spyOn(storesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+
+      it('正常系(9)：XXXXXを指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成：中身は適当
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
 
@@ -210,7 +249,7 @@ describe('StoresController TEST', () => {
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
       // queryの変換処理はcontrolerで実施していないし、
       // controllerで複合ケースの試験は不要な気もするが一応
-      it('(1)+(2)+(3)+(4)+(5)+(6) 都道府県コード/status/name/エリアコード/ソート条件を指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
+      it('(1)+(2)+(3)+(4)+(5)+(6)+(7)+(8) 都道府県コード/status/name/エリアコード/ソート条件を指定した場合、Serviceを期待通りの引数で呼んでいるか', async () => {
         // ServiceのMockデータを作成
         jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
 
@@ -223,6 +262,8 @@ describe('StoresController TEST', () => {
           regionCode: '03',
           sortOrder: SortOrder.ASC,
           sortBy: SortBy.ID,
+          size: 20,
+          page: 1,
         };
         await storesController.findAll(query);
 
@@ -235,6 +276,8 @@ describe('StoresController TEST', () => {
           regionCode: '03',
           sortOrder: 'asc',
           sortBy: 'id',
+          size: 20,
+          page: 1,
         });
       });
     });
