@@ -122,6 +122,7 @@ export class CreateStoreDto {
 export const StoreResponseKeys = [
   // Storeドメイン（Entity)にid(uuid)は持たせない。
   // 'id',
+  'code',
   'name',
   'kanaName',
   'status',
@@ -178,6 +179,8 @@ export class StoreResponseDto implements StoreResponseShape {
     }
   }
 
+  @Expose()
+  code?: string;
   @Expose()
   zipCode?: string;
   @Expose()

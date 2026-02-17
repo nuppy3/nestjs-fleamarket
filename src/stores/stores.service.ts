@@ -174,6 +174,7 @@ export class StoresService {
         status: prismaStore.status,
         email: prismaStore.email,
         phoneNumber: prismaStore.phoneNumber,
+        code: prismaStore.code ?? undefined,
         kanaName: prismaStore.kanaName ?? undefined,
         zipCode: prismaStore.zipCode ?? undefined,
         address: prismaStore.address ?? undefined,
