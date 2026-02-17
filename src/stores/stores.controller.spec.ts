@@ -292,6 +292,7 @@ describe('StoresController TEST', () => {
         {
           data: mockStores.data.map((store) => ({
             ...store,
+            code: undefined,
             kanaName: undefined,
             zipCode: undefined,
             address: undefined,
@@ -345,6 +346,7 @@ describe('StoresController TEST', () => {
             {
               const expectedDto: Omit<
                 StoreResponseDto,
+                | 'code'
                 | 'kanaName'
                 | 'zipCode'
                 | 'address'
@@ -579,6 +581,7 @@ function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
   const stores: (Store & { id: string })[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
       name: '山田電気 赤羽店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -604,6 +607,7 @@ function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
       name: '山田電気 江戸川店',
       status: 'editing',
       email: 'yamada-akabane@test.co.jp',
@@ -629,6 +633,7 @@ function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
       name: '山田電気 銀座店',
       status: 'suspended',
       email: 'yamada-akabane@test.co.jp',
@@ -671,6 +676,7 @@ function createExpectedStoreDto(): PaginatedStoreResponseDto {
   const stores: StoreResponseDto[] = [
     {
       id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
       name: '山田電気 赤羽店',
       status: 'published',
       email: 'yamada-akabane@test.co.jp',
@@ -697,6 +703,7 @@ function createExpectedStoreDto(): PaginatedStoreResponseDto {
     },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
       name: '山田電気 江戸川店',
       status: 'editing',
       email: 'yamada-akabane@test.co.jp',
@@ -723,6 +730,7 @@ function createExpectedStoreDto(): PaginatedStoreResponseDto {
     },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
       name: '山田電気 銀座店',
       status: 'suspended',
       email: 'yamada-akabane@test.co.jp',
