@@ -902,7 +902,7 @@ describe('StoresService Test', () => {
       // 検証
       expect(result).toEqual({
         id: 'a1111111-1234-462c-b7d0-7e452ba0f111',
-        // code: '00001',
+        code: '00001',
         name: '山田電気 能登店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
