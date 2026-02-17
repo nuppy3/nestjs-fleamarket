@@ -43,6 +43,9 @@ export interface Store {
   //「作成時は id なし、取得時(レスポンス)は id あり（別型）」＝ 完全に正しい設計むしろこれが「本物のドメイン駆動設計」
   // が、実務的に、idを持たせてもいいっぽいが、厳密にidを除外してみる。
   // id: string;
+
+  // TODO 後日、codeを必須項目に
+  code?: string;
   name: string;
   kanaName?: string;
   status: StoreStatus;
