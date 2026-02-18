@@ -209,6 +209,7 @@ export interface StoreFilter {
 export const SortBy = {
   KANANAME: 'kanaName',
   ID: 'id',
+  CODE: 'code',
 } as const;
 // SortBy（モダンenum=union）の型を定義
 export type SortBy = (typeof SortBy)[keyof typeof SortBy];
