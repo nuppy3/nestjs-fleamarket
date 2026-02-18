@@ -339,7 +339,7 @@ export class FindAllStoresQueryDto implements StoreFilter {
 
   @IsOptional()
   @IsEnum(SortBy, {
-    message: `SortOrder must be one of: ${SortBy.KANANAME}, ${SortBy.ID}`,
+    message: `SortOrder must be one of: ${SortBy.KANANAME}, ${SortBy.ID}, ${SortBy.CODE}`,
   })
   sortBy?: SortBy;
 
