@@ -144,12 +144,12 @@ describe('StoresService Test', () => {
      * findAllの絞り込み(filter)テストは、toEqual()の検証ではなく、toHaveBeenCalledWithを
      * 用いて、Prismaが期待通りの引数で呼び出されているかをメインに検証する。
      *
-     * Prismaはmockしているので、返却値はmockでセットされるため、レスpンス(Prisma/service)を
+     * Prismaはmockしているので、返却値はmockでセットされるため、レスポンス(Prisma/service)を
      * toEqual()にて検証しても意味がない。
      *
      * ＜テスト観点＞
-     * serviceクラスの引数(filters)によって、どのようにPrismaのwhere句などの条件が変更されるか
-     * 期待値との検証を行う。
+     * serviceクラスの引数(filters)によって、どのようにPrismaのwhere句などの条件が
+     * 変更されるか期待値との検証を行う。
      * 従って、mockResolvedValue()でセットするPrismaのmock dataは、何でもいい。
      *
      * toHaveBeenCalledWith()に渡された引数と期待値が合うか。
