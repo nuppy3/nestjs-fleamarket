@@ -162,6 +162,9 @@ export function getWeekdayLabel(weekday: Weekday): string {
  * ```
  */
 export interface StoreFilter {
+  // 店舗コード
+  code?: string;
+
   // 店舗名
   name?: string;
 
@@ -201,7 +204,7 @@ export interface StoreFilter {
 }
 
 /**
- * ソートフィールと
+ * ソートフィールド
  */
 export const SortBy = {
   KANANAME: 'kanaName',

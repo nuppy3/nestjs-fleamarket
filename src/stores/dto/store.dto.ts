@@ -305,6 +305,12 @@ export class PaginatedStoreResponseDto implements PaginatedResult<StoreResponseD
  * 店舗情報検索フィルターDTO
  */
 export class FindAllStoresQueryDto implements StoreFilter {
+  // 都道府県コード
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  @IsString() // 任意項目だが入力された際のValidation
+  @MaxLength(5) // 任意項目だが入力された際のValidation
+  code?: string;
+
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString() // 任意項目だが入力された際のValidation
   // ↓空文字が来た場合、空文字で検索しに行くため、IsNotEmpty()は不要
