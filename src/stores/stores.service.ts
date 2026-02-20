@@ -54,6 +54,9 @@ export class StoresService {
     // order〜by句の構築
     const orderBy = this.buildStoreOrderBy(filters);
 
+    // where句の構築（共通）
+    const commonWhere = this.buildWhere(filters);
+
     // ページネーション計算
     // size指定が無けれのデフォルト設定 (また、size〜100までに制限、マイナスの場合はdefaultに置換)
     // マイナスを１に置換：Math.max(1, filters.size) そのまえに、undefindの場合は
@@ -414,5 +417,37 @@ export class StoresService {
     // }
 
     return orderBy;
+  }
+
+  /**
+   * findAllのWhere句を作成します。（共通部分）
+   *
+   * where → 基本はオブジェクト（AND条件）: Prisma.StoreWhereInput
+   * 複数条件をORで結合したいときだけ : Prisma.StoreWhereInput[]
+   * { OR: [...] } や配列をORキーに入れる。
+   *
+   * @param filters 検索条件
+   * @returns where句（共通部分)
+   */
+  private buildWhere(filters: StoreFilter): Prisma.StoreWhereInput {
+    // where句はOrder byのように配列ではなく、オブジェクトで作成することが多い。
+    // where句は基本的にはAND条件になるので。ORの条件がある場合は、配列にする。
+    // const where: Prisma.StoreWhereInput[] = [];
+    const where: Prisma.StoreWhereInput = {
+      status: filters.status,
+      ...(filters.name && {
+        name: { contains: filters.name },
+      }),
+      ...((filters.prefectureCode || filters.regionCode) && {
+        prefecture: {
+          ...(filters.prefectureCode && { code: filters.prefectureCode }),
+          ...(filters.regionCode && {
+            region: { code: filters.regionCode },
+          }),
+        },
+      }),
+    };
+
+    return where;
   }
 }
