@@ -172,6 +172,10 @@ export class StoresService {
     return `This action returns a #${id} store`;
   }
 
+  findByCodeOrFail(code: string) {
+    return `This action returns a #${code} store`;
+  }
+
   /**
    * create(): 店舗情報を作成し、DB登録します。
    *
