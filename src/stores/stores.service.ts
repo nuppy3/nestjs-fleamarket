@@ -81,49 +81,7 @@ export class StoresService {
         include: {
           prefecture: true,
         },
-
-        // 以下でもいいが、「...(条件 && { 追加したいオブジェクト }) が非常にエレガント!!」であり
-        // Prismaのwhere句の実装では有益！！
-        //  where: filters.prefectureCode
-        //   ? { prefecture: { code: filters.prefectureCode } }
-        //   : {},
-
-        // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
-        // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
-        // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
-        where: {
-          // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
-          // 非常に便利な性質があります。
-          // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
-          // 以下のnameなどと同様に...(filters.name && {をカマしても同様のクエリが作成されるが
-          // statusのケースのように単純な条件の場合は以下がBP。
-          status: filters.status,
-          // ...(filters.name && { をカマさず、上記のstatusと同様に「name: { contains: filters.name }」
-          // と実装してしまうと、注意が必要 → もし filters.name が undefined だった場合、
-          // Prismaは { name: { contains: undefined } } と解釈しようとして、エラーを投げるか
-          // 意図しない挙動になるバージョンがあります
-          ...(filters.name && {
-            name: { contains: filters.name },
-          }),
-          ...((filters.prefectureCode || filters.regionCode) && {
-            prefecture: {
-              ...(filters.prefectureCode && { code: filters.prefectureCode }),
-              ...(filters.regionCode && {
-                region: { code: filters.regionCode },
-              }),
-            },
-          }),
-          // [重要] 以下は削除：prefectureCodeとregionCodeをANDで指定するためには、以下だとprefecture:
-          // に対するQueryが重複してしまい、後がち（上書き）されてしまうので、上記のようにprefecture:
-          // のコードの中に含める必要がある。
-          // ...(filters.regionCode && {
-          //   prefecture: {
-          //     region: {
-          //       code: filters.regionCode,
-          //     },
-          //   },
-          // }),
-        },
+        where: commonWhere,
         // Limit
         take: size,
         // Offset (最初のXX件を飛ばす)
@@ -143,20 +101,7 @@ export class StoresService {
         //   prefecture: true,
         // },
 
-        where: {
-          status: filters.status,
-          ...(filters.name && {
-            name: { contains: filters.name },
-          }),
-          ...((filters.prefectureCode || filters.regionCode) && {
-            prefecture: {
-              ...(filters.prefectureCode && { code: filters.prefectureCode }),
-              ...(filters.regionCode && {
-                region: { code: filters.regionCode },
-              }),
-            },
-          }),
-        },
+        where: commonWhere,
       }),
     ]);
 
@@ -373,6 +318,9 @@ export class StoresService {
 
   /**
    * Storeの Order By 条件の構築
+   *
+   * default:
+   *  kanaNameのASC(昇順)
    */
   private buildStoreOrderBy(
     filters: StoreFilter,
@@ -430,11 +378,30 @@ export class StoresService {
    * @returns where句（共通部分)
    */
   private buildWhere(filters: StoreFilter): Prisma.StoreWhereInput {
+    // 以下でもいいが、「...(条件 && { 追加したいオブジェクト }) が非常にエレガント!!」であり
+    // Prismaのwhere句の実装では有益！！
+    //  where: filters.prefectureCode
+    //   ? { prefecture: { code: filters.prefectureCode } }
+    //   : {},
+
+    // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
+    // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
+    // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
+
     // where句はOrder byのように配列ではなく、オブジェクトで作成することが多い。
     // where句は基本的にはAND条件になるので。ORの条件がある場合は、配列にする。
     // const where: Prisma.StoreWhereInput[] = [];
     const where: Prisma.StoreWhereInput = {
+      // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
+      // 非常に便利な性質があります。
+      // filters.status がundefinedの場合、Prismaはその検索条件を無視してくれる！
+      // 以下のnameなどと同様に...(filters.name && {をカマしても同様のクエリが作成されるが
+      // statusのケースのように単純な条件の場合は以下がBP。
       status: filters.status,
+      // ...(filters.name && { をカマさず、上記のstatusと同様に「name: { contains: filters.name }」
+      // と実装してしまうと、注意が必要 → もし filters.name が undefined だった場合、
+      // Prismaは { name: { contains: undefined } } と解釈しようとして、エラーを投げるか
+      // 意図しない挙動になるバージョンがあります
       ...(filters.name && {
         name: { contains: filters.name },
       }),
@@ -446,6 +413,17 @@ export class StoresService {
           }),
         },
       }),
+
+      // [重要] 以下は削除：prefectureCodeとregionCodeをANDで指定するためには、以下だとprefecture:
+      // に対するQueryが重複してしまい、後がち（上書き）されてしまうので、上記のようにprefecture:
+      // のコードの中に含める必要がある。
+      // ...(filters.regionCode && {
+      //   prefecture: {
+      //     region: {
+      //       code: filters.regionCode,
+      //     },
+      //   },
+      // }),
     };
 
     return where;
