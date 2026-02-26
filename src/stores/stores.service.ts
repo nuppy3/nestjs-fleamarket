@@ -116,7 +116,9 @@ export class StoresService {
         // 本来はスプレッド構文(...store)で書きたいが、null / undefined変換問題があるので
         // スプレッド構文で、任意項目(?)を上書きというコードは型エラーが発生するため、
         // 「スプレッド + 上書き」は諦めて、全部明示的に書くのが一番安全で読みやすい
-        // ...store,
+        // → いや、型エラーは発生しない！ただ、不要な項目までセットしてしまうので、
+        //   実業務上は、個別で全部明示的にセットするのがBPだと思われる。というのが正しい。
+        // ...prismaStore,
         id: prismaStore.id,
         name: prismaStore.name,
         status: prismaStore.status,
@@ -173,6 +175,17 @@ export class StoresService {
   }
 
   findByCodeOrFail(code: string) {
+    // // 店舗情報を取得
+    // const prismaStore = await this.prismaService.store.findUnique({
+    //   include: { prefecture: true },
+    //   where: { code: code },
+    // });
+
+    // // prisma → domain(Store & id)
+    // const domain: Store & { id: string } = {
+    //   ...prismaStore,
+    // };
+
     return `This action returns a #${code} store`;
   }
 
