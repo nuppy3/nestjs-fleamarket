@@ -19,6 +19,7 @@ const mockPrismaService = {
   store: {
     // fn()はmock関数(振る舞いはテスト実施時に指定)
     findMany: jest.fn(),
+    findUnique: jest.fn(),
     create: jest.fn(),
     count: jest.fn(),
   },
