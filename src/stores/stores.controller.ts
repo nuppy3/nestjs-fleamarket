@@ -89,9 +89,9 @@ export class StoresController {
   }
 
   @Get('code/:code')
-  findByCode(@Param('code') code: string) {
+  async findByCode(@Param('code') code: string) {
     // 店舗情報取得
-    return this.storesService.findByCodeOrFail(code);
+    return await this.storesService.findByCodeOrFail(code);
   }
 
   /**

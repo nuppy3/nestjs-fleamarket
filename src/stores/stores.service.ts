@@ -134,6 +134,9 @@ export class StoresService {
         // 以下のキャストだと、store.holidaysがnullもしくはundefined時にキャストエラーになってしまう
         // holidays: (store.holidays as Weekday[]) ?? undefined,
         // store.holidaysがnull or undefinedじゃない且つ、空配列でない場合
+        // → エラーにならないっぽい。。prismaStore.holidays as Weekday[] : undefinedの
+        // 方がシンプルだな。。findByCodeOrFail()では、prismaStore.holidays as Weekday[] : undefined
+        // で実装している。
         holidays: prismaStore.holidays?.length
           ? (prismaStore.holidays as Weekday[])
           : undefined,
@@ -174,19 +177,61 @@ export class StoresService {
     return `This action returns a #${id} store`;
   }
 
-  findByCodeOrFail(code: string) {
-    // // 店舗情報を取得
-    // const prismaStore = await this.prismaService.store.findUnique({
-    //   include: { prefecture: true },
-    //   where: { code: code },
-    // });
+  async findByCodeOrFail(code: string): Promise<Store & { id: string }> {
+    // 店舗情報を取得
+    const prismaStore = await this.prismaService.store.findUnique({
+      include: { prefecture: true },
+      where: { code: code },
+    });
 
-    // // prisma → domain(Store & id)
-    // const domain: Store & { id: string } = {
-    //   ...prismaStore,
-    // };
+    // findUniqueOrThrow()を使うと、以下のif文でのチェックは不要になる
+    // null or undefinedならPrismaがPrismaClientKnownRequestError (code: P2025)を
+    // 投げてくれる。
+    // TODO：いづれ実施する
 
-    return `This action returns a #${code} store`;
+    // codeに紐づく店舗情報が無い場合
+    if (!prismaStore) {
+      throw new NotFoundException(`
+            codeに関連する都道府県情報が存在しません!! code: ${code}`);
+    }
+
+    // prisma → domain(Store & id)
+    const domain = {
+      // 以下のように、...スプレッド構文でセットしたいが、不要な項目をセットしてしまったり、
+      // PrismaのPrifectureとDominのPrefectureの型の違いなどで型エラーが発生してしまったりするので
+      // 個別でセットしていく
+      // ...prismaStore,
+
+      id: prismaStore.id,
+      name: prismaStore.name,
+      status: prismaStore.status,
+      email: prismaStore.email,
+      phoneNumber: prismaStore.phoneNumber,
+      createdAt: prismaStore.createdAt,
+      updatedAt: prismaStore.updatedAt,
+      userId: prismaStore.userId,
+      code: prismaStore.code ?? undefined,
+      kanaName: prismaStore.kanaName ?? undefined,
+      zipCode: prismaStore.zipCode ?? undefined,
+      address: prismaStore.address ?? undefined,
+      businessHours: prismaStore.businessHours ?? undefined,
+      // string[] → union("SUNDAY" | "MONDAY" | "" ...) 変換（キャスト）
+      holidays: (prismaStore.holidays as Weekday[]) ?? undefined,
+      // Prisma Prefecture → Domain Prefecture 変換
+      prefecture: prismaStore.prefecture
+        ? {
+            name: prismaStore.prefecture.name,
+            code: prismaStore.prefecture.code,
+            kanaName: prismaStore.prefecture.kanaName,
+            status: prismaStore.prefecture.status,
+            kanaEn: prismaStore.prefecture.kanaEn,
+            createdAt: prismaStore.prefecture.createdAt,
+            updatedAt: prismaStore.prefecture.updatedAt,
+          }
+        : undefined,
+    } satisfies Store & { id: string };
+
+    return domain;
   }
 
   /**
