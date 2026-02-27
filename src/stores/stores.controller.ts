@@ -89,9 +89,22 @@ export class StoresController {
   }
 
   @Get('code/:code')
-  async findByCode(@Param('code') code: string) {
-    // 店舗情報取得
-    return await this.storesService.findByCodeOrFail(code);
+  async findByCode(@Param('code') code: string): Promise<StoreResponseDto> {
+    // 店舗情報(Store domain)取得
+    const domain = await this.storesService.findByCodeOrFail(code);
+
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    const responseDto = instanceToPlain(
+      plainToInstance(StoreResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        excludeExtraneousValues: true,
+      }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as StoreResponseDto;
+
+    return responseDto;
   }
 
   /**
