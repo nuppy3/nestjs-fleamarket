@@ -78,6 +78,9 @@ describe('StoresService Test', () => {
     prismaService = module.get<PrismaService>(PrismaService);
 
     // PrismaService Mock Data
+    // memo : mockDataをメンバで保持(厳密にはclassではないのでメンバではないが)するのは、テスト内で
+    // 内容が書き換えられている可能性があるため、テストの都度、createMockStores()を呼び出すことを
+    // 推奨する。下名もfindByCodeOrFail()のテストにおいてハマった経験あり。
     prismaMockStores = createMockStores();
     // 期待値：Serviceの返却値
     expectedStores = createExpectStores();
@@ -1186,6 +1189,174 @@ describe('StoresService Test', () => {
         new NotFoundException(
           `prefectureCodeに該当する都道府県情報が存在しません。 prefectureCode: ${storeDto.prefectureCode}`,
         ),
+      );
+    });
+  });
+
+  //-----------------------------------------------------
+  describe('--- findByCodeOrFail() TEST---', () => {
+    it('正常系: codeに紐づく店舗情報取得し、Stroeドメインに詰め替え返却する（全項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      // meme:
+      // prismaMockStores.find((store) => store.code == code) は undefinedを返す可能性があるため
+      // 厳密な型チェックによりエラーが発生している。
+      // ので、対策としてsprismaMockStores.find(
+      //   (store) => store.code == code,
+      // )!
+      // の様に末尾に「!」をつけている。
+      // TypeScriptにおける「!」 は、「Non-null Assertion Operator」（非 Null アサーション演算子）と呼ばれます。
+      // これは、プログラマーがTypeScriptコンパイラに対して、「この値は、たとえコンパイラが null や
+      // undefined の可能性があると推論しても、実行時には決して null や undefined にならない」と
+      // 断言するための構文です。
+      const prismaMockData = createMockStores().find(
+        (store) => store.code === code,
+      )!;
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      const expectedStore = createExpectStores().data.find(
+        (store) => store.code === code,
+      )!;
+      expect(result).toEqual(expectedStore);
+    });
+
+    it('正常系: 店舗情報の任意項目が取得できない場合、null→undefinedに変換して返却（任意項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      const prismaMockData = createMockStores().find(
+        (store) => store.code === code,
+      )!;
+      // 任意項目をnullにセット（holidaysはWeekDay[]なので空配列[]をセット)
+      // prismaMockData.code = null;
+      prismaMockData.kanaName = null;
+      prismaMockData.zipCode = null;
+      prismaMockData.address = null;
+      prismaMockData.businessHours = null;
+      prismaMockData.holidays = null;
+      prismaMockData.prefecture = null;
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      expect(result).toEqual({
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: undefined,
+        // prefecture: '東京都',
+        // service.findByCodeOrFail()のholidaysについて、findAll()とは違うコードを
+        // あえて書いてみた。undefinedではなく空配列が期待値。
+        holidays: undefined,
+        zipCode: undefined,
+        address: undefined,
+        businessHours: undefined,
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: undefined,
+      });
+    });
+
+    it('正常系: やる必要ないが: 店舗情報内の都道府県情報のprefectureIdが取得できた場合、Storeドメインにセットされず、返却されないこと（任意項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      const prismaMockData = {
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: StoreStatus.PUBLISHED,
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+        // prefecture: '東京都',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '東京都江戸川区西念1丁目10番地',
+        businessHours: '10:00-20:00',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: {
+          name: '東京都',
+          code: '13',
+          kanaName: 'トウキョウト',
+          status: 'published',
+          kanaEn: 'tokyo-to',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
+      };
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      const expectedStore = {
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+        // prefecture: '東京都',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '東京都江戸川区西念1丁目10番地',
+        businessHours: '10:00-20:00',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        // prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: {
+          name: '東京都',
+          code: '13',
+          kanaName: 'トウキョウト',
+          status: 'published',
+          kanaEn: 'tokyo-to',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
+      };
+      expect(result).toEqual(expectedStore);
+    });
+
+    it('正常系: codeに紐づく店舗情報が存在しない', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成 : データなし
+      jest.spyOn(prismaService.store, 'findUnique').mockResolvedValue(null);
+
+      // テスト対象service呼び出し + 結果検証
+      // await(非同期)メソッドの場合、Promiseを返却する必要があるが、Promiseをアンラップ(rejects)して別の
+      // Matcherを連鎖させるようにして、toThrowを呼んだりする。
+      await expect(storesService.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(`
+            codeに関連する都道府県情報が存在しません!! code: ${code}`),
       );
     });
   });

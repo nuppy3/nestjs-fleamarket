@@ -210,12 +210,17 @@ export class StoresService {
       createdAt: prismaStore.createdAt,
       updatedAt: prismaStore.updatedAt,
       userId: prismaStore.userId,
-      code: prismaStore.code ?? undefined,
+      // codeに紐づく店舗情報を取得しているので、codeは必ず値が入るため、!を指定。
+      code: prismaStore.code!,
       kanaName: prismaStore.kanaName ?? undefined,
       zipCode: prismaStore.zipCode ?? undefined,
       address: prismaStore.address ?? undefined,
       businessHours: prismaStore.businessHours ?? undefined,
       // string[] → union("SUNDAY" | "MONDAY" | "" ...) 変換（キャスト）
+      // あえて、findAllの場合と違うコードを書いてみた。こちらばBPらしい。
+      // prismaStoreレコードが存在するが、holidaysが未設定 → Prismaは 空配列 [] を返す
+      // となると、undefinedがセットされることはほぼない。。
+      // → ⭐️undefinedがセットされるルートはテストできない。
       holidays: (prismaStore.holidays as Weekday[]) ?? undefined,
       // Prisma Prefecture → Domain Prefecture 変換
       prefecture: prismaStore.prefecture
