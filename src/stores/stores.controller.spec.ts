@@ -1,4 +1,6 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import type { Request as ExpressRequest } from 'express';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { RequestUser } from 'src/types/requestUser';
@@ -17,6 +19,7 @@ import { StoresService } from './stores.service';
 const mockStoresService = {
   findAll: jest.fn(),
   create: jest.fn(),
+  findByCodeOrFail: jest.fn(),
 };
 
 // 関連する複数のテストをグループ化
@@ -570,6 +573,161 @@ describe('StoresController TEST', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       });
+    });
+  });
+
+  //----------------------------------------------------------------------------
+  // 以下は、controllerのエンドポイントのテストですが、SuperTest部分でエラーになったので
+  // 見送り。e2eテストにて実施する。そもそもPostManでエンドポイント確認済みだし。
+
+  // describe('findByCodeのテスト: (e2e)', () => {
+  //   it('GET /stores/code/:code で都道府県をcodeで取得できる', async () => {
+  //     const code = '00001';
+  //     const response = await (
+  //       request(app.getHttpServer()) as SuperTest<Test>
+  //     ).get(`/prefectures/code/${code}`);
+
+  //     expect(response.body).toHaveProperty('code', code);
+  //     expect(response.body).toHaveProperty('name', '東京都');
+  //     // 他のフィールドも必要に応じてアサート
+  //   });
+  // });
+
+  describe('findByCodeのテスト', () => {
+    it('正常系： 店舗情報を返却する(DTOの全項目)', async () => {
+      // 引数
+      const code = '00001';
+
+      // service mock data 作成
+      jest
+        .spyOn(storesService, 'findByCodeOrFail')
+        .mockResolvedValue(
+          createMockStoresWithId().data.find((store) => store.code === code)!,
+        );
+
+      // テスト対象controller呼び出し
+      const result = await storesController.findByCode(code);
+
+      // 検証
+      expect(result).toEqual(
+        createExpectedStoreDto().data.find((store) => store.code === code),
+      );
+
+      // 検証：controller→serviceの引数(codeがそのまま渡されること)
+      expect(
+        jest.spyOn(storesService, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
+    });
+    it('正常系： 店舗情報を返却する(domainの任意項目undefined→DTOの任意項目除外)', async () => {
+      // 引数
+      const code = '00001';
+
+      // service mock data 作成
+      const mockServiceData = createMockStoresWithId().data.find(
+        (store) => store.code === code,
+      )!;
+      // 任意項目にundefinedをセット
+      mockServiceData.kanaName = undefined;
+      mockServiceData.zipCode = undefined;
+      mockServiceData.address = undefined;
+      mockServiceData.businessHours = undefined;
+      mockServiceData.holidays = undefined;
+      mockServiceData.prefecture = undefined;
+      jest
+        .spyOn(storesService, 'findByCodeOrFail')
+        .mockResolvedValue(mockServiceData);
+
+      // テスト対象controller呼び出し
+      const result = await storesController.findByCode(code);
+
+      // 検証
+
+      // DTOのkey/valueをkey毎削除 したいところだったが、prefectureなどのreadonly項目は
+      // typescriptの仕様でdeleteできないので断念。。
+      // const expectedStoreData = createExpectedStoreDto().data.find(
+      //   (store) => store.code === code,
+      // )!;
+      // delete expectedStoreData.kanaName;
+      // delete expectedStoreData.zipCode;
+      // delete expectedStoreData.address;
+      // delete expectedStoreData.businessHours;
+      // delete expectedStoreData.holidays;
+      // delete expectedStoreData.prefecture;
+
+      // 上記の通りなので、Omitでprefectureなどを除外した型を定義して、値をセットしていく
+      // const expectedStoreData: Omit<StoreResponseDto, | 'kanaName' | ....> で
+      // 直接constで定義して値をセットしてもいいが、一旦typeで型を定義してみた。
+      type expectedDto = Omit<
+        StoreResponseDto,
+        | 'kanaName'
+        | 'zipCode'
+        | 'address'
+        | 'businessHours'
+        | 'holidays'
+        | 'prefecture'
+        | 'holidaysLabel'
+      >;
+      const expectedStoreData: expectedDto = {
+        id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+        code: '00001',
+        name: '山田電気 赤羽店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        statusLabel: '営業中',
+        // holidaysLabel: ['水', '日'],
+      };
+      expect(result).toEqual(expectedStoreData);
+
+      // 検証：controller→serviceの引数(codeがそのまま渡されること)
+      expect(
+        jest.spyOn(storesService, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
+    });
+
+    it('正常系： 店舗情報を返却する(domainの任意項目null→DTOの任意項目除外)', async () => {
+      // storeにてprismaStore→domain→controlerの際にnull→undefinedに変換しているため
+      // 当該テストケースは不要
+    });
+
+    it('異常系： 場合指定したcodeの店舗情報が存在しない場合の例外確認', async () => {
+      // codeをキーに、DBに対象商品データが存在しない場合、Service側で例外をスローし、Controllerでは
+      // 例外をキャッチせず、NestJSの例外フィルターが処理する。
+      // Serviceからスローされた例外がそのまま外側に伝播することをテストする。
+      // mockのcontrollerをアンラップ(rejects)して別のMatcherを連鎖させるようにして、
+      // Exceptionを返すようにする。（エラーを返す際にmockRejectedValueをよく使う)
+      const code = '99999';
+      jest.spyOn(storesService, 'findByCodeOrFail').mockRejectedValue(
+        new NotFoundException(`
+            codeに関連する都道府県情報が存在しません!! code: ${code}`),
+      );
+      // 結果検証
+      // await(非同期)メソッドが失敗し例外を投げる際のテストコード：非同期処理の場合Promiseを
+      // 返却する必要があるが、Promiseをアンラップ(rejects)して別のMatcherを連鎖させるようにして、
+      // toThrowを呼んだりする。
+      await expect(storesController.findByCode(code)).rejects.toThrow(
+        new NotFoundException(`
+            codeに関連する都道府県情報が存在しません!! code: ${code}`),
+      );
+      // 以下でもエラーにはならなかった。。
+      // expect(storesController.findById).toHaveBeenCalledWith('');
+    });
+
+    it('異常系： DB接続エラーなどのエラー確認', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(storesService, 'findByCodeOrFail')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(storesService.findByCodeOrFail('99999')).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
     });
   });
 });

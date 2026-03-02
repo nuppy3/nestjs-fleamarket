@@ -1359,6 +1359,22 @@ describe('StoresService Test', () => {
             codeに関連する都道府県情報が存在しません!! code: ${code}`),
       );
     });
+    // エラーを隠蔽・変換せずに透過的に投げているか
+    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: findUnique()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのままスローされることをテスト(引数は何でもいい)
+      await expect(storesService.findByCodeOrFail('')).rejects.toThrow(Error);
+      await expect(storesService.findByCodeOrFail('')).rejects.toThrow(
+        'Database connection failed',
+      );
+    });
   });
 });
 

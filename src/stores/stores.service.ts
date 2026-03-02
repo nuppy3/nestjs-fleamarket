@@ -177,6 +177,13 @@ export class StoresService {
     return `This action returns a #${id} store`;
   }
 
+  /**
+   * findByCodeOrFail(): 指定されたcodeに関連する店舗情報をDBから取得し、返却します。
+   * 指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
+   *
+   * @param code 店舗コード（検索対象)
+   * @returns 店舗情報
+   */
   async findByCodeOrFail(code: string): Promise<Store & { id: string }> {
     // 店舗情報を取得
     const prismaStore = await this.prismaService.store.findUnique({
