@@ -163,8 +163,9 @@ export class PrefecturesService {
 
     // codeに紐づく都道府県情報が無い場合
     if (!prefecture) {
-      throw new NotFoundException(`
-        codeに関連する都道府県情報が存在しません!! code: ${code}`);
+      throw new NotFoundException(
+        `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+      );
     }
 
     // Prefecture(Prisma) → domain

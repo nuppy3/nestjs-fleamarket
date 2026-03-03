@@ -309,8 +309,9 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // test対象のservice呼び出し + 検証: codeに紐づく都道府県情報がない場合
       await expect(prefectureService.findByCodeOrFail(code)).rejects.toThrow(
-        new NotFoundException(`
-                codeに関連する都道府県情報が存在しません!! code: ${code}`),
+        new NotFoundException(
+          `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+        ),
       );
     });
   });
