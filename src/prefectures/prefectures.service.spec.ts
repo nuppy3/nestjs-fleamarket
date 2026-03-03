@@ -68,6 +68,94 @@ describe('□□□ Prefecture Test □□□', () => {
       expect(result).toEqual(expectedPrefectures);
     });
 
+    it('正常系: Prefecture配列を返却する(任意項目はnull→undefinedに変換)', async () => {
+      // prisma mock data 作成 ： 任意項目をnullに設定
+      const prismaMockData = createPrismaMockData().map(
+        (prefecture) =>
+          ({
+            ...prefecture,
+            userId: null, // serviceにてdomainにセットしていない項目だが、一応
+            regionId: null,
+          }) satisfies PrismaPrefecture,
+      );
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await prefectureService.findAll();
+
+      // 検証 : 任意項目にundefinedがセットされていること
+      expect(result).toEqual([
+        {
+          id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '北海道',
+          code: '01',
+          kanaName: 'ホッカイドウ',
+          status: 'published',
+          kanaEn: 'hokkaido',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+        {
+          id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '青森',
+          code: '02',
+          kanaName: 'アオモリ',
+          status: 'published',
+          kanaEn: 'aomori',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+        {
+          id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '秋田',
+          code: '03',
+          kanaName: 'アキタ',
+          status: 'published',
+          kanaEn: 'akita',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+        {
+          id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '岩手',
+          code: '04',
+          kanaName: 'イワテ',
+          status: 'published',
+          kanaEn: 'iwate',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+        {
+          id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '山形',
+          code: '05',
+          kanaName: 'ヤマガタ',
+          status: 'published',
+          kanaEn: 'yamagata',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+        {
+          id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '東京都',
+          code: '13',
+          kanaName: 'トウキョウト',
+          status: 'published',
+          kanaEn: 'tokyo-to',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: undefined,
+        },
+      ]);
+    });
+
     it('正常系: データが0件の場合は空配列を返却する', async () => {
       // prisma mock data 作成(Prismaは０件の場合、空配列を返却する仕様)
       jest.spyOn(prismaService.prefecture, 'findMany').mockResolvedValue([]);
