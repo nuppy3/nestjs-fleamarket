@@ -50,7 +50,7 @@ describe('StoresService Test', () => {
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
-    console.log('beforeAll: モジュールのセットアップ（DIなど）');
+    // console.log('beforeAll: モジュールのセットアップ（DIなど）');
 
     //---------------------------------
     // @Module({
@@ -88,7 +88,7 @@ describe('StoresService Test', () => {
 
   // 前処理: 書くテストケースの前に毎回実行
   beforeEach(() => {
-    console.log('beforeEach: モックをリセット');
+    // console.log('beforeEach: モックをリセット');
     jest.clearAllMocks();
   });
 
@@ -1344,7 +1344,7 @@ describe('StoresService Test', () => {
       expect(result).toEqual(expectedStore);
     });
 
-    it('正常系: codeに紐づく店舗情報が存在しない', async () => {
+    it('正常系: codeに紐づく店舗情報が存在しない(0件)', async () => {
       // servieの引数
       const code = '00002';
 

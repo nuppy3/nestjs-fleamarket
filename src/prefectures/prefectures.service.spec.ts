@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 // import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 // import { Prisma } from '@prisma/client';
@@ -26,7 +26,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
-    console.log('beforeAll: モジュールのセットアップ（DIなど）');
+    // console.log('beforeAll: モジュールのセットアップ（DIなど）');
 
     // @Module({
     //   imports: [PrismaModule],
@@ -52,7 +52,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
   // 前処理: 書くテストケースの前に毎回実行
   beforeEach(() => {
-    console.log('beforeEach: モックをリセット');
+    // console.log('beforeEach: モックをリセット');
     jest.clearAllMocks();
   });
 
@@ -268,8 +268,51 @@ describe('□□□ Prefecture Test □□□', () => {
       );
     });
 
-    // it('正常系：codeに紐づくPrefectureを取得。任意項目がnullの場合undefinedに変換して返却する。', () => {});
-    it('異常系：codeに紐づくPrefectureを取得(0件)、NotFoundExceptionをスローする', () => {});
+    it('正常系：codeに紐づくPrefectureを取得。任意項目がnullの場合undefinedに変換して返却する。', async () => {
+      // findBYCodeOrFailの引数
+      const code: string = '02';
+
+      // prisma mock data : 任意項目をnullに設定
+      const mockPrismaData = createPrismaMockData().find(
+        (prefecture) => prefecture.code === code,
+      )!;
+      mockPrismaData.regionId = null;
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(mockPrismaData);
+
+      // test対象のservice呼び出し
+      const result = await prefectureService.findByCodeOrFail(code);
+
+      // 検証: 任意項目null → undefind
+      expect(result).toEqual({
+        id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '青森',
+        code: '02',
+        kanaName: 'アオモリ',
+        status: 'published',
+        kanaEn: 'aomori',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: undefined,
+      });
+    });
+
+    it('異常系：codeに紐づくPrefectureを取得(0件)、NotFoundExceptionをスローする', async () => {
+      // findBYCodeOrFailの引数
+      const code: string = '99';
+
+      // prisma mock data : データなし = null
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(null);
+
+      // test対象のservice呼び出し + 検証: codeに紐づく都道府県情報がない場合
+      await expect(prefectureService.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(`
+                codeに関連する都道府県情報が存在しません!! code: ${code}`),
+      );
+    });
   });
 });
 

@@ -19,7 +19,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
-    console.log('beforeAll: モジュールのセットアップ');
+    // console.log('beforeAll: モジュールのセットアップ');
 
     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
     // この便利なDIの仕組みはNestJSの仕組み。
@@ -43,7 +43,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
   // 重いのでbeforeAll()で1回だけ実行するようにするのがベストプラクティス
   beforeEach(() => {
-    console.log('beforeEach: モックをリセット jest.clearAllMocks()');
+    // console.log('beforeEach: モックをリセット jest.clearAllMocks()');
     jest.clearAllMocks();
   });
 

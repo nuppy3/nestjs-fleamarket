@@ -32,7 +32,7 @@ describe('StoresController TEST', () => {
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
-    console.log('beforeAll: モジュールのセットアップ');
+    // console.log('beforeAll: モジュールのセットアップ');
 
     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
     // この便利なDIの仕組みはNestJSの仕組み。
@@ -54,7 +54,7 @@ describe('StoresController TEST', () => {
   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
   // 重いのでbeforeAll()で1回だけ実行するようにするのがベストプラクティス
   beforeEach(() => {
-    console.log('beforeEach: モックをリセット jest.clearAllMocks()');
+    // console.log('beforeEach: モックをリセット jest.clearAllMocks()');
     jest.clearAllMocks();
   });
 
@@ -328,8 +328,7 @@ describe('StoresController TEST', () => {
       // 引数: 絞り込み条件無し
       const query: FindAllStoresQueryDto = {};
       const result = await storesController.findAll(query);
-      console.log('result: ');
-      console.log(result);
+
       // 検証
       expect(result).toEqual({
         data:
