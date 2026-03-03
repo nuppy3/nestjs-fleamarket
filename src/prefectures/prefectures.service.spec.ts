@@ -56,6 +56,9 @@ describe('□□□ Prefecture Test □□□', () => {
     jest.clearAllMocks();
   });
 
+  // ------------------------------
+  // findAll()
+  // ------------------------------
   describe('findAll', () => {
     it('正常系: Prefecture配列、全項目(prefectureドメイン配列)を返却する', async () => {
       // prisma mock data 作成
@@ -166,8 +169,26 @@ describe('□□□ Prefecture Test □□□', () => {
     });
   });
 
+  // ------------------------------
+  // findAllWithStoreCount()
+  // ------------------------------
   describe('findAllWithStoreCount', () => {
     it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(全項目)', async () => {
+      // prisma mock data
+      const prismaMockData = createPrismaMockDataIncludeStoreCount();
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象servie呼び出し
+      const results = await prefectureService.findAllWithStoreCount();
+
+      // 検証
+      const expectedData = createExpectedPrefectureWithCoverageData();
+      expect(results).toEqual(expectedData);
+    });
+
+    it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(任意項目はundefined)', async () => {
       // prisma mock data
       const prismaMockData = createPrismaMockDataIncludeStoreCount();
       jest
@@ -210,6 +231,9 @@ describe('□□□ Prefecture Test □□□', () => {
     });
   });
 
+  // ------------------------------
+  // create()
+  // ------------------------------
   describe('create', () => {
     // serviceの引数作成
     const dto: CreatePrefectureDto = {
@@ -332,6 +356,9 @@ describe('□□□ Prefecture Test □□□', () => {
     });
   });
 
+  // ------------------------------
+  // findByCodeOrFail()
+  // ------------------------------
   describe('findByCodeOrFail', () => {
     it('正常系：codeに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
       // findBYCodeOrFailの引数
