@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
@@ -29,7 +30,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
-    console.log('beforeAll: モジュールのセットアップ');
+    // console.log('beforeAll: モジュールのセットアップ');
 
     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
     // この便利なDIの仕組みはNestJSの仕組み。
@@ -61,7 +62,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
   // 重いのでbeforeAll()で1回だけ実行するようにするのがベストプラクティス
   beforeEach(() => {
-    console.log('beforeEach: モックをリセット jest.clearAllMocks()');
+    // console.log('beforeEach: モックをリセット jest.clearAllMocks()');
     jest.clearAllMocks();
   });
 
@@ -254,16 +255,16 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const code = '13';
 
       // service mock data
-      const prismaMockData = createSriviceMockData().find(
+      const servieMockData = createSriviceMockData().find(
         (prefecture) => prefecture.code === code,
       )!;
 
       jest
         .spyOn(prefecturesService, 'findByCodeOrFail')
-        .mockResolvedValue(prismaMockData);
+        .mockResolvedValue(servieMockData);
 
       // test対象controller呼び出し
-      const result = await prefecturesService.findByCodeOrFail(code);
+      const result = await prefecturesController.findByCode(code);
 
       // 検証
       expect(result).toEqual({
@@ -282,11 +283,71 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       ).toHaveBeenCalledWith(code);
     });
 
-    it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {});
+    // 現時点で、任意項目はregionIdのみであり、DTOにそもそも当該項目が存在しないので、
+    // UT実施の意味はないが念の為。
+    it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {
+      // 引数
+      const code = '13';
 
-    it('異常系：検索結果0件（codeに紐づく都道府県情報なし）', async () => {});
+      // service mock data : 任意項目をundefinedに書き換え
+      const servieMockData = createSriviceMockData().find(
+        (prefecture) => prefecture.code === code,
+      )!;
+      servieMockData.regionId = undefined;
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockResolvedValue(servieMockData);
 
-    it('異常系：DB接続エラー: serviceのエラーをそのまま伝搬', async () => {});
+      // test対象controller呼び出し
+      const result = await prefecturesController.findByCode(code);
+
+      // 検証
+      expect(result).toEqual({
+        id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        statusLabel: '反映中',
+      });
+    });
+
+    it('異常系：検索結果0件（codeに紐づく都道府県情報なし）', async () => {
+      // 引数
+      const code = '99';
+
+      // modk data : mockRejectedValueでNotFundExceptionをセット
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockRejectedValue(
+          new NotFoundException(
+            `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+          ),
+        );
+
+      // test対象controller呼び出し + 検証
+      await expect(prefecturesController.findByCode(code)).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+        ),
+      );
+    });
+
+    it('異常系：DB接続エラー: serviceのエラーをそのまま伝搬', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(prefecturesService.findByCodeOrFail('99')).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
   });
 });
 
