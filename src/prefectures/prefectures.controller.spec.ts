@@ -14,6 +14,7 @@ const mockPrerectureService = {
   findAll: jest.fn(),
   findAllWithStoreCount: jest.fn(),
   create: jest.fn(),
+  findByCodeOrFail: jest.fn(),
 };
 
 describe('■■■ Prefectures Controller TEST ■■■', () => {
@@ -242,6 +243,50 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
 
       // 検証
     });
+  });
+
+  //--------------------------------
+  // findByCode()
+  //--------------------------------
+  describe('findByCode の テスト', () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+      // 引数
+      const code = '13';
+
+      // service mock data
+      const prismaMockData = createSriviceMockData().find(
+        (prefecture) => prefecture.code === code,
+      )!;
+
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockResolvedValue(prismaMockData);
+
+      // test対象controller呼び出し
+      const result = await prefecturesService.findByCodeOrFail(code);
+
+      // 検証
+      expect(result).toEqual({
+        id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        statusLabel: '反映中',
+      });
+
+      // 引数検証
+      expect(
+        jest.spyOn(prefecturesService, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
+    });
+
+    it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {});
+
+    it('異常系：検索結果0件（codeに紐づく都道府県情報なし）', async () => {});
+
+    it('異常系：DB接続エラー: serviceのエラーをそのまま伝搬', async () => {});
   });
 });
 

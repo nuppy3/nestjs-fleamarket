@@ -266,6 +266,11 @@ describe('□□□ Prefecture Test □□□', () => {
       expect(result).toEqual(
         expectedPrefectures.find((prefecture) => prefecture.code === code),
       );
+
+      // 引数検証
+      expect(
+        jest.spyOn(prismaService.prefecture, 'findUnique'),
+      ).toHaveBeenCalledWith({ where: { code } });
     });
 
     it('正常系：codeに紐づくPrefectureを取得。任意項目がnullの場合undefinedに変換して返却する。', async () => {
