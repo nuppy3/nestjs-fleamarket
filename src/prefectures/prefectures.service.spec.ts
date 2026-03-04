@@ -189,8 +189,13 @@ describe('□□□ Prefecture Test □□□', () => {
     });
 
     it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(任意項目はundefined)', async () => {
-      // prisma mock data
-      const prismaMockData = createPrismaMockDataIncludeStoreCount();
+      // prisma mock data : 任意項目にnullをセット
+      const prismaMockData = createPrismaMockDataIncludeStoreCount().map(
+        (prefecture) => ({
+          ...prefecture,
+          regionId: null,
+        }),
+      );
       jest
         .spyOn(prismaService.prefecture, 'findMany')
         .mockResolvedValue(prismaMockData);
@@ -199,7 +204,21 @@ describe('□□□ Prefecture Test □□□', () => {
       const results = await prefectureService.findAllWithStoreCount();
 
       // 検証
-      const expectedData = createExpectedPrefectureWithCoverageData();
+      const expectedData = createExpectedPrefectureWithCoverageData().map(
+        (data) => ({
+          ...data,
+          prefecture: {
+            name: data.prefecture.name,
+            code: data.prefecture.code,
+            kanaName: data.prefecture.kanaName,
+            status: data.prefecture.status,
+            kanaEn: data.prefecture.kanaEn,
+            createdAt: data.prefecture.createdAt,
+            updatedAt: data.prefecture.updatedAt,
+            // regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+          },
+        }),
+      );
       expect(results).toEqual(expectedData);
     });
 
@@ -277,6 +296,38 @@ describe('□□□ Prefecture Test □□□', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+      });
+    });
+
+    it('正常系: Prefectureの情報を登録(任意項目はnull)し、prefectureドメイン(任意項目はnull→undefined変換)を返却する', async () => {
+      // prisma modk data 作成
+      jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: null,
+        userId: userId,
+      });
+
+      // テスト対象service呼び出し
+      const result = await prefectureService.create(dto, userId);
+
+      // 検証
+      expect(result).toEqual({
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: undefined,
       });
     });
 
