@@ -81,6 +81,9 @@ export type PrefectureResponseShape = Pick<
  * 都道府県情報レスポンスDTO
  * PrefectureドメインのサブセットDTO
  *
+ * 特記事項：StoreResponseDto implements StoreResponseShapeは「最低限これらは持ってるよ」
+ * という約束でしかないらしい。。→ それ以上のプロパティ（testとか、hogeとか）を書いても型エラーにならない（仕様）
+ *
  * @Expose() をつけると、plainToInstance の変換対象になります。
  * 返却項目を明示（@Expose）
  * 不要な項目を除外（@Exclude）
@@ -135,4 +138,22 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
   //   this.status = status;
   //   this.kanaEn = kanaEn;
   // }
+}
+
+/**
+ * ページネーション情報DTO(metaデータ)
+ */
+export class PaginationMetaDto {
+  // 総件数
+  totalCount: number;
+  // ページ
+  page: number;
+  // 1ページあたりの件数
+  size: number;
+
+  constructor(totaldCount: number, page: number, size: number) {
+    this.totalCount = totaldCount;
+    this.page = page;
+    this.size = size;
+  }
 }
