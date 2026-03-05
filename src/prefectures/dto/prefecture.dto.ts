@@ -1,5 +1,6 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture, PrefectureStatus } from '../prefectures.model';
 
 /**
@@ -143,7 +144,7 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
 /**
  * ページネーション情報DTO(metaデータ)
  */
-export class PaginationMetaDto {
+export class PrefecturePaginationMetaDto {
   // 総件数
   totalCount: number;
   // ページ
@@ -155,5 +156,23 @@ export class PaginationMetaDto {
     this.totalCount = totaldCount;
     this.page = page;
     this.size = size;
+  }
+}
+
+export class PaginatedPrefectureResponseDto implements PaginatedResult<PrefectureResponseDto> {
+  // @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント
+  @Type(() => PrefectureResponseDto)
+  data: PrefectureResponseDto[];
+
+  // @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント
+  @Type(() => PrefecturePaginationMetaDto)
+  meta: PrefecturePaginationMetaDto;
+
+  constructor(
+    data: PrefectureResponseDto[],
+    meta: PrefecturePaginationMetaDto,
+  ) {
+    this.data = data;
+    this.meta = meta;
   }
 }

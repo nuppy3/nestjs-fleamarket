@@ -1,5 +1,12 @@
 /**
  * ページネーションされた情報
+ *
+ * interfaceはimplementsしたサブクラスで再定義が必須なので、meta:{}の中身
+ * (例: totalCount、page、size)をinterface内で定義する意味はないと思っていたが
+ * swaggerなどのOpenAPIの「ドキュメント性」や、このオブジェクトには最低こう言った項目があるよ
+ * という観点での型安全生を担保する意味で、meta:{}にするのではなく中身を定義することに
+ * 意味はあるようだ。
+ * →具体的に書くのがベスト というのがNestJS/TypeScript実務の主流意見です。
  */
 export interface PaginatedResult<T> {
   data: T[];
