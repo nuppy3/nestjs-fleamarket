@@ -15,6 +15,7 @@ import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
 import {
   CreatePrefectureDto,
+  PaginatedPrefectureResponseDto,
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
@@ -29,19 +30,31 @@ export class PrefecturesController {
    * @returns 都道府県情報
    */
   @Get()
-  async findAll(): Promise<PrefectureResponseDto[]> {
+  async findAll(): Promise<PaginatedPrefectureResponseDto> {
     // Prefecture情報[]取得
     const domains = await this.prefecturesService.findAll();
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
-    return instanceToPlain(
+    const plainPrefecture = instanceToPlain(
       plainToInstance(PrefectureResponseDto, domains, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
     ) as PrefectureResponseDto[];
+
+    // ページ全体のDTO(plain object): {data/meta} を作成
+    const responsDto: PaginatedPrefectureResponseDto = {
+      data: plainPrefecture,
+      meta: {
+        totalCount: 10,
+        page: 1,
+        size: 20,
+      },
+    };
+
+    return responsDto;
   }
 
   /**
