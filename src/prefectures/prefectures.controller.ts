@@ -31,13 +31,13 @@ export class PrefecturesController {
    */
   @Get()
   async findAll(): Promise<PaginatedPrefectureResponseDto> {
-    // Prefecture情報[]取得
-    const domains = await this.prefecturesService.findAll();
+    // Prefecture情報[]取得(ページネーションされたPrefecture情報)
+    const paginated = await this.prefecturesService.findAll();
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
     const plainPrefecture = instanceToPlain(
-      plainToInstance(PrefectureResponseDto, domains, {
+      plainToInstance(PrefectureResponseDto, paginated.data, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
@@ -48,9 +48,9 @@ export class PrefecturesController {
     const responsDto: PaginatedPrefectureResponseDto = {
       data: plainPrefecture,
       meta: {
-        totalCount: 10,
-        page: 1,
-        size: 20,
+        totalCount: paginated.meta.totalCount,
+        page: paginated.meta.page,
+        size: paginated.meta.size,
       },
     };
 

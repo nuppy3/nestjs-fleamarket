@@ -159,6 +159,26 @@ export class PrefecturePaginationMetaDto {
   }
 }
 
+/**
+ * ページ化されたStoreレスポンスDTO
+ * ページ全体を表すラッパーDTO：data/metaでStoreDTOとMetaDTOを持つ
+ *
+ * 補足memo: インターフェース(PaginatedResult)をimplementsできるのはclassだけ。
+ *          従って、PaginatedPrefectureResponseDtoをtypeで定義してPaginatedResultを
+ *          implementsすることはできない。(PaginatedResultをtypeで宣言するしかない)
+ *
+ * @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント。
+ *        ネストしたオブジェクトの変換に必須。
+ *        ネストしたDTO（data が StoreResponseDto[] の場合など）で変換を正しくしたいとき。
+ *
+ * なぜ必要か？
+ * plainToInstance や ValidationPipe（transform: true時）が動くときに、ネスト部分を
+ * 正しくクラスに変換するため
+ * 例：{ data: [{ id: "1", name: "店A" }, ...] } → data[0] が
+ * StoreResponseDto インスタンスになる
+ * これがないと、getter（statusLabel, holidaysLabel）が呼ばれなかったり、ネストした
+ * バリデーションが効かなかったりする
+ */
 export class PaginatedPrefectureResponseDto implements PaginatedResult<PrefectureResponseDto> {
   // @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント
   @Type(() => PrefectureResponseDto)

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
@@ -16,14 +17,14 @@ export class PrefecturesService {
    * Prefecture配列を返却します。(昇順)
    * @returns Prefecture配列
    */
-  async findAll(): Promise<(Prefecture & { id: string })[]> {
+  async findAll(): Promise<PaginatedResult<Prefecture & { id: string }>> {
     // prisma経由でPrefecture情報配列取得
-    const prefectures = await this.prismaService.prefecture.findMany({
+    const prismaPrefectures = await this.prismaService.prefecture.findMany({
       orderBy: { code: 'asc' },
     });
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
-    const domains: (Prefecture & { id: string })[] = prefectures.map(
+    const domains: (Prefecture & { id: string })[] = prismaPrefectures.map(
       (prefecture) =>
         ({
           // ...prefecture,
@@ -42,7 +43,17 @@ export class PrefecturesService {
         }) satisfies Prefecture & { id: string },
     );
 
-    return domains;
+    // 返却オブジェクト: ページネーションされたPrefectureドメイン情報
+    const Paginated: PaginatedResult<Prefecture & { id: string }> = {
+      data: domains,
+      meta: {
+        totalCount: 10,
+        page: 1,
+        size: 20,
+      },
+    };
+
+    return Paginated;
   }
 
   /**
