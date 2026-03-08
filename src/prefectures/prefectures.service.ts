@@ -43,11 +43,14 @@ export class PrefecturesService {
         }) satisfies Prefecture & { id: string },
     );
 
+    // count(): prefectureの総件数
+    const count = await this.prismaService.prefecture.count();
+
     // 返却オブジェクト: ページネーションされたPrefectureドメイン情報
     const Paginated: PaginatedResult<Prefecture & { id: string }> = {
       data: domains,
       meta: {
-        totalCount: 10,
+        totalCount: count,
         page: 1,
         size: 20,
       },
