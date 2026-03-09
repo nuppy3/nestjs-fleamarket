@@ -24,9 +24,9 @@ export class PrefecturesService {
     // ・page、sizeのデフォルト値設定ロジック
 
     // size
-    const size = 5;
+    const size = 20;
     // page
-    const page = 3;
+    const page = 1;
     // skip = offset(最初のXX件を飛ばす)
     const skip = (page - 1) * size;
 
