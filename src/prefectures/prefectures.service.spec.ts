@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 // import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 // import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -14,6 +15,7 @@ const mockPrismaSercie = {
     findMany: jest.fn(),
     create: jest.fn(),
     findUnique: jest.fn(),
+    count: jest.fn(),
   },
 };
 
@@ -22,7 +24,7 @@ describe('□□□ Prefecture Test □□□', () => {
   let prefectureService: PrefecturesService;
   let prismaService: PrismaService;
   let prismaMockPrefectures: PrismaPrefecture[];
-  let expectedPrefectures: (Prefecture & { id: string })[];
+  let expectedPrefectures: PaginatedResult<Prefecture & { id: string }>;
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -62,11 +64,16 @@ describe('□□□ Prefecture Test □□□', () => {
   describe('findAll', () => {
     it('正常系: Prefecture配列、全項目(prefectureドメイン配列)を返却する', async () => {
       // prisma mock data 作成
+      // findMany
       jest
         .spyOn(prismaService.prefecture, 'findMany')
         .mockResolvedValue(prismaMockPrefectures);
+      // count
+      jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(6);
+
       // テスト対象service呼び出し
       const result = await prefectureService.findAll();
+
       // 検証
       expect(result).toEqual(expectedPrefectures);
     });
@@ -81,91 +88,168 @@ describe('□□□ Prefecture Test □□□', () => {
             regionId: null,
           }) satisfies PrismaPrefecture,
       );
+      // findMany
       jest
         .spyOn(prismaService.prefecture, 'findMany')
         .mockResolvedValue(prismaMockData);
+      // count
+      jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(6);
 
       // テスト対象service呼び出し
       const result = await prefectureService.findAll();
 
       // 検証 : 任意項目にundefinedがセットされていること
-      expect(result).toEqual([
-        {
-          id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '北海道',
-          code: '01',
-          kanaName: 'ホッカイドウ',
-          status: 'published',
-          kanaEn: 'hokkaido',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
+      expect(result).toEqual({
+        data: [
+          {
+            id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '北海道',
+            code: '01',
+            kanaName: 'ホッカイドウ',
+            status: 'published',
+            kanaEn: 'hokkaido',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+          {
+            id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '青森',
+            code: '02',
+            kanaName: 'アオモリ',
+            status: 'published',
+            kanaEn: 'aomori',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+          {
+            id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '秋田',
+            code: '03',
+            kanaName: 'アキタ',
+            status: 'published',
+            kanaEn: 'akita',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+          {
+            id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '岩手',
+            code: '04',
+            kanaName: 'イワテ',
+            status: 'published',
+            kanaEn: 'iwate',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+          {
+            id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '山形',
+            code: '05',
+            kanaName: 'ヤマガタ',
+            status: 'published',
+            kanaEn: 'yamagata',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+          {
+            id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+            name: '東京都',
+            code: '13',
+            kanaName: 'トウキョウト',
+            status: 'published',
+            kanaEn: 'tokyo-to',
+            createdAt: new Date('2025-04-05T10:00:00.000Z'),
+            updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+            regionId: undefined,
+          },
+        ],
+        meta: {
+          totalCount: 6,
+          page: 1,
+          size: 20,
         },
-        {
-          id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '青森',
-          code: '02',
-          kanaName: 'アオモリ',
-          status: 'published',
-          kanaEn: 'aomori',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
-        },
-        {
-          id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '秋田',
-          code: '03',
-          kanaName: 'アキタ',
-          status: 'published',
-          kanaEn: 'akita',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
-        },
-        {
-          id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '岩手',
-          code: '04',
-          kanaName: 'イワテ',
-          status: 'published',
-          kanaEn: 'iwate',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
-        },
-        {
-          id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '山形',
-          code: '05',
-          kanaName: 'ヤマガタ',
-          status: 'published',
-          kanaEn: 'yamagata',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
-        },
-        {
-          id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
-          name: '東京都',
-          code: '13',
-          kanaName: 'トウキョウト',
-          status: 'published',
-          kanaEn: 'tokyo-to',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-          regionId: undefined,
-        },
-      ]);
+      });
     });
 
     it('正常系: データが0件の場合は空配列を返却する', async () => {
       // prisma mock data 作成(Prismaは０件の場合、空配列を返却する仕様)
+      // findMany
       jest.spyOn(prismaService.prefecture, 'findMany').mockResolvedValue([]);
+      // count
+      jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(0);
+
       // test 対象 service 呼び出し
       const result = await prefectureService.findAll();
       // 検証
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: {
+          totalCount: 0,
+          page: 1,
+          size: 20,
+        },
+      });
+    });
+
+    // ⭐️当該異常系テストはどんなErrorでテストしてもいい。（元のエラーをそのまま伝搬するだけなので）
+    // 今回は、勉強のため、 PrismaClientKnownRequestErrorで厳密なDB接続エラーと
+    // 適当なエラーでテストしてみた。実際のテストでは、どちらか一方を実施すれば問題ない。
+    it('異常系①: その他エラーのテスト：元のエラーをそのままスローする', async () => {
+      // ---------------------
+      // DB接続エラー:PrismaClientKnownRequestError
+      // ---------------------
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockRejectedValue(connectionError);
+
+      // 検証:
+      // prefecture serviceがコールされるとmock ErrorがThrowされるので、期待値のError()と
+      // 一致するか。
+      // findAllWithStoreCountでは、Errorが投げられているか？、メッセージの内容が正しいか？
+      // の2回expect()をしているが、以下のように一回の方が見やすいし楽だよね。
+      await expect(prefectureService.findAll()).rejects.toThrow(
+        new PrismaClientKnownRequestError("Can't reach database server", {
+          code: 'P1001',
+          clientVersion: '5.0.0',
+        }),
+      );
+
+      // 上記のtoThrow()でのエラーチェックだと緩いらしい。エラーが投げられ、メッセージが正しいかくらい。
+      // しかも、PrismaClientKnownRequestError以外を期待値にセットしてもUT不正にしてくれない。。
+      // ⭐️より厳密にチェックするには以下のようにtoMatchObject()を使う!
+      await expect(prefectureService.findAll()).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        code: 'P1001',
+        message: "Can't reach database server",
+        clientVersion: '5.0.0',
+      });
+
+      // ----------------------------------------------------------------------
+      // その他のエラー（適当なエラー): PrismaClientKnownRequestError以外のエラー
+      // ----------------------------------------------------------------------
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Other Error');
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockRejectedValue(mockGenericError);
+
+      // 検証:
+      // prefecture serviceがコールされるとmock ErrorがThrowされるので、期待値のError()と
+      // 一致するか。
+      // findAllWithStoreCountでは、Errorが投げられているか？、メッセージの内容が正しいか？
+      // の2回expect()をしているが、以下のように一回の方が見やすいし楽だよね。
+      await expect(prefectureService.findAll()).rejects.toThrow(
+        new Error('Other Error'),
+      );
     });
   });
 
@@ -430,7 +514,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // 検証
       expect(result).toEqual(
-        expectedPrefectures.find((prefecture) => prefecture.code === code),
+        expectedPrefectures.data.find((prefecture) => prefecture.code === code),
       );
 
       // 引数検証
@@ -602,7 +686,7 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
 }
 
 // 期待値作成
-function createExpectedData(): (Prefecture & { id: string })[] {
+function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
   const domains: (Prefecture & { id: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -671,7 +755,17 @@ function createExpectedData(): (Prefecture & { id: string })[] {
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
     },
   ];
-  return domains;
+
+  const expected: PaginatedResult<Prefecture & { id: string }> = {
+    data: domains,
+    meta: {
+      totalCount: 6,
+      page: 1,
+      size: 20,
+    },
+  };
+
+  return expected;
 }
 
 function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
