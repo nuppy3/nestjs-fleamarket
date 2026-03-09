@@ -18,10 +18,41 @@ export class PrefecturesService {
    * @returns Prefecture配列
    */
   async findAll(): Promise<PaginatedResult<Prefecture & { id: string }>> {
-    // prisma経由でPrefecture情報配列取得
-    const prismaPrefectures = await this.prismaService.prefecture.findMany({
-      orderBy: { code: 'asc' },
-    });
+    // TODO：
+    // ・page、sizeのリクエストパラメータ指定対応
+    // ・page、sizeのデフォルト値の.env定義
+    // ・page、sizeのデフォルト値設定ロジック
+
+    // size
+    const size = 5;
+    // page
+    const page = 3;
+    // skip = offset(最初のXX件を飛ばす)
+    const skip = (page - 1) * size;
+
+    // prisma経由でPrefecture情報配列と件数を取得
+    // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
+    // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
+    // 分割代入で一発取得するとシンプル
+    const [prismaPrefectures, count] = await Promise.all([
+      // findMany()
+      this.prismaService.prefecture.findMany({
+        orderBy: { code: 'asc' },
+        // limit
+        take: size,
+        // Offset (最初のXX件を飛ばす)
+        skip: skip,
+      }),
+      // count(): prefectureの総件数
+      this.prismaService.prefecture.count(),
+    ]);
+
+    // 以下をコメント：Promise.allでfindMany()とcount()の両方を非同期実行するため
+    // const prismaPrefectures = await this.prismaService.prefecture.findMany({
+    //   orderBy: { code: 'asc' },
+    // });
+    // const count = await this.prismaService.prefecture.count();
+
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Prefecture & { id: string })[] = prismaPrefectures.map(
@@ -43,16 +74,13 @@ export class PrefecturesService {
         }) satisfies Prefecture & { id: string },
     );
 
-    // count(): prefectureの総件数
-    const count = await this.prismaService.prefecture.count();
-
     // 返却オブジェクト: ページネーションされたPrefectureドメイン情報
     const paginated: PaginatedResult<Prefecture & { id: string }> = {
       data: domains,
       meta: {
         totalCount: count,
-        page: 1,
-        size: 20,
+        page: page,
+        size: size,
       },
     };
 
