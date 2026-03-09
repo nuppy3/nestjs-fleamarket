@@ -45,14 +45,23 @@ export class PrefecturesController {
     ) as PrefectureResponseDto[];
 
     // ページ全体のDTO(plain object): {data/meta} を作成
-    const responsDto: PaginatedPrefectureResponseDto = {
-      data: plainPrefecture,
-      meta: {
-        totalCount: paginated.meta.totalCount,
-        page: paginated.meta.page,
-        size: paginated.meta.size,
-      },
-    };
+
+    // 以下のようにコンストラクタ経由でセットしないやり方はベストではない。
+    // ↓new PaginatedPrefectureResponseDto()でコンストラクタ経由でDTOを生成するように修正
+    // const responsDto: PaginatedPrefectureResponseDto = {
+    //   data: plainPrefecture,
+    //   meta: {
+    //     totalCount: paginated.meta.totalCount,
+    //     page: paginated.meta.page,
+    //     size: paginated.meta.size,
+    //   },
+    // };
+
+    const responsDto = new PaginatedPrefectureResponseDto(plainPrefecture, {
+      totalCount: paginated.meta.totalCount,
+      page: paginated.meta.page,
+      size: paginated.meta.size,
+    });
 
     return responsDto;
   }

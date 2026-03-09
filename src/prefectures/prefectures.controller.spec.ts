@@ -2,10 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
+import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { RequestUser } from 'src/types/requestUser';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import {
   CreatePrefectureDto,
+  PaginatedPrefectureResponseDto,
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
 import { PrefecturesController } from './prefectures.controller';
@@ -24,9 +26,9 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   let prefecturesService: PrefecturesService; // Controllerから呼ばれるService
 
   // servic mock data(domain[])
-  let mockPrefectures: (Prefecture & { id: string })[];
+  let mockPrefectures: PaginatedResult<Prefecture & { id: string }>;
   // controller mock data(期待値:dto[])
-  let expectedPrefectureDtos: PrefectureResponseDto[];
+  let expectedPrefectureDtos: PaginatedPrefectureResponseDto;
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
@@ -72,22 +74,30 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // service mock data 作成
-      const domains: (Prefecture & { id: string })[] = mockPrefectures;
-      jest.spyOn(prefecturesService, 'findAll').mockResolvedValue(domains);
-
+      const paginatedDomain: PaginatedResult<Prefecture & { id: string }> =
+        mockPrefectures;
+      jest
+        .spyOn(prefecturesService, 'findAll')
+        .mockResolvedValue(paginatedDomain);
       // テスト対象Controller呼び出し
       const result = await prefecturesController.findAll();
-
       // 検証
       expect(result).toEqual(expectedPrefectureDtos);
     });
+
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
-      // mock data 作成(空配列)
-      jest.spyOn(prefecturesService, 'findAll').mockResolvedValue([]);
+      // mock data 作成(PaginatedResultのdataが[]空配列、metaのtotalCountが0)
+      jest.spyOn(prefecturesService, 'findAll').mockResolvedValue({
+        data: [],
+        meta: { totalCount: 0, page: 1, size: 20 },
+      });
       // test対象Controller呼び出し
       const result = await prefecturesController.findAll();
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: { totalCount: 0, page: 1, size: 20 },
+      });
     });
     //-------------------------------
     // カバレッジ100%対応：
@@ -116,9 +126,16 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
-      await expect(prefecturesController.findAll()).rejects.toThrow(
-        PrismaClientKnownRequestError,
-      );
+      // 厳密にErrorの内容を検証するため、toThew()→toMatchObject()に変更
+      // await expect(prefecturesController.findAll()).rejects.toThrow(
+      //   PrismaClientKnownRequestError,
+      // );
+      await expect(prefecturesController.findAll()).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        code: 'P1001',
+        message: "Can't reach database server",
+        clientVersion: '5.0.0',
+      });
     });
   });
 
@@ -256,7 +273,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const code = '13';
 
       // service mock data
-      const servieMockData = createSriviceMockData().find(
+      const servieMockData = createSriviceMockData().data.find(
         (prefecture) => prefecture.code === code,
       )!;
 
@@ -291,7 +308,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const code = '13';
 
       // service mock data : 任意項目をundefinedに書き換え
-      const servieMockData = createSriviceMockData().find(
+      const servieMockData = createSriviceMockData().data.find(
         (prefecture) => prefecture.code === code,
       )!;
       servieMockData.regionId = undefined;
@@ -423,7 +440,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
  * PrefectureServiceのMockデータを作成
  * @returns
  */
-function createSriviceMockData(): (Prefecture & { id: string })[] {
+function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
   const domains: (Prefecture & { id: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -487,7 +504,16 @@ function createSriviceMockData(): (Prefecture & { id: string })[] {
     },
   ];
 
-  return domains;
+  const expected = {
+    data: domains,
+    meta: {
+      totalCount: 6,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedResult<Prefecture & { id: string }>;
+
+  return expected;
 }
 
 /**
@@ -528,10 +554,10 @@ function createSriviceMockDataWithCoverage(): PrefectureWithCoverage[] {
 }
 
 /**
- * PrefectureResponseDto期待値作成
- * @returns PrefectureResponseDto(期待値)
+ * PaginatedPrefectureResponseDto期待値作成
+ * @returns PaginatedPrefectureResponseDto(期待値)
  */
-function createExpectedPrefectureDtos(): PrefectureResponseDto[] {
+function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
   const dtos: PrefectureResponseDto[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -589,7 +615,16 @@ function createExpectedPrefectureDtos(): PrefectureResponseDto[] {
     },
   ];
 
-  return dtos;
+  const expected = {
+    data: dtos,
+    meta: {
+      totalCount: 6,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedPrefectureResponseDto;
+
+  return expected;
 }
 
 /**
