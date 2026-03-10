@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PAGINATION } from 'src/common/constants/pagination.constants';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -15,7 +17,10 @@ import {
 
 @Injectable()
 export class PrefecturesService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
   /**
    * Prefecture配列を返却します。(昇順)
@@ -30,13 +35,15 @@ export class PrefecturesService {
     // Validationにてnumberじゃないよ！とエラーになる。のでserviceにnullが渡ることはない。
     filters: PrefectureFilter = {},
   ): Promise<PaginatedResult<Prefecture & { id: string }>> {
-    // TODO：
-    // ・page、sizeのリクエストパラメータ指定対応
-    // ・page、sizeのデフォルト値の.env定義
-    // ・page、sizeのデフォルト値設定ロジック
+    // ページネーション計算
+    // size: default: 20, 1〜2000の範囲内(マイナスはNG)
+    const defaultSize =
+      this.configService.get<number>('PREFECTURE_DEFAULT_PAGE_SIZE') ?? 20;
+    const size = Math.min(
+      PAGINATION.MAX_PAGE_SIZE,
+      Math.max(PAGINATION.MIN_PAGE_SIZE, filters.size ?? defaultSize),
+    );
 
-    // size
-    const size = 20;
     // page
     const page = 1;
     // skip = offset(最初のXX件を飛ばす)
