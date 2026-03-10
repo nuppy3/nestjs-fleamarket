@@ -1,7 +1,17 @@
 import { Expose, Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture, PrefectureStatus } from '../prefectures.model';
+import { PrefectureFilter } from './../prefectures.model';
 
 /**
  * CreatePrefectureDto
@@ -195,4 +205,31 @@ export class PaginatedPrefectureResponseDto implements PaginatedResult<Prefectur
     this.data = data;
     this.meta = meta;
   }
+}
+
+/**
+ * 都道府県情報検索フィルターDTO：リクエスト(クエリ)パラメータセット用
+ * リクエストパラメータのValidationを行う。
+ */
+export class FindAllPrefectureQueryDto implements PrefectureFilter {
+  @IsOptional()
+  @IsInt() // 整数のみ許容: 一方IsNumberは少数を許容してしまう
+  @Min(1) // 0以上
+  // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
+  @Max(2000)
+  // string → number 変換
+  // main.tsにてグローバルでValidationPipe({transform: true})としてtransformを有効化
+  // していれば、@IsNumber()がついていれば、個別でNumber変換(@Type()での型変換)は不要。
+  // であるが、main.tsはtransform: tureがなかったので、個別で@Typeにて変換。
+  // → 個別でやることが多いらしい。
+  @Type(() => Number)
+  size?: number;
+
+  @IsOptional()
+  @IsInt() // 整数のみ許容: 一方IsNumberは少数を許容してしまう
+  @Min(1) // 0以上
+  @Max(10000) // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
+  // string → number 変換
+  @Type(() => Number)
+  page?: number;
 }

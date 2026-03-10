@@ -42,7 +42,7 @@ export class StoresController {
     // @Query('prefectureCode') prefectureCode?: string,
     // @Query('status') status?: StoreStatus,
     // 上記のクエリパラメータをDTOに集約（DTOの場合@Query()の中のパラメータは省略可
-    // クエリパラメータ無しの場合、queryは{}からオブジェクトが渡される
+    // クエリパラメータ無しの場合、queryは{}空オブジェクトが渡される
     @Query() query: FindAllStoresQueryDto,
   ): Promise<PaginatedStoreResponseDto> {
     // 店舗情報取得

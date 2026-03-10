@@ -43,3 +43,11 @@ export const PrefectureStatus = {
 // type PageStatusとして型を定義している。
 export type PrefectureStatus =
   (typeof PrefectureStatus)[keyof typeof PrefectureStatus];
+
+export interface PrefectureFilter {
+  // 1ページあたりの件数
+  size?: number;
+
+  // ページ（ページネーション）
+  page?: number;
+}

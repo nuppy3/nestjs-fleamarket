@@ -370,7 +370,7 @@ export class FindAllStoresQueryDto implements StoreFilter {
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
   @Min(1) // 0以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
-  @Max(100)
+  @Max(2000)
   // string → number 変換
   @Type(() => Number)
   size?: number;
