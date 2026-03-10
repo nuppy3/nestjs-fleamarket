@@ -44,8 +44,14 @@ export class PrefecturesService {
       Math.max(PAGINATION.MIN_PAGE_SIZE, filters.size ?? defaultSize),
     );
 
-    // page
-    const page = 1;
+    // page: default:1 1〜10000の範囲(マイナスはNG)
+    const defaultPage =
+      this.configService.get<number>('PREFECTURE_DEFAULT_PAGE') ?? 1;
+    const page = Math.min(
+      PAGINATION.MAX_PAGE,
+      Math.max(1, filters.page ?? defaultPage),
+    );
+
     // skip = offset(最初のXX件を飛ばす)
     const skip = (page - 1) * size;
 

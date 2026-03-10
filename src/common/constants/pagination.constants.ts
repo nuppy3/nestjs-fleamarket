@@ -7,6 +7,8 @@ export const PAGINATION = {
   // のように動的に取得してセットできない。
   MAX_PAGE_SIZE: 2000,
   MIN_PAGE_SIZE: 1,
+  MAX_PAGE: 10000,
+  MIN_PAGE: 1,
 
   // DEFAULT_PAGE: 1,
 } as const; // メンバーをreadonlyに
