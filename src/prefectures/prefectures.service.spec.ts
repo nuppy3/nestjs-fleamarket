@@ -62,7 +62,7 @@ describe('□□□ Prefecture Test □□□', () => {
   // findAll()
   // ------------------------------
   describe('findAll', () => {
-    it('正常系: Prefecture配列、全項目(prefectureドメイン配列)を返却する', async () => {
+    it('正常系: Prefecture配列、全項目(prefectureドメイン配列)を返却する (filterなし)', async () => {
       // prisma mock data 作成
       // findMany
       jest
@@ -250,6 +250,69 @@ describe('□□□ Prefecture Test □□□', () => {
       await expect(prefectureService.findAll()).rejects.toThrow(
         new Error('Other Error'),
       );
+    });
+
+    describe('findAllの絞り込み(filter)テスト', () => {
+      it('正常系(1): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
+      it('正常系(2): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
+      it('正常系(3): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
+      it('正常系(4): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
+      it('正常系(5): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
+      /**
+       * ■ it.each（テーブル、データ駆動テスト）
+       * 境界値テストはテストパターンが似通っているので、it.each を使ってデータ駆動で実装し
+       * テストコードの冗長化を防止
+       *
+       *  it.each(table)(name, fn, timeout)
+       * ・it.each([])の[]内にデータ駆動のテストケースをケース分作成
+       * ・('$xxxx の場合', async () => {})にprismaのwhere句などの期待値を一つ作成
+       *
+       * プレースホルダーの使い方
+       * %s
+       *  文字列（String）
+       * %i
+       *  整数（Integer）
+       * %d
+       *  数値（Decimal）
+       * %p
+       *  任意の値（pretty-print）
+       * %#
+       *  テスト番号（0から）
+       */
+      describe('正常系(8) sizeパラメータの境界値テスト', () => {
+        it.each([
+          { name: 'xxxの境界値(下)', filters: { size: undefined } },
+          { name: 'xxxの境界値(下)', filters: { size: undefined } },
+          { name: 'xxxの境界値(下)', filters: { size: undefined } },
+        ])('$name の場合', async () => {});
+      });
+      /**
+       * 境界値テストはテストパターンが似通っているので、it.each を使ってデータ駆動で実装し
+       * テストコードの冗長化を防止
+       *
+       *  it.each(table)(name, fn, timeout)
+       * ・it.each([])の[]内にデータ駆動のテストケースをケース分作成
+       * ・('$xxxx の場合', async () => {})にprismaのwhere句などの期待値を一つ作成
+       *
+       * プレースホルダーの使い方
+       * %s
+       *  文字列（String）
+       * %i
+       *  整数（Integer）
+       * %d
+       *  数値（Decimal）
+       * %p
+       *  任意の値（pretty-print）
+       * %#
+       *  テスト番号（0から）
+       */
+      describe('正常系(n) sizeパラメータの境界値テスト', () => {
+        it.each([
+          { name: 'xxxの境界値', filters: { size: undefined } },
+          { name: 'xxxの境界値', filters: { size: undefined } },
+          { name: 'xxxの境界値', filters: { size: undefined } },
+        ])('$name の場合', async () => {});
+      });
     });
   });
 

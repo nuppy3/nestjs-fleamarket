@@ -449,6 +449,27 @@ describe('StoresService Test', () => {
         });
       });
 
+      /**
+       * ■ it.each（テーブル、データ駆動テスト）
+       * 境界値テストはテストパターンが似通っているので、it.each を使ってデータ駆動で実装し
+       * テストコードの冗長化を防止
+       *
+       *  it.each(table)(name, fn, timeout)
+       * ・it.each([])の[]内にデータ駆動のテストケースをケース分作成
+       * ・('$xxxx の場合', async () => {})にprismaのwhere句などの期待値を一つ作成
+       *
+       * プレースホルダーの使い方
+       * %s
+       *  文字列（String）
+       * %i
+       *  整数（Integer）
+       * %d
+       *  数値（Decimal）
+       * %p
+       *  任意の値（pretty-print）
+       * %#
+       *  テスト番号（0から）
+       */
       describe('正常系(8) sizeパラメータの境界値テスト', () => {
         it.each([
           {
