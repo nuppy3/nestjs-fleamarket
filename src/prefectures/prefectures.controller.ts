@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
 import {
   CreatePrefectureDto,
+  FindAllPrefectureQueryDto,
   PaginatedPrefectureResponseDto,
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
@@ -30,9 +32,14 @@ export class PrefecturesController {
    * @returns 都道府県情報
    */
   @Get()
-  async findAll(): Promise<PaginatedPrefectureResponseDto> {
+  async findAll(
+    // クエリパラメータをDTOにて受け取り: クエリパラメータ無しの場合、queryは{}空オブジェクトが渡される
+    @Query() query: FindAllPrefectureQueryDto,
+  ): Promise<PaginatedPrefectureResponseDto> {
+    // 検索フィルター取得: validation(dto)で入力チェック済みなので、そのままセット。
+    const filters = query;
     // Prefecture情報[]取得(ページネーションされたPrefecture情報)
-    const paginated = await this.prefecturesService.findAll();
+    const paginated = await this.prefecturesService.findAll(filters);
     // domain → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!

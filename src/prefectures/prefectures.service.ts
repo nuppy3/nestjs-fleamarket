@@ -7,7 +7,11 @@ import { PaginatedResult } from './../common/interfaces/paginated-result.interfa
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
-import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
+import {
+  Prefecture,
+  PrefectureFilter,
+  PrefectureWithCoverage,
+} from './prefectures.model';
 
 @Injectable()
 export class PrefecturesService {
@@ -17,7 +21,15 @@ export class PrefecturesService {
    * Prefecture配列を返却します。(昇順)
    * @returns Prefecture配列
    */
-  async findAll(): Promise<PaginatedResult<Prefecture & { id: string }>> {
+  async findAll(
+    // filtersが存在しない(filterts === undefinedのとき)場合は{}で初期化
+    // memo: filtersがnullの際は{}で初期化されない。が、nullを渡そうとしても、プログラム上は
+    // 「型'null'の引数を型’PrefectureFIlter | undefined'のパラメーターに割り当てることはできません。」
+    // とtsLint？で警告が出る。
+    // また、リクエストパラメーターで?name=nullというパラメータがリクエストされたとしてもControllerの
+    // Validationにてnumberじゃないよ！とエラーになる。のでserviceにnullが渡ることはない。
+    filters: PrefectureFilter = {},
+  ): Promise<PaginatedResult<Prefecture & { id: string }>> {
     // TODO：
     // ・page、sizeのリクエストパラメータ指定対応
     // ・page、sizeのデフォルト値の.env定義

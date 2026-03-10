@@ -44,7 +44,8 @@ export class StoresService {
     // 「型 'null' の引数を型 'StoreFilter | undefined' のパラメーターに割り当てることはできません。」
     // で、tslint？が弾いてくれる。
     // また、リクエストパラメータで?name=nullというパラメータがリクエストされたとしても、
-    // controllerはname='null'という文字列で受け取るためserviceにnullが渡ってくることはない。
+    // controllerはname='null'という文字列で受け取るためValidationにてnumberじゃないよと
+    // エラーになるため、serviceにnullが渡ってくることはない。
     filters: StoreFilter = {},
   ): Promise<PaginatedResult<Store & { id: string }>> {
     console.log('*** service ***');
