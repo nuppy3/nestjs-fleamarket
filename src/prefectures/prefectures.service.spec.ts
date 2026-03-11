@@ -1,13 +1,19 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 // import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 // import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
+import { PAGINATION } from '../common/constants/pagination.constants';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
-import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
+import {
+  Prefecture,
+  PrefectureFilter,
+  PrefectureWithCoverage,
+} from './prefectures.model';
 import { PrefecturesService } from './prefectures.service';
 
 const mockPrismaSercie = {
@@ -23,6 +29,13 @@ describe('□□□ Prefecture Test □□□', () => {
   // DIモジュール
   let prefectureService: PrefecturesService;
   let prismaService: PrismaService;
+  // 実際のprefectures.service.tsでは、ConfigServiceは個別(prefectures.module.ts)で
+  // importsしていない。app.module.tsにてグローバルでDI定義している。が、UTで必要なので。
+  // serviceのテストを実施する上でconfigServiceのDIは必須だが、使用しないので以下の警告スキップ
+  // コメントを入れている
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let configService: ConfigService;
+
   let prismaMockPrefectures: PrismaPrefecture[];
   let expectedPrefectures: PaginatedResult<Prefecture & { id: string }>;
 
@@ -39,12 +52,14 @@ describe('□□□ Prefecture Test □□□', () => {
     const module = await Test.createTestingModule({
       providers: [
         PrefecturesService,
+        ConfigService,
         { provide: PrismaService, useValue: mockPrismaSercie },
       ],
     }).compile();
 
     prefectureService = module.get<PrefecturesService>(PrefecturesService);
     prismaService = module.get<PrismaService>(PrismaService);
+    configService = module.get<ConfigService>(ConfigService);
 
     // mock data
     prismaMockPrefectures = createPrismaMockData();
@@ -55,7 +70,14 @@ describe('□□□ Prefecture Test □□□', () => {
   // 前処理: 書くテストケースの前に毎回実行
   beforeEach(() => {
     // console.log('beforeEach: モックをリセット');
-    jest.clearAllMocks();
+    // jest.clearAllMocks();
+
+    // 実装（mockRejectedValueなど）もリセットするため、clearAllMocks()→resetAllMocks()
+    // に修正
+    // 背景：直前のテストで「常にエラーを投げる（mockRejectedValue）」という設定が
+    //      prismaService.findManyに残ったままになっていることがあり、次のテストでもエラーが
+    //      発生したので。
+    jest.resetAllMocks();
   });
 
   // ------------------------------
@@ -76,6 +98,24 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // 検証
       expect(result).toEqual(expectedPrefectures);
+    });
+
+    it('Promise.all が正しく並列で呼ばれていることを確認', async () => {
+      // mock data なんでもいい
+      jest
+        .spyOn(prismaService.prefecture, 'findMany')
+        .mockResolvedValue(prismaMockPrefectures);
+      jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(5);
+
+      await prefectureService.findAll();
+
+      // Promise.all が呼ばれた証拠として、両方が呼ばれていることを確認
+      expect(
+        jest.spyOn(prismaService.prefecture, 'findMany'),
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        jest.spyOn(prismaService.prefecture, 'count'),
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('正常系: Prefecture配列を返却する(任意項目はnull→undefinedに変換)', async () => {
@@ -252,6 +292,30 @@ describe('□□□ Prefecture Test □□□', () => {
       );
     });
 
+    /**
+     * findAllの絞り込み(filter)テストは、toEqual()の検証ではなく、toHaveBeenCalledWithを
+     * 用いて、Prismaが期待通りの引数で呼び出されているかをメインに検証する。
+     *
+     * Prismaはmockしているので、返却値はmockでセットされるため、レスポンス(Prisma/service)を
+     * toEqual()にて検証しても意味がない。
+     *
+     * ＜テスト観点＞
+     * serviceクラスの引数(filters)によって、どのようにPrismaのwhere句などの条件が
+     * 変更されるか期待値との検証を行う。
+     * 従って、mockResolvedValue()でセットするPrismaのmock dataは、何でもいい。
+     *
+     * toHaveBeenCalledWith()に渡された引数と期待値が合うか。
+     *  重要ポイント：PrismaService.store.findMany()はMock化するが、findMany()は「誰が、
+     *  どんな引数で呼んだか」を記録してくれているので、モックでも「実際に渡された引数」で「実際の
+     *  PrismaService.findManyの引数(型、値)」で渡されているかチェックするという強力なツール!!
+     *
+     *  例：  expect(prismaService.store, 'findMany').toHaveBeenCalledWith({
+     *         where: {
+     *          status: StoreStatus.PUBLISHED,
+     *          // 他のプロパティが undefined であることも含めてチェックされる ← 何気にこれ重要!!
+     *         },
+     *       });
+     */
     describe('findAllの絞り込み(filter)テスト', () => {
       it('正常系(1): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
       it('正常系(2): xxxxを指定した場合、Prismaのwhere句に正しく反映されること', async () => {});
@@ -280,12 +344,94 @@ describe('□□□ Prefecture Test □□□', () => {
        *  テスト番号（0から）
        */
       describe('正常系(8) sizeパラメータの境界値テスト', () => {
+        // memo: Jest の it.each([...]) は、beforeEach が実行されるよりも前
+        // （テストスイートの組み立てフェーズ）に、配列の中身を評価しようとするので、it.each内で
+        // configServiceなどのDIされたモジュールを呼び出すとundefinedになる。。
+        // なので、期待値に.envなどのファイル読みこみはやめて、下手書きが対策となる。
+        //
         it.each([
-          { name: 'xxxの境界値(下)', filters: { size: undefined } },
-          { name: 'xxxの境界値(下)', filters: { size: undefined } },
-          { name: 'xxxの境界値(下)', filters: { size: undefined } },
-        ])('$name の場合', async () => {});
+          {
+            testCase: 'size未指定',
+            note: 'デフォルト値がセットされること',
+            filters: { size: undefined } satisfies PrefectureFilter,
+            // expectedParam: configService.get<number>(
+            //   'PREFECTURE_DEFAULT_PAGE_SIZE',
+            // ),
+            expectedParam: 20,
+          },
+          {
+            testCase: 'sizeがマイナス値(sizeの境界値(下)',
+            note: 'sizeにMIN_PAGE_SIZEがセットされること',
+            filters: { size: -1 },
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'sizeが0',
+            note: 'sizeにMIN_PAGE_SIZEがセットされること',
+            filters: { size: -1 },
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'sizeが1(下限値)',
+            note: 'sizeにMIN_PAGE_SIZEがセットされること',
+            filters: { size: -1 },
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'sizeが正常値①',
+            filters: { size: 19 },
+            expectedParam: 19,
+          },
+          {
+            testCase: 'sizeが正常値②',
+            filters: { size: 21 },
+            expectedParam: 21,
+          },
+          {
+            testCase: 'sizeが20(=デフォルト値)',
+            note: 'sizeにデフォルト値がセットされること',
+            filters: { size: 20 },
+            expectedParam: 20,
+          },
+          {
+            testCase: 'sizeの上限値',
+            filters: { size: 2000 },
+            expectedParam: PAGINATION.MAX_PAGE_SIZE,
+          },
+          {
+            testCase: 'sizeの上限値超過',
+            note: 'sizeの上限値がセットされること',
+            filters: { size: 2001 },
+            expectedParam: PAGINATION.MAX_PAGE_SIZE,
+          },
+        ])(
+          '$testCase の場合、sizeに正しく値が反映されること ($note)',
+          async ({ filters, expectedParam }) => {
+            // mock data (なんでもいい)
+            jest
+              .spyOn(prismaService.prefecture, 'findMany')
+              .mockResolvedValue(prismaMockPrefectures);
+
+            jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(5);
+
+            // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+            // 引数: sizeを指定
+            await prefectureService.findAll(filters);
+
+            // 検証： 期待通り引数が渡されているか
+            expect(
+              jest.spyOn(prismaService.prefecture, 'findMany'),
+            ).toHaveBeenCalledWith({
+              orderBy: { code: 'asc' },
+              // limit
+              take: expectedParam,
+              // Offset (最初のXX件を飛ばす)
+              skip: 0,
+            });
+          },
+        );
       });
+
       /**
        * 境界値テストはテストパターンが似通っているので、it.each を使ってデータ駆動で実装し
        * テストコードの冗長化を防止
@@ -308,9 +454,9 @@ describe('□□□ Prefecture Test □□□', () => {
        */
       describe('正常系(n) sizeパラメータの境界値テスト', () => {
         it.each([
-          { name: 'xxxの境界値', filters: { size: undefined } },
-          { name: 'xxxの境界値', filters: { size: undefined } },
-          { name: 'xxxの境界値', filters: { size: undefined } },
+          { name: '下限値', filters: { size: undefined }, expectedData: 20 },
+          { name: '上限値', filters: { size: undefined }, expectedData: 20 },
+          { name: 'xxxx', filters: { size: undefined }, expectedData: 20 },
         ])('$name の場合', async () => {});
       });
     });

@@ -9,8 +9,8 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { PAGINATION } from 'src/common/constants/pagination.constants';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
+import { PAGINATION } from '../../common/constants/pagination.constants';
 import { Prefecture, PrefectureStatus } from '../prefectures.model';
 import { PrefectureFilter } from './../prefectures.model';
 
