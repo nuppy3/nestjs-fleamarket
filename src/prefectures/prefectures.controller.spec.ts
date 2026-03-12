@@ -104,6 +104,41 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         meta: { totalCount: 0, page: 1, size: 20 },
       });
     });
+
+    //--------------------------------------------------------------------------
+    // filterテスト：toEquals()の期待値チエックではなく、toHaveBeenCalldWith()での
+    // 引数チェック
+    //--------------------------------------------------------------------------
+    describe('findAllの絞り込み(filter)テスト', () => {
+      it('正常系(8): sizeを指定した場合、serviceを期待意通りの引数で呼び出しているか', async () => {
+        // 引数
+        const query: FindAllPrefectureQueryDto = {
+          size: 20,
+        };
+        // controller呼び出し（toEquals()での検証なし）
+        await prefecturesController.findAll(query);
+
+        // 検証: 引数が正しいか（特に編集処理をしていないので、そのままqueryで検証）
+        expect(jest.spyOn(prefecturesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+
+      it('正常系(9): pageを指定した場合、serviceを期待意通りの引数で呼び出しているか', async () => {
+        // 引数
+        const query: FindAllPrefectureQueryDto = {
+          page: 1,
+        };
+        // controller呼び出し（toEquals()での検証なし）
+        await prefecturesController.findAll(query);
+
+        // 検証: 引数が正しいか（特に編集処理をしていないので、そのままqueryで検証）
+        expect(jest.spyOn(prefecturesService, 'findAll')).toHaveBeenCalledWith(
+          query,
+        );
+      });
+    });
+
     //-------------------------------
     // カバレッジ100%対応：
     // async findAll(): Promise<PrefectureResponseDto[]> {
