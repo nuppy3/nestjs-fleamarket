@@ -7,6 +7,7 @@ import { RequestUser } from 'src/types/requestUser';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import {
   CreatePrefectureDto,
+  FindAllPrefectureQueryDto,
   PaginatedPrefectureResponseDto,
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
@@ -72,7 +73,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   // findAll()
   //--------------------------------
   describe('findAll', () => {
-    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている - リクエストパラメータなし', async () => {
       // service mock data 作成
       const paginatedDomain: PaginatedResult<Prefecture & { id: string }> =
         mockPrefectures;
@@ -80,19 +81,23 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         .spyOn(prefecturesService, 'findAll')
         .mockResolvedValue(paginatedDomain);
       // テスト対象Controller呼び出し
-      const result = await prefecturesController.findAll();
+      // 引数
+      const query: FindAllPrefectureQueryDto = {};
+      const result = await prefecturesController.findAll(query);
       // 検証
       expect(result).toEqual(expectedPrefectureDtos);
     });
 
-    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+    it('正常系：取得データが０件、dto[]の空配列が返却される - リクエストパラメータなし - ', async () => {
       // mock data 作成(PaginatedResultのdataが[]空配列、metaのtotalCountが0)
       jest.spyOn(prefecturesService, 'findAll').mockResolvedValue({
         data: [],
         meta: { totalCount: 0, page: 1, size: 20 },
       });
+      // 引数
+      const query: FindAllPrefectureQueryDto = {};
       // test対象Controller呼び出し
-      const result = await prefecturesController.findAll();
+      const result = await prefecturesController.findAll(query);
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
       expect(result).toEqual({
         data: [],

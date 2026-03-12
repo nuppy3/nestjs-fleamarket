@@ -49,7 +49,7 @@ export class PrefecturesService {
       this.configService.get<number>('PREFECTURE_DEFAULT_PAGE') ?? 1;
     const page = Math.min(
       PAGINATION.MAX_PAGE,
-      Math.max(1, filters.page ?? defaultPage),
+      Math.max(PAGINATION.MIN_PAGE, filters.page ?? defaultPage),
     );
 
     // skip = offset(最初のXX件を飛ばす)

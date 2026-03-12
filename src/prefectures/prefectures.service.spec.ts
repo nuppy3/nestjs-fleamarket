@@ -360,7 +360,7 @@ describe('□□□ Prefecture Test □□□', () => {
             expectedParam: 20,
           },
           {
-            testCase: 'sizeがマイナス値(sizeの境界値(下)',
+            testCase: 'sizeがマイナス値',
             note: 'sizeにMIN_PAGE_SIZEがセットされること',
             filters: { size: -1 },
             expectedParam: PAGINATION.MIN_PAGE_SIZE,
@@ -368,13 +368,13 @@ describe('□□□ Prefecture Test □□□', () => {
           {
             testCase: 'sizeが0',
             note: 'sizeにMIN_PAGE_SIZEがセットされること',
-            filters: { size: -1 },
+            filters: { size: 0 },
             expectedParam: PAGINATION.MIN_PAGE_SIZE,
           },
           {
             testCase: 'sizeが1(下限値)',
             note: 'sizeにMIN_PAGE_SIZEがセットされること',
-            filters: { size: -1 },
+            filters: { size: 1 },
             expectedParam: PAGINATION.MIN_PAGE_SIZE,
           },
           {
@@ -427,6 +427,87 @@ describe('□□□ Prefecture Test □□□', () => {
               take: expectedParam,
               // Offset (最初のXX件を飛ばす)
               skip: 0,
+            });
+          },
+        );
+      });
+
+      describe('正常系(9) pageパラメータの境界値テスト: skipの算出ロジックテスト', () => {
+        it.each([
+          {
+            testCase: 'page未指定',
+            note: 'skipに0がセットされること',
+            filters: { page: undefined } satisfies PrefectureFilter,
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageがマイナス値',
+            note: 'pageに0がセットされること',
+            filters: { page: -1 },
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが0',
+            note: 'pageに0がセットされること',
+            filters: { page: 0 },
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが1(下限値)',
+            note: 'pageに0がセットされること',
+            filters: { page: 1 },
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが正常値①',
+            filters: { page: 2 },
+            expectedParam: 20,
+          },
+          {
+            testCase: 'pageが正常値②',
+            filters: { page: 100 },
+            expectedParam: 1980,
+          },
+          {
+            testCase: 'pageが20(=デフォルト値)',
+            note: 'pageにデフォルト値がセットされること',
+            filters: { page: 1 },
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageの上限値',
+            filters: { page: 10000 },
+            expectedParam: 199980,
+          },
+          {
+            testCase: 'pageの上限値超過',
+            note: 'pageの上限値がセットされること',
+            filters: { page: 10001 },
+            expectedParam: 199980,
+          },
+        ])(
+          '$testCase の場合、skipに正しく値が反映されること ($note)',
+          async ({ filters, expectedParam }) => {
+            // mock data (なんでもいい)
+            jest
+              .spyOn(prismaService.prefecture, 'findMany')
+              .mockResolvedValue(prismaMockPrefectures);
+
+            jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(20);
+
+            // test対象呼び出し：結果は取得しない(「const result = 」は不要)
+            // 引数: sizeを指定
+            await prefectureService.findAll(filters);
+
+            // 検証： 期待通り引数が渡されているか
+            expect(
+              jest.spyOn(prismaService.prefecture, 'findMany'),
+            ).toHaveBeenCalledWith({
+              orderBy: { code: 'asc' },
+              // limit
+              take: 20,
+              // Offset (最初のXX件を飛ばす)
+              skip: expectedParam,
             });
           },
         );
