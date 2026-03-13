@@ -7,7 +7,7 @@ import {
   IsString,
   Max,
   MaxLength,
-  Min,
+  Min
 } from 'class-validator';
 import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { PAGINATION } from '../../common/constants/pagination.constants';
@@ -56,6 +56,11 @@ export class CreatePrefectureDto {
   @IsNotEmpty()
   @MaxLength(40)
   kanaEn!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2)
+  prefectureCode?: string;
 
   // constructorは不要：上記の特記事項参照
   // constructor(
