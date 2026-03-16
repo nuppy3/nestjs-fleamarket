@@ -141,6 +141,9 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
   @Expose()
   storeCount?: number;
 
+  @Expose()
+  regionId?: string;
+
   // constructor不要:上記の特記事項参照
   // constructor(
   //   name: string,
