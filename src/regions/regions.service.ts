@@ -35,6 +35,10 @@ export class RegionsService {
     return `This action returns a #${id} region`;
   }
 
+  findByCodeOrFail() {
+    return 'service findByCodeOrFail() 実装中!!!';
+  }
+
   /**
    * エリア情報作成
    *

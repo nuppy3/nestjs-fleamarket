@@ -42,8 +42,11 @@ export class RegionsController {
     return this.regionsService.findOne(+id);
   }
 
-  @Get(':code')
-  findByCodeOrFail() {}
+  @Get('code/:code')
+  findByCode() {
+    const region = this.regionsService.findByCodeOrFail();
+    return region;
+  }
   /**
    * エリア情報登録（永続化）
    *
