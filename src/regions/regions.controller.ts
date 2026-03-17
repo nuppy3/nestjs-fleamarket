@@ -43,9 +43,19 @@ export class RegionsController {
   }
 
   @Get('code/:code')
-  findByCode() {
-    const region = this.regionsService.findByCodeOrFail();
-    return region;
+  async findByCode(@Param('code') code: string): Promise<RegionResponseDto> {
+    // エリア情報取得
+    const region = await this.regionsService.findByCodeOrFail(code);
+    // domain → dto
+    const dto = instanceToPlain(
+      plainToInstance(RegionResponseDto, region, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }) satisfies RegionResponseDto,
+    ) as RegionResponseDto;
+
+    return dto;
   }
   /**
    * エリア情報登録（永続化）

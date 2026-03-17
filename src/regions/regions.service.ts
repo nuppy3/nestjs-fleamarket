@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Region as PrismaRegion } from 'generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
@@ -35,8 +39,38 @@ export class RegionsService {
     return `This action returns a #${id} region`;
   }
 
-  findByCodeOrFail() {
-    return 'service findByCodeOrFail() 実装中!!!';
+  /**
+   * findByCodeOrFail(): 指定されたcodeに関連するエリア情報をDBから取得し、返却します。
+   * 指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
+   *
+   * @param code エリアコード
+   * @returns エリア情報
+   */
+  async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
+    // エリア情報取得
+    const prismaRegion = await this.prismaService.region.findUnique({
+      where: { code }, // カラム名とパラメータがイコールなら省略可能(code: code)
+    });
+
+    if (!prismaRegion) {
+      throw new NotFoundException(
+        `codeに関連するエリア情報が存在しません!! code: ${code}`,
+      );
+    }
+
+    // prisma → domain
+    const domain = {
+      id: prismaRegion.id,
+      code: prismaRegion.code,
+      name: prismaRegion.name,
+      kanaName: prismaRegion.kanaName,
+      status: prismaRegion.status,
+      kanaEn: prismaRegion.kanaEn,
+      createdAt: prismaRegion.createdAt,
+      updatedAt: prismaRegion.updatedAt,
+    } satisfies Region & { id: string };
+
+    return domain;
   }
 
   /**
