@@ -170,7 +170,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       // await expect(prefecturesController.findAll()).rejects.toThrow(
       //   PrismaClientKnownRequestError,
       // );
-      await expect(prefecturesController.findAll()).rejects.toMatchObject({
+      await expect(prefecturesController.findAll({})).rejects.toMatchObject({
         name: 'PrismaClientKnownRequestError',
         code: 'P1001',
         message: "Can't reach database server",
@@ -219,7 +219,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
-      await expect(prefecturesController.findAll()).rejects.toThrow(
+      await expect(prefecturesController.findAll({})).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
@@ -276,6 +276,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         kanaEn: 'ishikawa',
         status: 'published',
         statusLabel: '反映中',
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
       };
 
       // 検証
@@ -332,6 +333,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         kanaName: 'トウキョウト',
         status: 'published',
         kanaEn: 'tokyo-to',
+        regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
         statusLabel: '反映中',
       });
 
@@ -489,6 +491,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'ホッカイドウ',
       status: 'published',
       kanaEn: 'hokkaido',
+      regionId: 'a1eed450-e4f4-4003-b03b-367360d04bb3',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -499,6 +502,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'アオモリ',
       status: 'published',
       kanaEn: 'aomori',
+      regionId: 'b2eed450-e4f4-4003-b03b-367360d04bb3',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -509,6 +513,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'アキタ',
       status: 'published',
       kanaEn: 'akita',
+      regionId: 'c3eed450-e4f4-4003-b03b-367360d04bb3',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -519,6 +524,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'イワテ',
       status: 'published',
       kanaEn: 'iwate',
+      regionId: 'd4eed450-e4f4-4003-b03b-367360d04bb3',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -529,6 +535,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'ヤマガタ',
       status: 'published',
       kanaEn: 'yamagata',
+      regionId: 'e5eed450-e4f4-4003-b03b-367360d04bb3',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -539,6 +546,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       kanaName: 'トウキョウト',
       status: 'published',
       kanaEn: 'tokyo-to',
+      regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
@@ -582,6 +590,7 @@ function createSriviceMockDataWithCoverage(): PrefectureWithCoverage[] {
         kanaName: 'トウキョウト',
         status: 'published',
         kanaEn: 'tokyo-to',
+        regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       },
@@ -606,6 +615,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'ホッカイドウ',
       status: 'published',
       kanaEn: 'hokkaido',
+      regionId: 'a1eed450-e4f4-4003-b03b-367360d04bb3',
       statusLabel: '反映中',
     },
     {
@@ -615,6 +625,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'アオモリ',
       status: 'published',
       kanaEn: 'aomori',
+      regionId: 'b2eed450-e4f4-4003-b03b-367360d04bb3',
       statusLabel: '反映中',
     },
     {
@@ -624,6 +635,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'アキタ',
       status: 'published',
       kanaEn: 'akita',
+      regionId: 'c3eed450-e4f4-4003-b03b-367360d04bb3',
       statusLabel: '反映中',
     },
     {
@@ -633,6 +645,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'イワテ',
       status: 'published',
       kanaEn: 'iwate',
+      regionId: 'd4eed450-e4f4-4003-b03b-367360d04bb3',
       statusLabel: '反映中',
     },
     {
@@ -642,6 +655,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'ヤマガタ',
       status: 'published',
       kanaEn: 'yamagata',
+      regionId: 'e5eed450-e4f4-4003-b03b-367360d04bb3',
       statusLabel: '反映中',
     },
     {
@@ -651,6 +665,7 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       kanaName: 'トウキョウト',
       status: 'published',
       kanaEn: 'tokyo-to',
+      regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
       statusLabel: '反映中',
     },
   ];

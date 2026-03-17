@@ -49,6 +49,8 @@ export class PrefecturesController {
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
     ) as PrefectureResponseDto[];
 
     // ページ全体のDTO(plain object): {data/meta} を作成
@@ -160,6 +162,8 @@ export class PrefecturesController {
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
     ) as PrefectureResponseDto;
   }
 

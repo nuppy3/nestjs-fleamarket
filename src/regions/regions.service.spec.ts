@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
@@ -11,6 +11,7 @@ const mockPrismaSercie = {
   region: {
     findMany: jest.fn(),
     create: jest.fn(),
+    findUnique: jest.fn(),
   },
 };
 
@@ -86,6 +87,53 @@ describe('■■■ Region test ■■■', () => {
       await expect(regionsService.findAll()).rejects.toThrow(Error);
       await expect(regionsService.findAll()).rejects.toThrow(
         'Database connection failed',
+      );
+    });
+  });
+
+  //--------------------------------------
+  // findByCodeOrFail() test
+  //--------------------------------------
+  describe('findByCodeOrFail', () => {
+    it('正常系： 指定codeのRegion domain(全項目)を返却する', async () => {
+      // serviceの引数
+      const code = '02';
+
+      // prisma mock data 作成
+      const mockPrismaData = createPrismaMockData().find(
+        (region) => region.code === code,
+      );
+      jest
+        .spyOn(prismaService.region, 'findUnique')
+        .mockResolvedValue(mockPrismaData!);
+
+      // test対象service呼び出し
+      const result = await regionsService.findByCodeOrFail(code);
+
+      // 期待値
+      const expected = createExpectedData().find(
+        (region) => region.code === code,
+      );
+
+      // 検証
+      expect(result).toEqual(expected);
+
+      // service→prismaService.region.findUnique()への引数の検証
+      expect(
+        jest.spyOn(prismaService.region, 'findUnique'),
+      ).toHaveBeenCalledWith({ where: { code } });
+    });
+
+    it('異常系： codeに関連するエリア情報が存在しない場合、NotFoundExcepton', async () => {
+      // mock data 作成（prismaは０件の場合、nullを返す)
+      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
+
+      // 検証
+      const code = '13';
+      await expect(regionsService.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連するエリア情報が存在しません!! code: ${code}`,
+        ),
       );
     });
   });
