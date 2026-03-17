@@ -158,12 +158,36 @@ export class PrefecturesService {
     userId: string,
   ): Promise<Prefecture & { id: string }> {
     // dto取得
-    const { name, code, kanaName, status, kanaEn } = createPrefectureDto;
+    const { name, code, kanaName, status, kanaEn, regionCode } =
+      createPrefectureDto;
 
     // dto → domain の詰め替えスキップ
 
+    // regionCodeの妥当性チェク
+    if (regionCode) {
+      // 妥当性チェックいおいて、Prismaを使って別テーブル（Region）を覗きに行くのは、CA/DDDの
+      // 観点から考えると設計上「お作法破り」です!!
+      // ドメインの侵害: Prefecture のロジックが Region のデータ構造（テーブル名やカラム名）に
+      // 依存してしまいます。
+      // バリデーションの重複: もし Region の有効性を判定するルール（例：削除フラグが立っているものは無効、など）が
+      // 変更された場合、直接 Prisma を叩いている箇所をすべて直して回る必要が出てきます。
+      // → Region側でfindByCode()を作成し、こちらからそのメソッドを呼び出すのがBP
+      //   ↓ をコメント化
+      // const prismaRegion = await this.prismaService.region.findUnique({
+      //   where: { code: regionCode },
+      // });
+    }
+
     // domain → prismaインプットパラメータ
-    const prismaInput = { name, code, kanaName, status, kanaEn, userId };
+    const prismaInput = {
+      name,
+      code,
+      kanaName,
+      status,
+      kanaEn,
+      userId,
+      regionCode,
+    };
 
     try {
       // 都道府県情報の登録

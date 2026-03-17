@@ -14,6 +14,9 @@ export interface Prefecture {
   kanaEn: string;
   createdAt: Date;
   updatedAt: Date;
+  // region（VO：Value Obect 値オブジェクト）ではなく、regionIdとしてID参照に留めるのがBP
+  // 都道府県が所属するエリアはあくまでラベルであり、Prefectureドメイン(マスター）が責任を持つというより
+  // 地理マスターが責任を持つべき。という考え方。
   regionId?: string;
 }
 

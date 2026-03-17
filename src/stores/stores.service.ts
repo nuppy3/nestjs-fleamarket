@@ -289,7 +289,7 @@ export class StoresService {
 
     // dto → domain
     // const domainStore: Store = {
-    //   // uuidはDBでデフォルト登録するため不要 且つ、v4の超有名な「uuid + ESM + Jest」の罠画あるため
+    //   // uuidはDBでデフォルト登録するため不要 且つ、v4の超有名な「uuid + ESM + Jest」の罠があるため
     //   // id: uuid(), // uuidのv4()をuuid()のエイリアスで使用
     //   ...createStoreDto,
     // };
