@@ -42,6 +42,12 @@ export class RegionsController {
     return this.regionsService.findOne(+id);
   }
 
+  /**
+   * findByCode: 指定されたcodeに関連するエリア情報を取得し、返却します。
+   *
+   * @param code エリアコード
+   * @returns エリア情報（エリアコードに関連する）
+   */
   @Get('code/:code')
   async findByCode(@Param('code') code: string): Promise<RegionResponseDto> {
     // エリア情報取得
