@@ -42,6 +42,8 @@ export class RegionsController {
     return this.regionsService.findOne(+id);
   }
 
+  @Get(':code')
+  findByCodeOrFail() {}
   /**
    * エリア情報登録（永続化）
    *
