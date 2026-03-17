@@ -22,7 +22,7 @@ export class RegionsController {
   constructor(private readonly regionsService: RegionsService) {}
 
   @Get()
-  async findAll() {
+  async findAll(): Promise<RegionResponseDto[]> {
     // エリア情報[]取得
     const domains = await this.regionsService.findAll();
     // domain → dto
