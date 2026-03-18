@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RegionsService } from 'src/regions/regions.service';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
@@ -20,6 +21,7 @@ export class PrefecturesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
+    private readonly regionsService: RegionsService,
   ) {}
 
   /**
@@ -153,6 +155,13 @@ export class PrefecturesService {
     return domains;
   }
 
+  /**
+   * 都道府県情報作成
+   *
+   * @param createPrefectureDto 都道府県情報（作成対象）
+   * @param userId ユーザーID
+   * @returns 都道府県情報（作成後）
+   */
   async create(
     createPrefectureDto: CreatePrefectureDto,
     userId: string,
@@ -176,6 +185,9 @@ export class PrefecturesService {
       // const prismaRegion = await this.prismaService.region.findUnique({
       //   where: { code: regionCode },
       // });
+
+      // regionCodeに紐づくエリア情報取得
+      const prismaRegion = this.regionsService.findByCodeOrFail(regionCode);
     }
 
     // domain → prismaインプットパラメータ
