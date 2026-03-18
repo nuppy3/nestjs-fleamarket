@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
@@ -127,6 +128,56 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         (region) => region.code === code,
       );
       expect(result).toEqual(expected);
+    });
+
+    it('異常系： codeに紐づくエリア情報なし（データ0件)の場合、NotFoundExceptionを伝播', async () => {
+      // 引数
+      const code = '00';
+
+      // region service mock data 作成(NotFoundException)
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockRejectedValue(
+          new NotFoundException(
+            `codeに関連するエリア情報が存在しません!! code: ${code}`,
+          ),
+        );
+
+      // 検証
+      await expect(
+        jest.spyOn(regionsService, 'findByCodeOrFail'),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連するエリア情報が存在しません!! code: ${code}`,
+        ),
+      );
+    });
+
+    // 上記のNotFoundExceptionの伝播を実施しているのでやる必要はないが、練習
+    it('異常系： DB接続エラーの場合、エラーをそのまま伝播', async () => {
+      // Error
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+
+      // region service mock data 作成(NotFoundException)
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockRejectedValue(connectionError);
+
+      // 検証: Controllerがエラーをそのまま伝播（reject）することを確認
+      // 厳密にErrorの内容を検証するため、toThew()→toMatchObject()に変更
+      // toMatchObject()は引数のオブジェクトの内容がtoThrowとは異なるので注意。
+      // → toThew()での検証のままでもいい気もする。
+      await expect(
+        jest.spyOn(regionsService, 'findByCodeOrFail'),
+      ).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        code: 'P1001',
+        message: "Can't reach database server",
+        clientVersion: '5.0.0',
+      });
     });
   });
 
