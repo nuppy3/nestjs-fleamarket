@@ -1263,7 +1263,7 @@ describe('StoresService Test', () => {
       prismaMockData.zipCode = null;
       prismaMockData.address = null;
       prismaMockData.businessHours = null;
-      prismaMockData.holidays = null;
+      prismaMockData.holidays = [];
       prismaMockData.prefecture = null;
       jest
         .spyOn(prismaService.store, 'findUnique')
@@ -1284,7 +1284,7 @@ describe('StoresService Test', () => {
         // prefecture: '東京都',
         // service.findByCodeOrFail()のholidaysについて、findAll()とは違うコードを
         // あえて書いてみた。undefinedではなく空配列が期待値。
-        holidays: undefined,
+        holidays: [],
         zipCode: undefined,
         address: undefined,
         businessHours: undefined,

@@ -10,6 +10,7 @@ import { RegionsService } from './regions.service';
 const mockRegionsService = {
   findAll: jest.fn(),
   create: jest.fn(),
+  findByCodeOrFail: jest.fn(),
 };
 
 describe('■■■　Regions Controller TEST ■■■', () => {
@@ -103,9 +104,36 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   });
 
   //--------------------------------
+  // findByCodeOrFail()
+  //--------------------------------
+  describe('findByCodeOrFail test', () => {
+    it('正常系: 指定したcodeを元に、エリア情報DTO（全項目）を返却する', async () => {
+      // 引数
+      const code = '01';
+
+      // region servie mock data 作成
+      const serviceModkRegionData = createServiceMockData().find(
+        (region) => region.code === code,
+      );
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockResolvedValue(serviceModkRegionData!);
+
+      // テスト対象controller呼び出し
+      const result = await regionsController.findByCode(code);
+
+      // 検証
+      const expected = createExpectedRegionDtos().find(
+        (region) => region.code === code,
+      );
+      expect(result).toEqual(expected);
+    });
+  });
+
+  //--------------------------------
   // create()
   //--------------------------------
-  describe('create', () => {
+  describe('create test', () => {
     // 共通引数：ユーザーID
     const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> = {
       user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
@@ -187,6 +215,10 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   });
 });
 
+/**
+ * region service mock data 作成
+ * @returns region service mock data
+ */
 function createServiceMockData(): (Region & { id: string })[] {
   const domains: (Region & { id: string })[] = [
     {
@@ -213,6 +245,10 @@ function createServiceMockData(): (Region & { id: string })[] {
   return domains;
 }
 
+/**
+ * 期待値：Region DTO 作成
+ * @returns Region DTO
+ */
 function createExpectedRegionDtos(): RegionResponseDto[] {
   const dtos: RegionResponseDto[] = [
     {
