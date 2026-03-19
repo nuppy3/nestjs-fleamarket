@@ -332,6 +332,8 @@ export class StoresService {
       businessHours: domainStore.businessHours,
       holidays: domainStore.holidays,
       userId: domainStore.userId,
+      // prefectureIdだけで、紐づくPrefectureが自動で関連付けされ、セットされる(schema.prismaにて
+      // リレーションを定義しているので)
       prefectureId: prefecture?.id,
     };
 
@@ -461,7 +463,7 @@ export class StoresService {
 
     // エレガントコード！：「条件が満たされたら、このオブジェクトを展開して追加してね」
     // filters.prefectureCodeがtruthy(null/undefined/''/数値の0/false 以外)の場合、
-    // ...(スプレッド構文)で、prefectureオプジェクトを転換して追加。
+    // ...(スプレッド構文)で、prefectureオプジェクトを展開して追加。
 
     // where句はOrder byのように配列ではなく、オブジェクトで作成することが多い。
     // where句は基本的にはAND条件になるので。ORの条件がある場合は、配列にする。

@@ -9,5 +9,6 @@ import { RegionsService } from './regions.service';
   imports: [PrismaModule],
   controllers: [RegionsController],
   providers: [RegionsService],
+  exports: [RegionsService],
 })
 export class RegionsModule {}

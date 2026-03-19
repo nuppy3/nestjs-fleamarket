@@ -4,8 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { RegionsService } from 'src/regions/regions.service';
 import { PAGINATION } from '../common/constants/pagination.constants';
+import { Region } from '../regions/domain/regions.model';
+import { RegionsService } from '../regions/regions.service';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -173,6 +174,7 @@ export class PrefecturesService {
     // dto → domain の詰め替えスキップ
 
     // regionCodeの妥当性チェク
+    let region: (Region & { id: string }) | undefined = undefined;
     if (regionCode) {
       // 妥当性チェックいおいて、Prismaを使って別テーブル（Region）を覗きに行くのは、CA/DDDの
       // 観点から考えると設計上「お作法破り」です!!
@@ -187,7 +189,7 @@ export class PrefecturesService {
       // });
 
       // regionCodeに紐づくエリア情報取得
-      const prismaRegion = this.regionsService.findByCodeOrFail(regionCode);
+      region = await this.regionsService.findByCodeOrFail(regionCode);
     }
 
     // domain → prismaインプットパラメータ
@@ -198,7 +200,10 @@ export class PrefecturesService {
       status,
       kanaEn,
       userId,
-      regionCode,
+      // 以下だと、regionがundefinedの可能性があるからなのか、region.と打ってもidが補完されないので
+      // やめて、久しぶりに...(スプレッド構文)で、regionオプジェクトを展開して追加。
+      // region?.id;
+      ...(region && { regionId: region.id }),
     };
 
     try {
@@ -216,6 +221,7 @@ export class PrefecturesService {
         kanaEn: created.kanaEn,
         createdAt: created.createdAt,
         updatedAt: created.updatedAt,
+        // regionIdだけで、紐づくRegionが自動で関連付けされ、セットされる
         regionId: created.regionId ?? undefined,
         id: created.id,
       } satisfies Prefecture & { id: string };
