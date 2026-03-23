@@ -8,6 +8,7 @@ import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { RegionsModule } from '../regions/regions.module';
+import { RegionsService } from '../regions/regions.service';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import {
@@ -24,11 +25,24 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     count: jest.fn(),
   },
+  // create()内でregionsService.findByCodeOrFail()→prismaService.region.findUnique()
+  // のregion.findUnique()をmock化していたが、mockRegionsServiceに切り替え
+  // region: {
+  //   findUnique: jest.fn(),
+  // },
+};
+
+/**
+ * RegionsServicd mock
+ */
+const mockRegionsService = {
+  findByCodeOrFail: jest.fn(),
 };
 
 describe('□□□ Prefecture Test □□□', () => {
   // DIモジュール
   let prefectureService: PrefecturesService;
+  let regionsService: RegionsService;
   let prismaService: PrismaService;
   // 実際のprefectures.service.tsでは、ConfigServiceは個別(prefectures.module.ts)で
   // importsしていない。app.module.tsにてグローバルでDI定義している。が、UTで必要なので。
@@ -64,6 +78,7 @@ describe('□□□ Prefecture Test □□□', () => {
         ConfigService,
         // ここにも明示的に記述(PrismaServiceをmodkPrismaServiceに切り替え）
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: RegionsService, useValue: mockRegionsService },
       ],
     })
       // もし RegionsModule 内部の Service が「本物の PrismaService」を見に行ってしまう場合のみ追加
@@ -72,6 +87,7 @@ describe('□□□ Prefecture Test □□□', () => {
       .compile();
 
     prefectureService = module.get<PrefecturesService>(PrefecturesService);
+    regionsService = module.get<RegionsService>(RegionsService);
     prismaService = module.get<PrismaService>(PrismaService);
     configService = module.get<ConfigService>(ConfigService);
 
@@ -648,7 +664,7 @@ describe('□□□ Prefecture Test □□□', () => {
       kanaName: 'イシカワ',
       kanaEn: 'ishikawa',
       status: 'published',
-      regionCode: '01',
+      // regionCode: '05',
     };
     const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 

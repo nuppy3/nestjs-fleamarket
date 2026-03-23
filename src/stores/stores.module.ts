@@ -13,5 +13,6 @@ import { StoresService } from './stores.service';
   imports: [PrismaModule, AuthModule, PrefecturesModule],
   controllers: [StoresController],
   providers: [StoresService],
+  exports: [StoresService],
 })
 export class StoresModule {}
