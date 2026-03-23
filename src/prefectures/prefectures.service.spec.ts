@@ -7,6 +7,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { Region, RegionStatus } from '../regions/domain/regions.model';
 import { RegionsModule } from '../regions/regions.module';
 import { RegionsService } from '../regions/regions.service';
 import { PrismaService } from './../prisma/prisma.service';
@@ -657,22 +658,37 @@ describe('□□□ Prefecture Test □□□', () => {
   // create()
   // ------------------------------
   describe('create', () => {
-    // serviceの引数作成
-    const dto: CreatePrefectureDto = {
-      name: '石川県',
-      code: '24',
-      kanaName: 'イシカワ',
-      kanaEn: 'ishikawa',
-      status: 'published',
-      // regionCode: '05',
-    };
-    const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
-
     // ----------------------------------------------------------------
     // 1. 正常ケースのテスト
     // ----------------------------------------------------------------
     it('正常系: Prefectureの情報を登録(全項目)し、prefectureドメイン(全項目)を返却する', async () => {
-      // prisma modk data 作成
+      // serviceの引数作成
+      const dto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        regionCode: '05',
+      };
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // RegionsService mock data 作成
+      const mockRegionData = {
+        id: '0524dc98-89a2-4db1-9431-b20feff57700',
+        code: '05',
+        name: '北陸',
+        kanaName: 'ホクリク',
+        kanaEn: 'hokuriku',
+        status: RegionStatus.PUBLISHED,
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies Region & { id: string };
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockResolvedValue(mockRegionData);
+
+      // prisma mock data 作成 : Prefecture情報
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
         id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
         name: '石川県',
@@ -682,7 +698,8 @@ describe('□□□ Prefecture Test □□□', () => {
         status: 'published',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+        // Region data の id（region id)
+        regionId: mockRegionData.id,
         userId: userId,
       });
 
@@ -704,7 +721,33 @@ describe('□□□ Prefecture Test □□□', () => {
     });
 
     it('正常系: Prefectureの情報を登録(任意項目はnull)し、prefectureドメイン(任意項目はnull→undefined変換)を返却する', async () => {
-      // prisma modk data 作成
+      // serviceの引数作成
+      const dto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        regionCode: '99',
+      };
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // RegionsService mock data 作成
+      const mockRegionData = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        code: '05',
+        name: '北陸',
+        kanaName: 'ホクリク',
+        kanaEn: 'hokuriku',
+        status: RegionStatus.PUBLISHED,
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies Region & { id: string };
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockResolvedValue(mockRegionData);
+
+      // prisma modk data 作成 : Prefecture情報
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
         id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
         name: '石川県',
@@ -739,6 +782,17 @@ describe('□□□ Prefecture Test □□□', () => {
     // 2. エラーケースのテスト ： catch句のテスト
     // ----------------------------------------------------------------
     it('異常系①: Prefectureの情報を登録(全項目)し、一意制約エラー(P2002)の検証', async () => {
+      // serviceの引数作成
+      const dto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        // regionCode: '05',
+      };
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
       // prismaのP2002エラーのmockを作成
       // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
       // を返す場合、Prisma Client は例外をスローします。
@@ -772,6 +826,17 @@ describe('□□□ Prefecture Test □□□', () => {
     });
 
     it('異常系②: P2002以外のPrismaエラーの場合、そのままエラーをスローする', async () => {
+      // serviceの引数作成
+      const dto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        // regionCode: '05',
+      };
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
       // P2002以外のエラーを作成（なんでもいいが、P2000:値が長すぎるエラーにしておく)
       const mockP2000Error = new PrismaClientKnownRequestError(
         'Value too long for column',
@@ -794,6 +859,17 @@ describe('□□□ Prefecture Test □□□', () => {
     });
 
     it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {
+      // serviceの引数作成
+      const dto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '24',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        // regionCode: '05',
+      };
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
       // PrismaClientKnownRequestError以外の一般エラーを作成
       const mockGenericError = new Error('Database connection failed');
 
