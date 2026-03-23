@@ -4,9 +4,10 @@ import { Test } from '@nestjs/testing';
 // import { PrismaClientKnownRequestError } from '../../generated/prisma/runtime/library';
 // import { Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { RegionsModule } from '../regions/regions.module';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import {
@@ -16,7 +17,7 @@ import {
 } from './prefectures.model';
 import { PrefecturesService } from './prefectures.service';
 
-const mockPrismaSercie = {
+const mockPrismaService = {
   prefecture: {
     findMany: jest.fn(),
     create: jest.fn(),
@@ -44,18 +45,31 @@ describe('□□□ Prefecture Test □□□', () => {
     // console.log('beforeAll: モジュールのセットアップ（DIなど）');
 
     // @Module({
-    //   imports: [PrismaModule],
+    //   imports: [PrismaModule, RegionsModule],
     //   controllers: [PrefecturesController],
     //   providers: [PrefecturesService],
     // })
 
     const module = await Test.createTestingModule({
+      // ⭐️ 以下のimportsにRegionsModuleを入れると、Jestの依存関係の瞑想地獄が始まってハマった。。
+      // importsでモジュールをDIしようとすると、RegionModule内でもPrismaServiceを使っていたり
+      // すると、競合してしまい、RegionModuleからのPrismaModule/servie、(この場合、本物のPrismaService
+      // をみに行ってしまうらしい)、が採用されてしまうので、providers:で明示的に
+      // { provide: PrismaService, useValue: mockPrismaService },を記述しつつ、
+      // .overrideProvider(PrismaService).useValue(mockPrismaService).compile()も
+      // 実施すること！！！ああ、ハマった！
+      imports: [RegionsModule],
       providers: [
         PrefecturesService,
         ConfigService,
-        { provide: PrismaService, useValue: mockPrismaSercie },
+        // ここにも明示的に記述(PrismaServiceをmodkPrismaServiceに切り替え）
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
-    }).compile();
+    })
+      // もし RegionsModule 内部の Service が「本物の PrismaService」を見に行ってしまう場合のみ追加
+      .overrideProvider(PrismaService)
+      .useValue(mockPrismaService)
+      .compile();
 
     prefectureService = module.get<PrefecturesService>(PrefecturesService);
     prismaService = module.get<PrismaService>(PrismaService);
@@ -71,7 +85,6 @@ describe('□□□ Prefecture Test □□□', () => {
   beforeEach(() => {
     // console.log('beforeEach: モックをリセット');
     // jest.clearAllMocks();
-
     // 実装（mockRejectedValueなど）もリセットするため、clearAllMocks()→resetAllMocks()
     // に修正
     // 背景：直前のテストで「常にエラーを投げる（mockRejectedValue）」という設定が
@@ -89,7 +102,7 @@ describe('□□□ Prefecture Test □□□', () => {
       // findMany
       jest
         .spyOn(prismaService.prefecture, 'findMany')
-        .mockResolvedValue(prismaMockPrefectures);
+        .mockResolvedValue(createPrismaMockData());
       // count
       jest.spyOn(prismaService.prefecture, 'count').mockResolvedValue(6);
 
@@ -740,6 +753,7 @@ describe('□□□ Prefecture Test □□□', () => {
         '指定された code は既に存在します。',
       );
     });
+
     it('異常系②: P2002以外のPrismaエラーの場合、そのままエラーをスローする', async () => {
       // P2002以外のエラーを作成（なんでもいいが、P2000:値が長すぎるエラーにしておく)
       const mockP2000Error = new PrismaClientKnownRequestError(

@@ -4,12 +4,13 @@ import { PrismaService } from './../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 // PrismaのスキーマはXXXXPrismaという名前にリネーム
 import { ConfigService } from '@nestjs/config';
-import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
 import {
   Prefecture as PrefecturePrisma,
   Store as StorePrisma,
 } from '../../generated/prisma';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { PrefecturesService } from '../prefectures/prefectures.service';
+import { RegionsModule } from '../regions/regions.module';
 import { CreateStoreDto } from './dto/store.dto';
 import { SortOrder, Store, StoreFilter, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
@@ -54,7 +55,7 @@ describe('StoresService Test', () => {
 
     //---------------------------------
     // @Module({
-    //   imports: [PrismaModule],
+    //   imports: [PrismaModule, AuthModule, RegionsModule],
     //   controllers: [StoresController],
     //   providers: [StoresService, PrefecturesService],
     // })
@@ -64,6 +65,7 @@ describe('StoresService Test', () => {
     // 最後の.compile()を忘れずに
     const module = await Test.createTestingModule({
       // DI対象サービス
+      imports: [RegionsModule],
       providers: [
         ConfigService,
         StoresService,
@@ -71,7 +73,12 @@ describe('StoresService Test', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         PrefecturesService,
       ],
-    }).compile();
+    })
+      // imports: [RegionsModule]によるJestの依存関係競合問題があるため、
+      // overrideProviderも実施する必要がある。
+      .overrideProvider(PrismaService)
+      .useValue(mockPrismaService)
+      .compile();
 
     configService = module.get<ConfigService>(ConfigService);
     storesService = module.get<StoresService>(StoresService);
@@ -89,7 +96,14 @@ describe('StoresService Test', () => {
   // 前処理: 書くテストケースの前に毎回実行
   beforeEach(() => {
     // console.log('beforeEach: モックをリセット');
-    jest.clearAllMocks();
+    // jest.clearAllMocks();
+
+    // 実装（mockRejectedValueなど）もリセットするため、clearAllMocks()→resetAllMocks()
+    // に修正
+    // 背景：直前のテストで「常にエラーを投げる（mockRejectedValue）」という設定が
+    //      prismaService.findManyに残ったままになっていることがあり、次のテストでもエラーが
+    //      発生したので。
+    jest.resetAllMocks();
   });
 
   describe('■■■ findAll TEST ■■■', () => {
@@ -1392,9 +1406,13 @@ describe('StoresService Test', () => {
 
       // 元のエラー（Generic Error）がそのままスローされることをテスト(引数は何でもいい)
       await expect(storesService.findByCodeOrFail('')).rejects.toThrow(Error);
-      await expect(storesService.findByCodeOrFail('')).rejects.toThrow(
-        'Database connection failed',
-      );
+      // await expect(storesService.findByCodeOrFail('')).rejects.toThrow(
+      //   'Database connection failed',
+      // );
+      await expect(storesService.findByCodeOrFail('')).rejects.toMatchObject({
+        name: 'Error',
+        message: 'Database connection failed',
+      });
     });
   });
 });
