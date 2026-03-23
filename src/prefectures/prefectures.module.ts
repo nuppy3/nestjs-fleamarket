@@ -10,5 +10,6 @@ import { PrefecturesService } from './prefectures.service';
   imports: [PrismaModule, RegionsModule],
   controllers: [PrefecturesController],
   providers: [PrefecturesService],
+  exports: [PrefecturesService],
 })
 export class PrefecturesModule {}

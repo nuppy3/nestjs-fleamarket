@@ -648,6 +648,7 @@ describe('□□□ Prefecture Test □□□', () => {
       kanaName: 'イシカワ',
       kanaEn: 'ishikawa',
       status: 'published',
+      regionCode: '01',
     };
     const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
