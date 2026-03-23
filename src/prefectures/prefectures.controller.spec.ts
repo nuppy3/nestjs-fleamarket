@@ -229,22 +229,24 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   // create()
   //--------------------------------
   describe('create', () => {
-    // Controllerの引数作成
-    const requestDto: CreatePrefectureDto = {
-      name: '石川県',
-      code: '17',
-      kanaName: 'イシカワ',
-      kanaEn: 'ishikawa',
-      status: 'published',
-    };
-
-    // 引数：リクエストパラメータ作成
-    // const request = {} satisfies ExpressRequest & { user: RequestUser };
-    const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> = {
-      user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
-    };
-
     it('正常系：都道府県情報作成（DTOの全項目あり）し、DTO全項目を返却する', async () => {
+      // Controllerの引数作成
+      const requestDto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '17',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        regionCode: '05',
+      };
+
+      // 引数：リクエストパラメータ作成
+      // const request = {} satisfies ExpressRequest & { user: RequestUser };
+      const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> =
+        {
+          user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+        };
+
       // service mock data 作成(domain + id)
       const domainWithId: Prefecture & { id: string } = {
         id: '27d991fd-fd54-4abd-b9c0-1f24270e8295',
@@ -284,6 +286,23 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
     });
 
     it('異常系: prefecturesServiceにエラーが発生した場合、元のエラーをそのまま伝搬する', async () => {
+      // Controllerの引数作成
+      const requestDto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '17',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        // regionCode: '05',
+      };
+
+      // 引数：リクエストパラメータ作成
+      // const request = {} satisfies ExpressRequest & { user: RequestUser };
+      const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> =
+        {
+          user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+        };
+
       // service mock data(Error) 作成
       const conectionError = new PrismaClientKnownRequestError(
         "Can't reach database server",
