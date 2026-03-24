@@ -173,6 +173,7 @@ model Prefecture {
 
 enum PrefectureStatus {
   published
+  editing
   suspended
 }
 
@@ -209,5 +210,6 @@ model Region {
 
 enum RegionStatus {
   published
+  editing
   suspended
 }
