@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Request,
@@ -99,8 +100,11 @@ export class RegionsController {
   // @Delete() は 「このメソッドはHTTPのDELETEリクエストを処理する」 という宣言をするデコレーター。
   @Delete(':id')
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
-  remove(@Param('id') id: string): RegionResponseDto {
-    this.regionsService.remove(+id);
+  remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: ExpressRequest & { user: RequestUser },
+  ): RegionResponseDto {
+    this.regionsService.remove(id, req.user.id);
 
     return new RegionResponseDto();
   }

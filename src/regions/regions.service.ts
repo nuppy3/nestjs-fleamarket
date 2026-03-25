@@ -155,7 +155,7 @@ export class RegionsService {
     return `This action updates a #${id} region`;
   }
 
-  remove(id: number) {
+  remove(id: string, userId: string) {
     return `This action removes a #${id} region`;
   }
 }
