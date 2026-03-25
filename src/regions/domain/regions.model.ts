@@ -75,6 +75,7 @@ export class Region {
 
 export const RegionStatus = {
   PUBLISHED: 'published', // 掲載中
+  EDITING: 'editing', // 編集中
   SUSPENDED: 'suspended', // 停止中
 } as const;
 

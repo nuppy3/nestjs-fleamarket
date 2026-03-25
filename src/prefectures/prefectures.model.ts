@@ -39,9 +39,10 @@ export interface PrefectureWithCoverage {
 // modern enumパターン（union)
 export const PrefectureStatus = {
   PUBLISHED: 'published', // 掲載中
+  EDITING: 'editing', // 編集中
   SUSPENDED: 'suspended', // 停止中
 } as const;
-// StoreStatus（モダンenum=union）の型を定義()
+// PrefectureStatus（モダンenum=union）の型を定義()
 // 上記の 「const PrefectureStatus」はあくまでconstオブジェクト(値)であり、PageStatusという型ではないので
 // type PageStatusとして型を定義している。
 export type PrefectureStatus =
