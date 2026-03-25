@@ -88,6 +88,7 @@ export class ItemsController {
    *
    * @param id ItemテーブルのPK(uuid型)
    */
+  // @Delete() は 「このメソッドはHTTPのDELETEリクエストを処理する」 という宣言をするデコレーター。
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async delete(

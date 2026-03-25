@@ -96,8 +96,11 @@ export class RegionsController {
     return this.regionsService.update(+id, updateRegionDto);
   }
 
+  // @Delete() は 「このメソッドはHTTPのDELETEリクエストを処理する」 という宣言をするデコレーター。
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.regionsService.remove(+id);
+  remove(@Param('id') id: string): RegionResponseDto {
+    this.regionsService.remove(+id);
+
+    return new RegionResponseDto();
   }
 }

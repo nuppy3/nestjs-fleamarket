@@ -39,11 +39,13 @@ export class Region {
     // kanaEn: string,
   ): Region {
     // createdAt,updatedAtはデフォルトでdomain作成時時刻
+    // ステータスは強制的に「編集中」= EDITING
     return new Region(
       props.code,
       props.name,
       props.kanaName,
-      props.status,
+      // props.status,
+      RegionStatus.EDITING,
       props.kanaEn,
       new Date(),
       new Date(),
