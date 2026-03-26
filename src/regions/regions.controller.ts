@@ -97,15 +97,28 @@ export class RegionsController {
     return this.regionsService.update(+id, updateRegionDto);
   }
 
+  /**
+   * remove(): 指定されたid(Region ID)に関連するエリア情報を削除します。（ソフトデリート）
+   *           削除されたエリア情報を返却します。
+   * @param id Region ID
+   * @param req HTTPリクエスト
+   * @returns エリア情報(削除された)
+   */
   // @Delete() は 「このメソッドはHTTPのDELETEリクエストを処理する」 という宣言をするデコレーター。
   @Delete(':id')
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
-  remove(
+  async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req: ExpressRequest & { user: RequestUser },
-  ): RegionResponseDto {
-    this.regionsService.remove(id, req.user.id);
+  ): Promise<RegionResponseDto> {
+    // エリア情報削除
+    const deleted = await this.regionsService.remove(id, req.user.id);
 
-    return new RegionResponseDto();
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, deleted, {
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto;
   }
 }

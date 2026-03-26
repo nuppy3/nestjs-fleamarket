@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Region as PrismaRegion } from 'generated/prisma';
+import { Region as PrismaRegion, RegionStatus } from 'generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
@@ -155,7 +155,54 @@ export class RegionsService {
     return `This action updates a #${id} region`;
   }
 
-  remove(id: string, userId: string) {
-    return `This action removes a #${id} region`;
+  /**
+   * remove(): 指定のidに関連するエリア情報を削除します。
+   *           削除したエリア情報を返却します。
+   *
+   * @param id Region ID (削除対象のエリア情報のキー)
+   * @param userId ユーザーID
+   * @returns 削除したエリア情報
+   */
+  async remove(id: string, userId: string): Promise<Region & { id: string }> {
+    // Region情報取得
+    // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
+    // TODO: いづれinfrastructure/repositoryに移動
+    const prismaRegion = await this.prismaService.region.findUnique({
+      where: { id },
+    });
+
+    if (!prismaRegion) {
+      throw new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+    }
+
+    // TODO: domain 削除（ドメインルール実行）
+    // region.delete();
+
+    // 永続化: Region情報削除(ソフトデリート)
+    // TODO： repositoryに移動
+    const deleted = await this.prismaService.region.update({
+      data: {
+        status: RegionStatus.suspended,
+        userId: userId,
+        updatedAt: new Date(),
+      },
+      where: { id },
+    });
+
+    // prisma → domain
+    const domain = {
+      id: deleted.id,
+      code: deleted.code,
+      name: deleted.name,
+      kanaName: deleted.kanaName,
+      status: deleted.status,
+      kanaEn: deleted.kanaEn,
+      createdAt: deleted.createdAt,
+      updatedAt: deleted.updatedAt,
+    } satisfies Region & { id: string };
+
+    return domain;
   }
 }
