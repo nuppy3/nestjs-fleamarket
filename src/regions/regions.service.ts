@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Region as PrismaRegion, RegionStatus } from 'generated/prisma';
+import { Region as PrismaRegion, RegionStatus } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
