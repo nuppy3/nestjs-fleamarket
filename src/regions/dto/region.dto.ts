@@ -109,6 +109,8 @@ export class RegionResponseDto implements RegionResponseShape {
     switch (this.status) {
       case RegionStatus.PUBLISHED:
         return '反映中';
+      case RegionStatus.EDITING:
+        return '編集中';
       case RegionStatus.SUSPENDED:
         return '停止';
       default:

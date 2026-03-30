@@ -128,6 +128,8 @@ export class PrefectureResponseDto implements PrefectureResponseShape {
     switch (this.status) {
       case PrefectureStatus.PUBLISHED:
         return '反映中';
+      case PrefectureStatus.EDITING:
+        return '編集中';
       case PrefectureStatus.SUSPENDED:
         return '停止';
       default:
