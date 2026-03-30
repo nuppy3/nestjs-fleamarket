@@ -12,6 +12,7 @@ const mockPrismaSercie = {
     findMany: jest.fn(),
     create: jest.fn(),
     findUnique: jest.fn(),
+    update: jest.fn(),
   },
 };
 
@@ -310,6 +311,95 @@ describe('■■■ Region test ■■■', () => {
       await expect(regionsService.create(dto, userId)).rejects.toThrow(Error);
       await expect(regionsService.create(dto, userId)).rejects.toThrow(
         'Database connection failed',
+      );
+    });
+  });
+
+  //--------------------------------------
+  // remove test
+  //--------------------------------------
+  describe('remove Test', () => {
+    it('正常系： 指定idに関連するRegion情報が削除され、Regionドメイン(＋id)(全項目)を返却する', async () => {
+      // prisma region 'findUnique' mock data
+      const mockRegion = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies PrismaRegion;
+
+      jest
+        .spyOn(prismaService.region, 'findUnique')
+        .mockResolvedValue(mockRegion);
+
+      // prisma region 'update' mock data
+      const mocckDeleted = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies PrismaRegion;
+
+      jest
+        .spyOn(prismaService.region, 'update')
+        .mockResolvedValue(mocckDeleted);
+
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // テスト対象 service 呼び出し
+      const result = await regionsService.remove(id, userId);
+
+      // 検証
+      expect(result).toEqual(
+        createExpectedData().find((region) => region.id === id),
+      );
+
+      // 引数チェック
+      expect(
+        jest.spyOn(prismaService.region, 'findUnique'),
+      ).toHaveBeenCalledWith({
+        where: { id },
+      });
+
+      expect(jest.spyOn(prismaService.region, 'update')).toHaveBeenCalledWith({
+        data: {
+          status: RegionStatus.SUSPENDED, // 厳密には、RegionStatus.suspended(PrismaのRegionStatus)だが、多めにみる。
+          userId: userId,
+          // updatedAtについて、new Date()はミリ秒で結果と期待値に誤差が出るので
+          // expect.any(Date)としている。が、anyで警告が出るので、解除コメントを挿入。
+          // updatedAt: new Date(),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          updatedAt: expect.any(Date),
+        },
+        where: { id },
+      });
+    });
+
+    it('異常系： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'xxxx';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // mock data 作成 (データ無し)
+      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
+
+      // 検証：NotFoundException
+      await expect(regionsService.remove(id, userId)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
       );
     });
   });
