@@ -12,6 +12,7 @@ const mockRegionsService = {
   findAll: jest.fn(),
   create: jest.fn(),
   findByCodeOrFail: jest.fn(),
+  remove: jest.fn(),
 };
 
 describe('■■■　Regions Controller TEST ■■■', () => {
@@ -262,6 +263,78 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       ).rejects.toThrow(PrismaClientKnownRequestError);
 
       // 検証
+    });
+  });
+
+  //--------------------------------
+  // remove()
+  //--------------------------------
+  describe('remove() test', () => {
+    it('正常系：指定idに関連するエリア情報を削除し、削除対象のDto(全項目)を返却する', async () => {
+      // 引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+
+      // mock data 作成
+      jest
+        .spyOn(regionsService, 'remove')
+        .mockResolvedValue(
+          createServiceMockData().find((region) => region.id === id)!,
+        );
+
+      // test 対象 controller 呼び出し
+      const result = await regionsController.remove(
+        id,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        req as ExpressRequest & { user: RequestUser },
+      );
+
+      // 検証
+      expect(result).toEqual(
+        createExpectedRegionDtos().find((region) => region.id === id),
+      );
+    });
+
+    it('異常系：idに関連するエリア情報が存在しない。(serviceのNotFoundExceptionを伝播', async () => {
+      // 引数作成
+      const id = 'xxxx';
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+
+      // mock data (NotFoundException)
+      jest
+        .spyOn(regionsService, 'remove')
+        .mockRejectedValue(
+          new NotFoundException(
+            `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+          ),
+        );
+
+      // 検証
+      await expect(
+        regionsController.remove(
+          id,
+          req as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
     });
   });
 });
