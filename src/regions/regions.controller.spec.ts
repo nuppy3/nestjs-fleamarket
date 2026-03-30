@@ -66,6 +66,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       const dtos = createExpectedRegionDtos();
       expect(result).toEqual(dtos);
     });
+
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
       // mock data 作成(空配列)
       jest.spyOn(regionsService, 'findAll').mockResolvedValue([]);
@@ -74,6 +75,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
       expect(result).toEqual([]);
     });
+
     //-------------------------------
     // カバレッジ100%対応：
     // async findAll(): Promise<PrefectureResponseDto[]> {
@@ -365,6 +367,26 @@ function createServiceMockData(): (Region & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    },
   ];
   return domains;
 }
@@ -392,6 +414,24 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       status: 'published',
       kanaEn: 'tohoku',
       statusLabel: '反映中',
+    },
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      statusLabel: '編集中',
+    },
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      statusLabel: '停止',
     },
   ];
 
