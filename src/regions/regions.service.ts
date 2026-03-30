@@ -19,7 +19,10 @@ export class RegionsService {
    */
   async findAll(): Promise<(Region & { id: string })[]> {
     // エリア情報取得
-    const regions = await this.prismaService.region.findMany();
+    const regions = await this.prismaService.region.findMany({
+      orderBy: { code: 'asc' },
+    });
+
     // prisma → domain
     // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
     const domains: (Region & { id: string })[] = regions.map((region) => ({
