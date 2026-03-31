@@ -28,7 +28,13 @@ export class Region {
     this.updatedAt = updatedAt;
   }
 
-  // 新規作成用の静的メソッド（factory method）
+  /**
+   * 新規作成用の静的メソッド（factory method）
+   * domain新規作成時のルールを実装
+   *  例：新規作成時のstatusは編集中
+   *     createdAt,updatedAtはデフォルトでdomain作成時時刻
+   *
+   */
   static createNew(
     // 以下のpropsを使っているコード(domainをベースに不要項目をomit)、いいね！
     props: Omit<Region, 'createdAt' | 'updatedAt'>,
@@ -52,7 +58,9 @@ export class Region {
     );
   }
 
-  // domainの再構築（DB等からの再構築用（すでに日付がある場合））
+  /**
+   * domainの再構築（DB等からの再構築用（すでに日付がある場合））
+   */
   static reconstitute(
     code: string,
     name: string,
