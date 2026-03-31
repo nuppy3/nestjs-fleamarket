@@ -53,7 +53,7 @@ export class Region {
   }
 
   // domainの再構築（DB等からの再構築用（すでに日付がある場合））
-  static reConstruct(
+  static reconstitute(
     code: string,
     name: string,
     kanaName: string,

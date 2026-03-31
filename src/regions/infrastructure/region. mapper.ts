@@ -23,7 +23,7 @@ export class RegionMapper {
   // リネームする（prismaToDomainなど）
   static toDomain(record: PrismaRegion): Region & { id: string } {
     // prisma → domain
-    const domain = Region.reConstruct(
+    const domain = Region.reconstitute(
       record.code,
       record.name,
       record.kanaName,
