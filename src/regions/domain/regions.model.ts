@@ -110,6 +110,7 @@ export class Region {
    */
   remove() {
     this._status = 'suspended';
+    this._updatedAt = new Date();
   }
 
   // Getterを定義

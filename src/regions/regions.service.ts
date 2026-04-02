@@ -215,7 +215,7 @@ export class RegionsService {
     });
 
     // TODO :domain 削除（ドメインルール実行）
-    // regionWithId.delete();
+    regionWithId.remove();
 
     // 永続化: Region情報削除(ソフトデリート)
     // TODO： repositoryに移動
@@ -223,7 +223,7 @@ export class RegionsService {
       data: {
         status: regionWithId.status,
         userId: userId,
-        updatedAt: new Date(),
+        updatedAt: regionWithId.updatedAt,
       },
       where: { id: regionWithId.id },
     });
