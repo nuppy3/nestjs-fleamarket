@@ -214,7 +214,7 @@ export class RegionsService {
       id: prismaRegion.id,
     });
 
-    // TODO :domain 削除（ドメインルール実行）
+    // domain 削除（ドメインルール実行）
     regionWithId.remove();
 
     // 永続化: Region情報削除(ソフトデリート)

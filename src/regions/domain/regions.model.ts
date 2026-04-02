@@ -105,11 +105,21 @@ export class Region {
 
   /**
    * domain delete(ソフトデリート)
+   * デリートロジックを集約（serviceなどに漏らさない)
+   *
    * ・デリートしてもいいかの判定
+   *  例：
+   *  - すでに利用停止状態の場合は削除しない(エラーを投げる）
+   *  - 紐づく都道府県が存在する場合は削除しない
    * ・ソフトデリート（＝status: 停止/ updateAtの更新)
    */
   remove() {
-    this._status = 'suspended';
+    // 既に停止中の場合
+    if (this._status === RegionStatus.SUSPENDED) {
+      throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
+    }
+
+    this._status = RegionStatus.SUSPENDED;
     this._updatedAt = new Date();
   }
 
