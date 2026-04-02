@@ -12,7 +12,7 @@ export class RegionFactory {
       code: dto.code,
       name: dto.name,
       kanaName: dto.kanaName,
-      status: dto.status,
+      // status: dto.status,
       kanaEn: dto.kanaEn,
     });
   }

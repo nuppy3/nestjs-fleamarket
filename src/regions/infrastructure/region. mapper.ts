@@ -19,8 +19,15 @@ export class RegionMapper {
     return prismaInput;
   }
 
-  // メソッド名をtoDomainにしているが、API→Domainなどのケースが発生したら
-  // リネームする（prismaToDomainなど）
+  /**
+   * Prisma Data → Region Domain に変換
+   *
+   * メソッド名をtoDomainにしているが、API→Domainなどのケースが発生したら
+   * リネームする（prismaToDomainなど）
+   *
+   * @param record Prisma Region情報
+   * @returns Region Domain + id
+   */
   static toDomain(record: PrismaRegion): Region & { id: string } {
     // prisma → domain
     const domain = Region.reconstitute(
@@ -34,10 +41,21 @@ export class RegionMapper {
     );
 
     // domain + id
-    const domainWithId = {
-      ...domain,
-      id: record.id,
-    } satisfies Region & { id: string };
+    // 以下のような詰め替え方でsatisfiesするとRegionインスタンスじゃないので（メソッドが無かったり）
+    // チェックNGになる。
+    // const domainWithId = {
+    //   id: record.id,
+    //   code: domain.code,
+    //   name: domain.name,
+    //   kanaName: domain.kanaName,
+    //   status: domain.status,
+    //   kanaEn: domain.kanaEn,
+    //   createdAt: domain.createdAt,
+    //   updatedAt: domain.updatedAt,
+    // } satisfies Region & { id: string };
+
+    // domain + id
+    const domainWithId = Object.assign(domain, { id: record.id });
 
     return domainWithId;
   }

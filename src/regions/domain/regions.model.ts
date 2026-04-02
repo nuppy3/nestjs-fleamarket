@@ -18,13 +18,13 @@ export interface RegionProps {
 export class Region {
   // domainを守るために、外部からNewさせない
   // 且つ、プロパティを定義をreadonlyにして更なる安全を確保
-  private code: string;
-  private name: string;
-  private kanaName: string;
-  private status: RegionStatus;
-  private kanaEn: string;
-  private createdAt: Date;
-  private updatedAt: Date;
+  private _code: string;
+  private _name: string;
+  private _kanaName: string;
+  private _status: RegionStatus;
+  private _kanaEn: string;
+  private _createdAt: Date;
+  private _updatedAt: Date;
 
   // constructorを private にして外部からの new を禁止する
   private constructor(
@@ -36,13 +36,13 @@ export class Region {
     createdAt: Date,
     updatedAt: Date,
   ) {
-    this.code = code;
-    this.name = name;
-    this.kanaName = kanaName;
-    this.status = status;
-    this.kanaEn = kanaEn;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this._code = code;
+    this._name = name;
+    this._kanaName = kanaName;
+    this._status = status;
+    this._kanaEn = kanaEn;
+    this._createdAt = createdAt;
+    this._updatedAt = updatedAt;
   }
 
   /**
@@ -92,7 +92,6 @@ export class Region {
     createdAt: Date,
     updatedAt: Date,
   ): Region {
-    // createdAt,updatedAtはデフォルトでdomain作成時時刻
     return new Region(
       code,
       name,
@@ -106,10 +105,45 @@ export class Region {
 
   /**
    * domain delete(ソフトデリート)
-   * ・status: 停止
+   * ・デリートしてもいいかの判定
+   * ・ソフトデリート（＝status: 停止/ updateAtの更新)
    */
   remove() {
-    this.status = 'suspended';
+    this._status = 'suspended';
+  }
+
+  // Getterを定義
+  /**
+   * Getter
+   * コンストラクタの引数名（内部変数名）に'_'(アンダースコア)をつけて手を加え、
+   * 外部に見せる名前（Getter）を綺麗な 変数名（code、name、、） に保つのが一般的。
+   *
+   * なぜ _（アンダースコア）がよく使われるのか？
+   * 多くのエンジニアが private readonly _code: string と書く理由は、
+   * **「外部に公開するプロパティ名（Getter名）を、一番自然な code という名前にしたいから」**です。
+   * 内部: _code（ちょっと汚くてもいい、隠れているから）
+   * 公開: code（利用者が使いやすい、綺麗な名前）
+   */
+  get code(): string {
+    return this._code;
+  }
+  get name(): string {
+    return this._name;
+  }
+  get kanaName(): string {
+    return this._kanaName;
+  }
+  get status(): RegionStatus {
+    return this._status;
+  }
+  get kanaEn(): string {
+    return this._kanaEn;
+  }
+  get createdAt(): Date {
+    return this._createdAt;
+  }
+  get updatedAt(): Date {
+    return this._updatedAt;
   }
 }
 

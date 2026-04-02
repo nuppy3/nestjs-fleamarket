@@ -3,13 +3,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Region as PrismaRegion, RegionStatus } from '../../generated/prisma';
+import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionMapper } from './infrastructure/region. mapper';
+
 @Injectable()
 export class RegionsService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -25,16 +26,31 @@ export class RegionsService {
 
     // prisma → domain
     // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
-    const domains: (Region & { id: string })[] = regions.map((region) => ({
-      id: region.id,
-      code: region.code,
-      name: region.name,
-      kanaName: region.kanaName,
-      status: region.status,
-      kanaEn: region.kanaEn,
-      createdAt: region.createdAt,
-      updatedAt: region.updatedAt,
-    }));
+    //   const domains: (Region & { id: string })[] = regions.map((region) => ({
+    //     id: region.id,
+    //     code: region.code,
+    //     name: region.name,
+    //     kanaName: region.kanaName,
+    //     status: region.status,
+    //     kanaEn: region.kanaEn,
+    //     createdAt: region.createdAt,
+    //     updatedAt: region.updatedAt,
+    //   }));
+    //   return domains;
+    // }
+
+    const domains: (Region & { id: string })[] = regions.map(
+      (region) => RegionMapper.toDomain(region),
+      // id: region.id,
+      // code: region.code,
+      // name: region.name,
+      // kanaName: region.kanaName,
+      // status: region.status,
+      // kanaEn: region.kanaEn,
+      // createdAt: region.createdAt,
+      // updatedAt: region.updatedAt,
+      //
+    );
     return domains;
   }
 
@@ -62,16 +78,18 @@ export class RegionsService {
     }
 
     // prisma → domain
-    const domain = {
-      id: prismaRegion.id,
-      code: prismaRegion.code,
-      name: prismaRegion.name,
-      kanaName: prismaRegion.kanaName,
-      status: prismaRegion.status,
-      kanaEn: prismaRegion.kanaEn,
-      createdAt: prismaRegion.createdAt,
-      updatedAt: prismaRegion.updatedAt,
-    } satisfies Region & { id: string };
+    const domain = RegionMapper.toDomain(prismaRegion);
+
+    // const domain = {
+    //   id: prismaRegion.id,
+    //   code: prismaRegion.code,
+    //   name: prismaRegion.name,
+    //   kanaName: prismaRegion.kanaName,
+    //   status: prismaRegion.status,
+    //   kanaEn: prismaRegion.kanaEn,
+    //   createdAt: prismaRegion.createdAt,
+    //   updatedAt: prismaRegion.updatedAt,
+    // } satisfies Region & { id: string };
 
     return domain;
   }
@@ -180,32 +198,80 @@ export class RegionsService {
       );
     }
 
-    // TODO: domain 削除（ドメインルール実行）
-    // region.delete();
+    // prisma → domain
+    const region = Region.reconstitute(
+      prismaRegion.code,
+      prismaRegion.name,
+      prismaRegion.kanaName,
+      prismaRegion.status,
+      prismaRegion.kanaEn,
+      prismaRegion.createdAt,
+      prismaRegion.updatedAt,
+    );
+
+    // domain + id
+    const regionWithId = Object.assign(region, {
+      id: prismaRegion.id,
+    });
+
+    // TODO :domain 削除（ドメインルール実行）
+    // regionWithId.delete();
 
     // 永続化: Region情報削除(ソフトデリート)
     // TODO： repositoryに移動
     const deleted = await this.prismaService.region.update({
       data: {
-        status: RegionStatus.suspended,
+        status: regionWithId.status,
         userId: userId,
         updatedAt: new Date(),
       },
-      where: { id },
+      where: { id: regionWithId.id },
     });
 
     // prisma → domain
-    const domain = {
-      id: deleted.id,
-      code: deleted.code,
-      name: deleted.name,
-      kanaName: deleted.kanaName,
-      status: deleted.status,
-      kanaEn: deleted.kanaEn,
-      createdAt: deleted.createdAt,
-      updatedAt: deleted.updatedAt,
-    } satisfies Region & { id: string };
+    // Region domainのプロパティをprivateでカプセル化したことにより、プロパティのアクセスは
+    // getter経由になったが、そのgetterなどのメソッドが足りないと(差がある)、satisfies Regionで
+    // 怒られてしまう。「Region クラスと全く同じ構造（メソッドも含めて）を持っているか？」を
+    // チェックするため、「メソッドが足りない！」と怒られてしまいます。(domainのルールであるremove()も
+    // ない）
+    // →
+    // const domain = { ... } satisfies Region は、メソッドが含まれないため失敗する。
+    // 結論：単純にオブジェクト{}にcode,nameなどのプロパティ値をセットして、satisfiesでチェック
+    //      するとNGになるので、prisma→domainの値だけの詰め替えは実施しない。
+    //      必ず Region.reconstitute(...) を使って、クラスのインスタンス(new Region())として
+    //      生成する。
+    //      そうすることで、domain.remove() などのメソッドも正しく使えるようになります。
+    //      インスタンス(メソッドが含まれている）に対してsatisfies すると問題ないので
+    //      決してsatisfiesが悪いわけではない。
+    //
+    // 以下をコメント化し、Region.reconstitute()に切り替え
+    // const domain = {
+    //   id: deleted.id,
+    //   code: deleted.code,
+    //   name: deleted.name,
+    //   kanaName: deleted.kanaName,
+    //   status: deleted.status,
+    //   kanaEn: deleted.kanaEn,
+    //   createdAt: deleted.createdAt,
+    //   updatedAt: deleted.updatedAt,
+    // } satisfies Region & { id: string };
 
-    return domain;
+    // prisma → domain (最新の状態をドメイン形式に変換)
+    // region = Region.reconstitute(
+    //   deleted.code,
+    //   deleted.name,
+    //   deleted.kanaName,
+    //   deleted.status,
+    //   deleted.kanaEn,
+    //   deleted.createdAt,
+    //   deleted.updatedAt,
+    // );
+
+    // // domain + id
+    // regionWithId = Object.assign(region, { id: deleted.id });
+
+    // 20260402: 上記の詰め替え処理をMapperに移管
+    // prisma → domain (最新の状態をドメイン形式に変換)
+    return RegionMapper.toDomain(deleted);
   }
 }
