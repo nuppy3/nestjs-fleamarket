@@ -83,23 +83,33 @@ export class Region {
   /**
    * domainの再構築（DB等からの再構築用（すでに日付がある場合））
    */
-  static reconstitute(
-    code: string,
-    name: string,
-    kanaName: string,
-    status: RegionStatus,
-    kanaEn: string,
-    createdAt: Date,
-    updatedAt: Date,
-  ): Region {
+  static reconstitute(props: {
+    code: string;
+    name: string;
+    kanaName: string;
+    status: RegionStatus;
+    kanaEn: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Region {
     return new Region(
-      code,
-      name,
-      kanaName,
-      status,
-      kanaEn,
-      createdAt,
-      updatedAt,
+      props.code,
+      props.name,
+      props.kanaName,
+      props.status,
+      props.kanaEn,
+      props.createdAt,
+      props.updatedAt,
+      // memo: 以下のようにスプレッド構文はNG（理由がちょっと深いのでmemoしておく
+      // ...props,
+      //
+      // ・オブジェクトの複製（これはOK）
+      // const newObj = { ...props };
+      // これは「新しいオブジェクトの中に、プロパティをコピーする」という意味なので通ります。
+      //
+      // ・関数の引数への展開（これがNG）
+      // new Region(...props);
+      // これは「props の中身を、1番目の引数、2番目の引数…として順番に渡す」という意味になります。オブジェクトには「1番目」という概念がないため、エラーになります。
     );
   }
 

@@ -30,15 +30,15 @@ export class RegionMapper {
    */
   static toDomain(record: PrismaRegion): Region & { id: string } {
     // prisma → domain
-    const domain = Region.reconstitute(
-      record.code,
-      record.name,
-      record.kanaName,
-      record.status,
-      record.kanaEn,
-      record.createdAt,
-      record.updatedAt,
-    );
+    const domain = Region.reconstitute({
+      code: record.code,
+      name: record.name,
+      kanaName: record.kanaName,
+      status: record.status,
+      kanaEn: record.kanaEn,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+    });
 
     // domain + id
     // 以下のような詰め替え方でsatisfiesするとRegionインスタンスじゃないので（メソッドが無かったり）

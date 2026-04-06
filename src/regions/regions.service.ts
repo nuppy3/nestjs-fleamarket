@@ -199,15 +199,15 @@ export class RegionsService {
     }
 
     // prisma → domain
-    const region = Region.reconstitute(
-      prismaRegion.code,
-      prismaRegion.name,
-      prismaRegion.kanaName,
-      prismaRegion.status,
-      prismaRegion.kanaEn,
-      prismaRegion.createdAt,
-      prismaRegion.updatedAt,
-    );
+    const region = Region.reconstitute({
+      code: prismaRegion.code,
+      name: prismaRegion.name,
+      kanaName: prismaRegion.kanaName,
+      status: prismaRegion.status,
+      kanaEn: prismaRegion.kanaEn,
+      createdAt: prismaRegion.createdAt,
+      updatedAt: prismaRegion.updatedAt,
+    });
 
     // domain + id
     const regionWithId = Object.assign(region, {
