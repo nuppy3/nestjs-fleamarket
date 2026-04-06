@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
-import { Region, RegionStatus } from './domain/regions.model';
+import { RegionStatus } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { RegionsService } from './regions.service';
 
@@ -60,9 +60,14 @@ describe('■■■ Region test ■■■', () => {
       // test対象service呼び出し
       const results = await regionsService.findAll();
 
-      // 検証
+      // 検証: プロパティのみ検証
       const expectedData = createExpectedData();
-      expect(results).toEqual(expectedData);
+      // 以下のexpect.objectContaining(expectedData)での比較だと_codeとcodeでの
+      // 比較をしてしまうのでNG
+      // expect(results).toEqual(expect.objectContaining(expectedData));
+
+      // toMatchObjectでの比較はgetterをベースに比較してくれる
+      expect(results).toMatchObject(expectedData);
     });
 
     it('正常系: Regionデータが０件の場合は空配列を返却する', async () => {
@@ -117,7 +122,9 @@ describe('■■■ Region test ■■■', () => {
       );
 
       // 検証
-      expect(result).toEqual(expected);
+      // expect(result).toEqual(expected);
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      expect(result).toMatchObject(expected!);
 
       // service→prismaService.region.findUnique()への引数の検証
       expect(
@@ -177,6 +184,8 @@ describe('■■■ Region test ■■■', () => {
       const result = await regionsService.create(dto, userId);
 
       // 期待値
+      // Regionドメインのカプセル化(getter()など追加)のため、プレーンなオブジェクトではないため
+      // satisfiesでの型チェックはできないし、しない。
       const expectedData = {
         id: '106509f2-0ba4-447c-8a98-473aa26e457a',
         name: '沖縄',
@@ -186,10 +195,18 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'okinawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      } satisfies Region & { id: string };
+        // } satisfies Region & { id: string };
+      };
 
       // 検証
-      expect(result).toEqual(expectedData);
+      // Regionを完全カプセル化したことにより、getterなどのfunctionが含まれているので
+      // toEqualでの完全一致比較だとNGになる。
+      // → objectContaining()にてプレーンなオブジェクトでの比較検証を行うのが定石
+      // expect(result).toEqual(expectedData);
+      expect(result).toEqual(expect.objectContaining(expectedData));
+      // ちなみに、以下でもプレーンオブエクト（プロパティとその値のみチェック）の判定が可能であり
+      // 上記とほぼ同じらしい。のでどちらか一方の検証をすればOK
+      expect(result).toMatchObject(expectedData);
     });
 
     // 任意項目なし
@@ -362,8 +379,12 @@ describe('■■■ Region test ■■■', () => {
       const result = await regionsService.remove(id, userId);
 
       // 検証
-      expect(result).toEqual(
-        createExpectedData().find((region) => region.id === id),
+      // expect(result).toEqual(
+      //   createExpectedData().find((region) => region.id === id),
+      // );
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      expect(result).toMatchObject(
+        createExpectedData().find((region) => region.id === id)!,
       );
 
       // 引数チェック
@@ -472,10 +493,17 @@ function createPrismaMockData(): PrismaRegion[] {
 
 /**
  * 期待値作成
+ *
+ * memo:
+ * mockDataの型指定(Region & { id: string })[]は不要（というかRegionはプレーンオブジェクト
+ * ではないので型指定すると不一致エラーが出てしまうので、削除。
+ *
  * @returns 期待値
  */
-function createExpectedData(): (Region & { id: string })[] {
-  const mockData: (Region & { id: string })[] = [
+function createExpectedData() {
+  // mockDataの型指定(Region & { id: string })[]は不要（というかRegionはプレーンオブジェクト
+  // ではないので型指定すると不一致エラーが出てしまう。
+  const expectedData = [
     {
       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       name: '北海道',
@@ -527,5 +555,5 @@ function createExpectedData(): (Region & { id: string })[] {
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
   ];
-  return mockData;
+  return expectedData;
 }
