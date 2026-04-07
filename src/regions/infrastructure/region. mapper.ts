@@ -1,5 +1,5 @@
 import { Prisma, Region as PrismaRegion } from 'generated/prisma';
-import { Region } from '../domain/regions.model';
+import { ReconstituteRegionProps, Region } from '../domain/regions.model';
 
 export class RegionMapper {
   // domain → prismaInput
@@ -38,7 +38,7 @@ export class RegionMapper {
       kanaEn: record.kanaEn,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
-    });
+    } satisfies ReconstituteRegionProps);
 
     // domain + id
     // 以下のような詰め替え方でsatisfiesするとRegionインスタンスじゃないので（メソッドが無かったり）

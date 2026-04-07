@@ -1,5 +1,36 @@
 /**
+ * Region domain 全属性(完全な状態)
+ */
+export interface RegionState {
+  code: string;
+  name: string;
+  kanaName: string;
+  kanaEn: string;
+  status: RegionStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * 【新規作成用】
  * Region domain作成時に必要はプロパティを型として定義
+ * 外部から入力される項目のみ（statusや日付は内部で生成するため除外）
+ */
+export type CreateRegionProps = Omit<
+  RegionState,
+  'status' | 'createdAt' | 'updatedAt'
+>;
+
+/**
+ * 【新規作成用】
+ * Region domain作成時に必要はプロパティを型として定義
+ * 外部から入力される項目のみ（statusや日付は内部で生成するため除外）
+ */
+export type ReconstituteRegionProps = RegionState;
+
+/**
+ * 【再構成用】
+ * DB等から戻ってくる全項目
  */
 export interface RegionProps {
   code: string;
@@ -62,9 +93,10 @@ export class Region {
     // status: RegionStatus,
     // kanaEn: string,
 
-    // → propsの項目（code,nameなど）をprivateにしたことでOmit<Region,...>の肩だとエラーになるため
+    // → propsの項目（code,nameなど）をprivateにしたことでOmit<Region,...>の型だとエラーになるため
     // 以下のようにRegionProps(interface)に切り替え（こちらばBP）
-    props: RegionProps,
+    // → CreateRegionPropsに修正
+    props: CreateRegionProps,
   ): Region {
     // createdAt,updatedAtはデフォルトでdomain作成時時刻
     // ステータスは強制的に「編集中」= EDITING
@@ -83,15 +115,7 @@ export class Region {
   /**
    * domainの再構築（DB等からの再構築用（すでに日付がある場合））
    */
-  static reconstitute(props: {
-    code: string;
-    name: string;
-    kanaName: string;
-    status: RegionStatus;
-    kanaEn: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Region {
+  static reconstitute(props: ReconstituteRegionProps): Region {
     return new Region(
       props.code,
       props.name,

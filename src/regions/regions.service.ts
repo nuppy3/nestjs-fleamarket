@@ -6,7 +6,7 @@ import {
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
-import { Region } from './domain/regions.model';
+import { ReconstituteRegionProps, Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionMapper } from './infrastructure/region. mapper';
@@ -207,7 +207,7 @@ export class RegionsService {
       kanaEn: prismaRegion.kanaEn,
       createdAt: prismaRegion.createdAt,
       updatedAt: prismaRegion.updatedAt,
-    });
+    } satisfies ReconstituteRegionProps);
 
     // domain + id
     const regionWithId = Object.assign(region, {

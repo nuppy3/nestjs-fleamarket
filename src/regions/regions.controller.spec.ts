@@ -213,7 +213,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         kanaEn: 'okinawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      } satisfies Region & { id: string };
+        // } satisfies Region & { id: string };
+      };
       // mock data set
       jest.spyOn(regionsService, 'create').mockResolvedValue(serviceMockData);
 
