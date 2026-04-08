@@ -1,7 +1,7 @@
 /**
  * Region domain 全属性(完全な状態)
  */
-export interface RegionState {
+interface RegionState {
   code: string;
   name: string;
   kanaName: string;
@@ -22,26 +22,10 @@ export type CreateRegionProps = Omit<
 >;
 
 /**
- * 【新規作成用】
- * Region domain作成時に必要はプロパティを型として定義
- * 外部から入力される項目のみ（statusや日付は内部で生成するため除外）
- */
-export type ReconstituteRegionProps = RegionState;
-
-/**
  * 【再構成用】
  * DB等から戻ってくる全項目
  */
-export interface RegionProps {
-  code: string;
-  name: string;
-  kanaName: string;
-  kanaEn: string;
-  // statusなどはcreateNewの中で自動設定するのでここには含めない
-  // status: RegionStatus;
-  // createdAt: Date;
-  // updatedAt: Date;
-}
+export type ReconstituteRegionProps = RegionState;
 
 /**
  * Region domain

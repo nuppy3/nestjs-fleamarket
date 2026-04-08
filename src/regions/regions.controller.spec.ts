@@ -3,7 +3,11 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
-import { Region, RegionStatus } from './domain/regions.model';
+import {
+  ReconstituteRegionProps,
+  Region,
+  RegionStatus,
+} from './domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
 import { RegionsController } from './regions.controller';
 import { RegionsService } from './regions.service';
@@ -204,8 +208,14 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       } satisfies CreateRegionDto;
 
       // service mock data 作成
-      const serviceMockData = {
-        id: '1024dc98-89a2-4db1-9431-b20feff57700',
+      // 自作のdomain作成メソッドで自作自演にならないの？ → ならない。本物を使うべき！
+      // Mock（入力値や外部サービスの戻り値）に関しては、本物のクラス（または完璧な模倣）を
+      // 返すべきです。なぜなら、その Mock を受け取る「
+      // テスト対象のコード」が、Region クラスであることを前提に動くから。
+      // 一方、テストの期待値 (Expected):→ クラスを使わずリテラルで比較すべき（自作自演防止）。
+
+      // mock Region domain 作成用の Props
+      const mockProps = {
         code: '10',
         name: '沖縄',
         kanaName: 'おきなわ',
@@ -213,8 +223,14 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         kanaEn: 'okinawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        // } satisfies Region & { id: string };
-      };
+      } satisfies ReconstituteRegionProps;
+      // mock Region domain 作成
+      const mockRegion = Region.reconstitute(mockProps);
+      // mock Region domain + id
+      const serviceMockData = Object.assign(mockRegion, {
+        id: '1024dc98-89a2-4db1-9431-b20feff57700',
+      });
+
       // mock data set
       jest.spyOn(regionsService, 'create').mockResolvedValue(serviceMockData);
 
@@ -346,8 +362,9 @@ describe('■■■　Regions Controller TEST ■■■', () => {
  * region service mock data 作成
  * @returns region service mock data
  */
-function createServiceMockData(): (Region & { id: string })[] {
-  const domains: (Region & { id: string })[] = [
+function createServiceMockData() {
+  // domain作成用のProps+idリスト
+  const propsList = [
     {
       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       name: '北海道',
@@ -388,8 +405,14 @@ function createServiceMockData(): (Region & { id: string })[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
     },
-  ];
-  return domains;
+  ] satisfies (ReconstituteRegionProps & { id: string })[];
+
+  const domainWithIds: (Region & { id: string })[] = propsList.map((props) => {
+    const domain = Region.reconstitute(props);
+    return Object.assign(domain, { id: props.id });
+  });
+
+  return domainWithIds;
 }
 
 /**
