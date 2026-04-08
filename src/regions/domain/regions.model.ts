@@ -117,7 +117,8 @@ export class Region {
       //
       // ・関数の引数への展開（これがNG）
       // new Region(...props);
-      // これは「props の中身を、1番目の引数、2番目の引数…として順番に渡す」という意味になります。オブジェクトには「1番目」という概念がないため、エラーになります。
+      // これは「props の中身を、1番目の引数、2番目の引数…として順番に渡す」という意味になります。
+      // オブジェクトには「1番目」という概念がないため、エラーになります。
     );
   }
 
@@ -132,10 +133,14 @@ export class Region {
    * ・ソフトデリート（＝status: 停止/ updateAtの更新)
    */
   remove() {
-    // 既に停止中の場合
+    // ルール①：既に停止中の場合
     if (this._status === RegionStatus.SUSPENDED) {
       throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
     }
+
+    // TODO // ルール②：紐づく都道府県が存在する場合は削除不可（参照整合性）
+
+    // TODO // ルール③：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
 
     this._status = RegionStatus.SUSPENDED;
     this._updatedAt = new Date();

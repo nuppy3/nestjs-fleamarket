@@ -10,10 +10,14 @@ import { ReconstituteRegionProps, Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionMapper } from './infrastructure/region. mapper';
+import { RegionRepository } from './infrastructure/region.repository';
 
 @Injectable()
 export class RegionsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly regionRepository: RegionRepository,
+  ) {}
 
   /**
    * エリア情報取得（全て）
@@ -188,6 +192,7 @@ export class RegionsService {
     // Region情報取得
     // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
     // TODO: いづれinfrastructure/repositoryに移動
+
     const prismaRegion = await this.prismaService.region.findUnique({
       where: { id },
     });
@@ -208,6 +213,9 @@ export class RegionsService {
       createdAt: prismaRegion.createdAt,
       updatedAt: prismaRegion.updatedAt,
     } satisfies ReconstituteRegionProps);
+
+    // --------------------
+    // TODO: ここまでをrepositoryに移動
 
     // domain + id
     const regionWithId = Object.assign(region, {
