@@ -6,7 +6,7 @@ import {
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import { RegionFactory } from './domain/regions.factory';
-import { ReconstituteRegionProps, Region } from './domain/regions.model';
+import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionMapper } from './infrastructure/region. mapper';
@@ -189,38 +189,39 @@ export class RegionsService {
    * @returns 削除したエリア情報
    */
   async remove(id: string, userId: string): Promise<Region & { id: string }> {
+    // 以下のPrismaからのRegion情報取得処理 → infrastructure/repository へ移動
+
     // Region情報取得
     // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
-    // TODO: いづれinfrastructure/repositoryに移動
+    // const prismaRegion = await this.prismaService.region.findUnique({
+    //   where: { id },
+    // });
 
-    const prismaRegion = await this.prismaService.region.findUnique({
-      where: { id },
-    });
+    // if (!prismaRegion) {
+    //   throw new NotFoundException(
+    //     `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+    //   );
+    // }
 
-    if (!prismaRegion) {
-      throw new NotFoundException(
-        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
-      );
-    }
+    // // prisma → domain
+    // const region = Region.reconstitute({
+    //   code: prismaRegion.code,
+    //   name: prismaRegion.name,
+    //   kanaName: prismaRegion.kanaName,
+    //   status: prismaRegion.status,
+    //   kanaEn: prismaRegion.kanaEn,
+    //   createdAt: prismaRegion.createdAt,
+    //   updatedAt: prismaRegion.updatedAt,
+    // } satisfies ReconstituteRegionProps);
 
-    // prisma → domain
-    const region = Region.reconstitute({
-      code: prismaRegion.code,
-      name: prismaRegion.name,
-      kanaName: prismaRegion.kanaName,
-      status: prismaRegion.status,
-      kanaEn: prismaRegion.kanaEn,
-      createdAt: prismaRegion.createdAt,
-      updatedAt: prismaRegion.updatedAt,
-    } satisfies ReconstituteRegionProps);
+    // // domain + id
+    // const regionWithId = Object.assign(region, {
+    //   id: prismaRegion.id,
+    // });
 
-    // --------------------
-    // TODO: ここまでをrepositoryに移動
-
-    // domain + id
-    const regionWithId = Object.assign(region, {
-      id: prismaRegion.id,
-    });
+    // Region情報取得
+    // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
+    const regionWithId = await this.regionRepository.findByIdOrFail(id);
 
     // domain 削除（ドメインルール実行）
     regionWithId.remove();
