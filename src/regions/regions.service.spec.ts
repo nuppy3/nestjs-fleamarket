@@ -3,7 +3,11 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
-import { Region, RegionStatus } from './domain/regions.model';
+import {
+  ReconstituteRegionProps,
+  Region,
+  RegionStatus,
+} from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { RegionRepository } from './infrastructure/region.repository';
 import { RegionsService } from './regions.service';
@@ -381,7 +385,7 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'hokkaidou',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      });
+      }) satisfies ReconstituteRegionProps;
       const regionWithId = Object.assign(mockRegion, {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       });
@@ -392,7 +396,7 @@ describe('■■■ Region test ■■■', () => {
         .mockResolvedValue(regionWithId);
 
       // prisma region 'update' mock data
-      const mocckDeleted = {
+      const mockDeleted = {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
         name: '北海道',
         code: '01',
@@ -404,9 +408,7 @@ describe('■■■ Region test ■■■', () => {
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       } satisfies PrismaRegion;
 
-      jest
-        .spyOn(prismaService.region, 'update')
-        .mockResolvedValue(mocckDeleted);
+      jest.spyOn(prismaService.region, 'update').mockResolvedValue(mockDeleted);
 
       // serviceの引数作成
       const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
@@ -428,7 +430,7 @@ describe('■■■ Region test ■■■', () => {
       // Serviceのテストにおいて、RegionMapper は 「本物を使ってもOK」 な部類です。
       // 理由は Region ドメインと同様に、外部依存がなく、実行が高速で、副作用がないからです。
 
-      // ⭐️TODO RepositoryのUTにて実施
+      // RepositoryのUTにて実施
       // 引数チェック
       // expect(
       //   jest.spyOn(prismaService.region, 'findUnique'),
