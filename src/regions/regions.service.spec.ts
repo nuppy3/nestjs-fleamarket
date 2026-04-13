@@ -3,10 +3,12 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
-import { RegionStatus } from './domain/regions.model';
+import { Region, RegionStatus } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
+import { RegionRepository } from './infrastructure/region.repository';
 import { RegionsService } from './regions.service';
 
+// MockService定義
 const mockPrismaSercie = {
   region: {
     findMany: jest.fn(),
@@ -16,10 +18,16 @@ const mockPrismaSercie = {
   },
 };
 
+// MockRepository定義
+const mockRegionRepository = {
+  findByIdOrFail: jest.fn(),
+};
+
 describe('■■■ Region test ■■■', () => {
   // DIモジュール
   let regionsService: RegionsService;
   let prismaService: PrismaService;
+  let regionRepository: RegionRepository;
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -28,24 +36,27 @@ describe('■■■ Region test ■■■', () => {
     // @Module({
     //   imports: [PrismaModule],
     //   controllers: [RegionsController],
-    //   providers: [RegionsService],
+    //   providers: [RegionsService, RegionRepository],
     // })
 
     const module = await Test.createTestingModule({
       providers: [
         RegionsService,
         { provide: PrismaService, useValue: mockPrismaSercie },
+        { provide: RegionRepository, useValue: mockRegionRepository },
       ],
     }).compile();
 
     regionsService = module.get<RegionsService>(RegionsService);
     prismaService = module.get<PrismaService>(PrismaService);
+    regionRepository = module.get<RegionRepository>(RegionRepository);
   });
 
-  // 前処理: 書くテストケースの前に毎回実行
+  // 前処理: 各テストケースの前に毎回実行
   beforeEach(() => {
     console.log('beforeEach: モックをリセット');
-    jest.clearAllMocks();
+    // jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   //--------------------------------------
@@ -333,13 +344,36 @@ describe('■■■ Region test ■■■', () => {
   });
 
   //--------------------------------------
-  // remove test
+  // remove() test
   //--------------------------------------
   describe('remove Test', () => {
     it('正常系： 指定idに関連するRegion情報が削除され、Regionドメイン(＋id)(全項目)を返却する', async () => {
-      // prisma region 'findUnique' mock data
-      const mockRegion = {
-        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      // TODO 以下はRegionRepositoryのUTにて実施 --------------
+
+      // // prisma region 'findUnique' mock data
+      // const mockPrismaRegion = {
+      //   id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      //   name: '北海道',
+      //   code: '01',
+      //   kanaName: 'ほっかいどう',
+      //   status: 'published',
+      //   kanaEn: 'hokkaidou',
+      //   createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      //   updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      //   userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      // } satisfies PrismaRegion;
+
+      // jest
+      //   .spyOn(prismaService.region, 'findUnique')
+      //   .mockResolvedValue(mockPrismaRegion);
+
+      // TODO RegionRepositoryのUTにて実施 --------------
+
+      // Repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.Reconstiture()を使う（BP)
+      // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。これを Mock にしてしまうと、
+      // テストコードが非常に複雑になる割にメリットがありません。
+      const mockRegion = Region.reconstitute({
         name: '北海道',
         code: '01',
         kanaName: 'ほっかいどう',
@@ -347,12 +381,15 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'hokkaidou',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      } satisfies PrismaRegion;
+      });
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
 
+      // mock data set (Repository)
       jest
-        .spyOn(prismaService.region, 'findUnique')
-        .mockResolvedValue(mockRegion);
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
 
       // prisma region 'update' mock data
       const mocckDeleted = {
@@ -378,7 +415,7 @@ describe('■■■ Region test ■■■', () => {
       // テスト対象 service 呼び出し
       const result = await regionsService.remove(id, userId);
 
-      // 検証
+      // 検証: RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
       // expect(result).toEqual(
       //   createExpectedData().find((region) => region.id === id),
       // );
@@ -387,12 +424,17 @@ describe('■■■ Region test ■■■', () => {
         createExpectedData().find((region) => region.id === id)!,
       );
 
+      // RegionMapper.toDomain()はMock化せず、本物を使用する
+      // Serviceのテストにおいて、RegionMapper は 「本物を使ってもOK」 な部類です。
+      // 理由は Region ドメインと同様に、外部依存がなく、実行が高速で、副作用がないからです。
+
+      // ⭐️TODO RepositoryのUTにて実施
       // 引数チェック
-      expect(
-        jest.spyOn(prismaService.region, 'findUnique'),
-      ).toHaveBeenCalledWith({
-        where: { id },
-      });
+      // expect(
+      //   jest.spyOn(prismaService.region, 'findUnique'),
+      // ).toHaveBeenCalledWith({
+      //   where: { id },
+      // });
 
       expect(jest.spyOn(prismaService.region, 'update')).toHaveBeenCalledWith({
         data: {
@@ -413,8 +455,17 @@ describe('■■■ Region test ■■■', () => {
       const id = 'xxxx';
       const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
+      // mock data 作成(Repository): Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(mockException);
+
+      // ⭐️TODO ここは、Repositoryにてテストを行う
       // mock data 作成 (データ無し)
-      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
+      // jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
 
       // 検証：NotFoundException
       await expect(regionsService.remove(id, userId)).rejects.toThrow(
