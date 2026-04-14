@@ -190,6 +190,7 @@ export class PrefecturesService {
 
       // regionCodeに紐づくエリア情報取得
       region = await this.regionsService.findByCodeOrFail(regionCode);
+      console.log('#### if文内 #### ');
     }
 
     // domain → prismaインプットパラメータ
@@ -205,6 +206,9 @@ export class PrefecturesService {
       // region?.id;
       ...(region && { regionId: region.id }),
     };
+
+    console.log('region: ', region);
+    console.log(region);
 
     try {
       // 都道府県情報の登録

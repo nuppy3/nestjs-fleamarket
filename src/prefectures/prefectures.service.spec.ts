@@ -7,7 +7,11 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { Region, RegionStatus } from '../regions/domain/regions.model';
+import {
+  ReconstituteRegionProps,
+  Region,
+  RegionStatus,
+} from '../regions/domain/regions.model';
 import { RegionsModule } from '../regions/regions.module';
 import { RegionsService } from '../regions/regions.service';
 import { PrismaService } from './../prisma/prisma.service';
@@ -674,8 +678,8 @@ describe('□□□ Prefecture Test □□□', () => {
       const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
       // RegionsService mock data 作成
-      const mockRegionData = {
-        id: '0524dc98-89a2-4db1-9431-b20feff57700',
+      const regionProps = {
+        // id: '0524dc98-89a2-4db1-9431-b20feff57700',
         code: '05',
         name: '北陸',
         kanaName: 'ホクリク',
@@ -683,10 +687,27 @@ describe('□□□ Prefecture Test □□□', () => {
         status: RegionStatus.PUBLISHED,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      } satisfies Region & { id: string };
+      } satisfies ReconstituteRegionProps;
+      const region = Region.reconstitute(regionProps);
+      const regionWithId = Object.assign(region, {
+        id: '0524dc98-89a2-4db1-9431-b20feff57700',
+      });
+
+      // region service mock data セット
       jest
         .spyOn(regionsService, 'findByCodeOrFail')
-        .mockResolvedValue(mockRegionData);
+        .mockResolvedValue(regionWithId);
+
+      jest
+        .spyOn(regionsService, 'findByCodeOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // (regionsService.findByCodeOrFail as jest.Mock).mockResolvedValue(
+      //   regionWithId,
+      // );
+
+      // すでに providers で渡している mock オブジェクトを直接操作する
+      mockRegionsService.findByCodeOrFail.mockResolvedValue(regionWithId);
 
       // prisma mock data 作成 : Prefecture情報
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
@@ -699,9 +720,24 @@ describe('□□□ Prefecture Test □□□', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         // Region data の id（region id)
-        regionId: mockRegionData.id,
+        regionId: regionWithId.id,
         userId: userId,
       });
+
+      const prismaSpy = jest
+        .spyOn(prismaService.prefecture, 'create')
+        .mockResolvedValue({
+          id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '石川県',
+          code: '24',
+          kanaName: 'イシカワ',
+          kanaEn: 'ishikawa',
+          status: 'published',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+          regionId: regionWithId.id,
+          userId: userId,
+        });
 
       // テスト対象service呼び出し
       const result = await prefectureService.create(dto, userId);
@@ -717,6 +753,19 @@ describe('□□□ Prefecture Test □□□', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+      });
+
+      // 引数検証
+      expect(prismaSpy).toHaveBeenCalledWith({
+        data: {
+          name: '石川県',
+          code: '24',
+          kanaName: 'イシカワ',
+          kanaEn: 'ishikawa',
+          status: 'published',
+          regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+          userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        },
       });
     });
 
@@ -734,7 +783,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // RegionsService mock data 作成
       const mockRegionData = {
-        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        // id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
         code: '05',
         name: '北陸',
         kanaName: 'ホクリク',
@@ -742,10 +791,14 @@ describe('□□□ Prefecture Test □□□', () => {
         status: RegionStatus.PUBLISHED,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      } satisfies Region & { id: string };
+      } satisfies ReconstituteRegionProps;
+      const region = Region.reconstitute(mockRegionData);
+      const regionWithId = Object.assign(region, {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+      });
       jest
         .spyOn(regionsService, 'findByCodeOrFail')
-        .mockResolvedValue(mockRegionData);
+        .mockResolvedValue(regionWithId);
 
       // prisma modk data 作成 : Prefecture情報
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
