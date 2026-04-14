@@ -352,7 +352,7 @@ describe('■■■ Region test ■■■', () => {
   //--------------------------------------
   describe('remove Test', () => {
     it('正常系： 指定idに関連するRegion情報が削除され、Regionドメイン(＋id)(全項目)を返却する', async () => {
-      // TODO 以下はRegionRepositoryのUTにて実施 --------------
+      // 以下はRegionRepositoryのUTにて実施 --------------
 
       // // prisma region 'findUnique' mock data
       // const mockPrismaRegion = {
@@ -371,12 +371,12 @@ describe('■■■ Region test ■■■', () => {
       //   .spyOn(prismaService.region, 'findUnique')
       //   .mockResolvedValue(mockPrismaRegion);
 
-      // TODO RegionRepositoryのUTにて実施 --------------
+      // RegionRepositoryのUTにて実施 --------------
 
       // Repository mock data 作成
-      // Region & {id:string} の生成は本物のRegion.Reconstiture()を使う（BP)
-      // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。これを Mock にしてしまうと、
-      // テストコードが非常に複雑になる割にメリットがありません。
+      // Region & {id:string} の生成は本物のRegion.reconstiture()を使う（BP)
+      // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。
+      // これを Mock にしてしまうと、テストコードが非常に複雑になる割にメリットがありません。
       const mockRegion = Region.reconstitute({
         name: '北海道',
         code: '01',
