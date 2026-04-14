@@ -126,6 +126,9 @@ export class Region {
    * domain delete(ソフトデリート)
    * デリートロジックを集約（serviceなどに漏らさない)
    *
+   * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
+   * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
+   *
    * ・デリートしてもいいかの判定
    *  例：
    *  - すでに利用停止状態の場合は削除しない(エラーを投げる）
@@ -133,17 +136,31 @@ export class Region {
    * ・ソフトデリート（＝status: 停止/ updateAtの更新)
    */
   remove() {
+    // 削除可能か判定(ガード節)：ドメインルール
+    this.validateCanDelete();
+
+    // ステータス更新と更新日付セット
+    this._status = RegionStatus.SUSPENDED;
+    this._updatedAt = new Date();
+  }
+
+  /**
+   * 削除（利用停止）が可能かどうかのビジネスルールを判定
+   * 判定NGの場合はエラーをスロー(ガード節)
+   *
+   * 外部から「削除ボタンを表示するかどうか」の判定にも使えるよう public にするのもアリです
+   */
+  private validateCanDelete(): void {
     // ルール①：既に停止中の場合
     if (this._status === RegionStatus.SUSPENDED) {
       throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
     }
 
-    // TODO // ルール②：紐づく都道府県が存在する場合は削除不可（参照整合性）
+    // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
 
-    // TODO // ルール③：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
+    // TODO // ルール③ 例：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
 
-    this._status = RegionStatus.SUSPENDED;
-    this._updatedAt = new Date();
+    // TODO // ルール④ 例：北陸地方（code:05）の場合、特定の期間中は削除不可
   }
 
   // Getterを定義
