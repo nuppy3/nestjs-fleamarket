@@ -12,7 +12,6 @@ import {
   Region,
   RegionStatus,
 } from '../regions/domain/regions.model';
-import { RegionsModule } from '../regions/regions.module';
 import { RegionsService } from '../regions/regions.service';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -30,11 +29,6 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     count: jest.fn(),
   },
-  // create()内でregionsService.findByCodeOrFail()→prismaService.region.findUnique()
-  // のregion.findUnique()をmock化していたが、mockRegionsServiceに切り替え
-  // region: {
-  //   findUnique: jest.fn(),
-  // },
 };
 
 /**
@@ -77,7 +71,12 @@ describe('□□□ Prefecture Test □□□', () => {
       // { provide: PrismaService, useValue: mockPrismaService },を記述しつつ、
       // .overrideProvider(PrismaService).useValue(mockPrismaService).compile()も
       // 実施すること！！！ああ、ハマった！
-      imports: [RegionsModule],
+      // imports: [RegionsModule],
+      // → 結論(最終）： importsを使うと、本物のインスタンスを参照しにいく。（mockではなく
+      //    実際のRegionMoculeを参照する。ので、provideのmockRegionServiceと競合が
+      //    起きたり、依存関係の瞑想地獄に陥る。当たり前だが、UTなので、本物を使うようなtestは
+      //    なるべく避けるのが望ましいので、importsは極力使わない方がいい!!
+      // imports: [RegionsModule],  ← ここな
       providers: [
         PrefecturesService,
         ConfigService,
@@ -87,8 +86,8 @@ describe('□□□ Prefecture Test □□□', () => {
       ],
     })
       // もし RegionsModule 内部の Service が「本物の PrismaService」を見に行ってしまう場合のみ追加
-      .overrideProvider(PrismaService)
-      .useValue(mockPrismaService)
+      // .overrideProvider(PrismaService)
+      // .useValue(mockPrismaService)
       .compile();
 
     prefectureService = module.get<PrefecturesService>(PrefecturesService);
@@ -698,16 +697,12 @@ describe('□□□ Prefecture Test □□□', () => {
         .spyOn(regionsService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
-      jest
-        .spyOn(regionsService, 'findByCodeOrFail')
-        .mockResolvedValue(regionWithId);
-
       // (regionsService.findByCodeOrFail as jest.Mock).mockResolvedValue(
       //   regionWithId,
       // );
 
       // すでに providers で渡している mock オブジェクトを直接操作する
-      mockRegionsService.findByCodeOrFail.mockResolvedValue(regionWithId);
+      // mockRegionsService.findByCodeOrFail.mockResolvedValue(regionWithId);
 
       // prisma mock data 作成 : Prefecture情報
       jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
