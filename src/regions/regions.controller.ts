@@ -105,8 +105,22 @@ export class RegionsController {
    * @returns エリア情報更新結果オブジェクト
    */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
-    return this.regionsService.update(id, updateRegionDto);
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
+  update(
+    @Param('id') id: string,
+    @Body() updateRegionDto: UpdateRegionDto,
+  ): RegionResponseDto {
+    const updated = this.regionsService.update(id, updateRegionDto);
+
+    const hogeDto = new RegionResponseDto();
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, hogeDto, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto;
   }
 
   /**
