@@ -109,10 +109,16 @@ export class RegionsController {
   update(
     @Param('id') id: string,
     @Body() updateRegionDto: UpdateRegionDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
   ): RegionResponseDto {
-    const updated = this.regionsService.update(id, updateRegionDto);
+    const updated = this.regionsService.update(
+      id,
+      updateRegionDto,
+      req.user.id,
+    );
 
     const hogeDto = new RegionResponseDto();
+    hogeDto.name = req.user.id;
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
       plainToInstance(RegionResponseDto, hogeDto, {

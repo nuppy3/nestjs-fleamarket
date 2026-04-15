@@ -176,7 +176,14 @@ export class RegionsService {
     return savedDomain;
   }
 
-  update(id: string, updateRegionDto: UpdateRegionDto) {
+  /**
+   *
+   * @param id
+   * @param updateRegionDto
+   * @param userId
+   * @returns
+   */
+  update(id: string, updateRegionDto: UpdateRegionDto, userId: string) {
     return `This action updates a #${id} region`;
   }
 
