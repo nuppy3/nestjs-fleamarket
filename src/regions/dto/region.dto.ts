@@ -35,7 +35,7 @@ export class CreateRegionDto {
   @MaxLength(40)
   kanaName!: string;
 
-  // PrefectureStatusは厳密なEnumではない（modern Enum=union)のだが@IsEnum()が効くみたい！
+  // PrefectureStatusは厳密なEnumではない（modern Enum=union)だが@IsEnum()が効くみたい！
   @IsEnum(RegionStatus, {
     message: `StoreStatus must be one of: ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
   })

@@ -176,7 +176,7 @@ export class RegionsService {
     return savedDomain;
   }
 
-  update(id: number, updateRegionDto: UpdateRegionDto) {
+  update(id: string, updateRegionDto: UpdateRegionDto) {
     return `This action updates a #${id} region`;
   }
 

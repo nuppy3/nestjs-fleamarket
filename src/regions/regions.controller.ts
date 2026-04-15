@@ -92,9 +92,21 @@ export class RegionsController {
     ) as RegionResponseDto;
   }
 
+  /**
+   * update(): エリア情報更新API
+   *
+   * update()の引数(パラメータ)について
+   * IDをURLに含め、更新対象をBodyのDTOから取得する（REST標準）
+   * NestJS の CLI（nest g resource）などで自動生成すると、以下のパラメータとなる。
+   * update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto)
+   *
+   * @param id
+   * @param updateRegionDto エリア情報更新対象DTO
+   * @returns エリア情報更新結果オブジェクト
+   */
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
-    return this.regionsService.update(+id, updateRegionDto);
+    return this.regionsService.update(id, updateRegionDto);
   }
 
   /**
