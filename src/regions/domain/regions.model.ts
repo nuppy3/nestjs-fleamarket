@@ -22,6 +22,18 @@ export type CreateRegionProps = Omit<
 >;
 
 /**
+ * 【更新用】
+ * Region domain更新時に必要はプロパティを型として定義
+ * 日付以外は更新対象
+ *
+ * 型はRegionStateをベースとした任意項目：
+ *  ・Partial<Omit<RegionState, '' | '' | ''>>
+ */
+export type UpdateRegionProps = Partial<
+  Omit<RegionState, 'createdAt' | 'updatedAt'>
+>;
+
+/**
  * 【再構成用】
  * DB等から戻ってくる全項目
  */
@@ -124,7 +136,7 @@ export class Region {
 
   /**
    * domain delete(ソフトデリート)
-   * デリートロジックを集約（serviceなどに漏らさない)
+   * deleteロジックを集約（serviceなどに漏らさない)
    *
    * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
    * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
@@ -145,6 +157,57 @@ export class Region {
   }
 
   /**
+   * domain update: domain更新
+   * updateロジックを集約（serviceなどに漏らさない)
+   *
+   * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
+   * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
+   *
+   * ・updateしてもいいかの判定
+   *  例：
+   *  - ステータスが掲載中の場合は更新不可(エラーを投げる）
+   *  - 紐づく都道府県が存在する場合は更新しない
+   *
+   * @param props 更新対象のプロパティ
+   */
+  update(props: UpdateRegionProps) {
+    // ドメインルール： 更新可能か判定(ガード節)
+    this.validateCanUpdate();
+
+    // props.codeがnullの場合は、そのままnullでupdateさせる仕様のためundefinedのみ判定
+    // ちなみに、リクエストパラメータでcodeの項目が無ければundefinedで渡される。
+    // JSONリクエストボディで項目自体を省略した場合（例: { "code": "JP" } のように name を
+    // 書かない場合）：
+    // class-transformer（ValidationPipeのtransform: true時）がDTOインスタンスを
+    // 作成する際に、存在しないプロパティは undefined として扱われる。
+    if (props.code !== undefined) {
+      this._code = props.code;
+    }
+    // 上記の三項演算子版 ： Reactなどでは三項演算子が多様されるが、近年は可読性重視でif文優勢らしい
+    this._code = props.code !== undefined ? props.code : this._code;
+
+    if (props.name !== undefined) {
+      this._name = props.name;
+    }
+
+    if (props.kanaName !== undefined) {
+      this._kanaName = props.kanaName;
+    }
+
+    if (props.kanaEn !== undefined) {
+      this._kanaEn = props.kanaEn;
+    }
+
+    if (props.status !== undefined) {
+      this._status = props.status;
+    }
+
+    if (props.code !== undefined) {
+      this._code = props.code;
+    }
+  }
+
+  /**
    * 削除（利用停止）が可能かどうかのビジネスルールを判定
    * 判定NGの場合はエラーをスロー(ガード節)
    *
@@ -154,6 +217,27 @@ export class Region {
     // ルール①：既に停止中の場合
     if (this._status === RegionStatus.SUSPENDED) {
       throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
+    }
+
+    // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
+
+    // TODO // ルール③ 例：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
+
+    // TODO // ルール④ 例：北陸地方（code:05）の場合、特定の期間中は削除不可
+  }
+
+  /**
+   * 削除（利用停止）が可能かどうかのビジネスルールを判定
+   * 判定NGの場合はエラーをスロー(ガード節)
+   *
+   * 外部から「削除ボタンを表示するかどうか」の判定にも使えるよう public にするのもアリです
+   */
+  private validateCanUpdate(): void {
+    // ルール①：ステータスが掲載中の場合
+    if (this._status === RegionStatus.PUBLISHED) {
+      throw new Error(
+        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${this._name}`,
+      );
     }
 
     // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
@@ -198,6 +282,9 @@ export class Region {
   }
 }
 
+/**
+ * Region ステータス：ビジネスアクション
+ */
 export const RegionStatus = {
   PUBLISHED: 'published', // 掲載中
   EDITING: 'editing', // 編集中

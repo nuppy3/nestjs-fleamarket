@@ -177,14 +177,38 @@ export class RegionsService {
   }
 
   /**
+   * update(): エリア情報更新
    *
-   * @param id
-   * @param updateRegionDto
-   * @param userId
+   * @param id エリア情報のID（更新対象のkey）
+   * @param updateRegionDto 更新対象のエリア情報
+   * @param userId ユーザーID
    * @returns
    */
-  update(id: string, updateRegionDto: UpdateRegionDto, userId: string) {
-    return `This action updates a #${id} region`;
+  async update(
+    id: string,
+    updateRegionDto: UpdateRegionDto,
+    userId: string,
+  ): Promise<Region & { id: string }> {
+    // dto取得
+    const { name, code, kanaName, status, kanaEn } = updateRegionDto;
+
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    const regionWithId = await this.regionRepository.findByIdOrFail(id);
+
+    // domain更新(dtoの項目で更新): ドメインルール（例：特定のステータスなら名前は変えられない等）をチェック
+    regionWithId.update({
+      name,
+      code,
+      kanaName,
+      status,
+      kanaEn,
+    } satisfies UpdateRegionDto);
+
+    // 永続化（DB更新) → domain(toDomain)
+    const saved = await this.regionRepository.save(regionWithId, userId);
+
+    return saved;
   }
 
   /**
@@ -199,7 +223,13 @@ export class RegionsService {
     // 以下のPrismaからのRegion情報取得処理 → infrastructure/repository へ移動
 
     // Region情報取得
-    // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
+    // ⭐️当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
+    // → 正確には、外部の窓口としているfunction(public)を呼ぶのはNGということ
+    //   findOne()を呼ぶのはNG。findOne()は外の都合に振り回される（仕様変更）可能性が高いため。
+    //   ただ、内部の共通部品として(private)、findByIdOrFail()などを作成し(Idに関連するオブジェクトが
+    //   存在しなければエラーを返)実装し、findOne()の中でその内部の共通部品を呼ぶのはOK。
+    //   findOne()もupdate()もremove()も、すべて「まずデータがあること」が前提です。
+    //   その共通前提を findByCodeOrFail に集約することで、1箇所修正すればすべてのメソッドに反映されます。
     // const prismaRegion = await this.prismaService.region.findUnique({
     //   where: { id },
     // });
@@ -228,6 +258,8 @@ export class RegionsService {
 
     // Region情報取得
     // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
+    // privateとして作成した内部共通functionは読んでもいいらしい。詳しくは上記の⭐️を参照
+    //
     const regionWithId = await this.regionRepository.findByIdOrFail(id);
 
     // domain 削除（ドメインルール実行）

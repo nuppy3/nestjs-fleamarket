@@ -106,22 +106,21 @@ export class RegionsController {
    */
   @Patch(':id')
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateRegionDto: UpdateRegionDto,
     @Request() req: ExpressRequest & { user: RequestUser },
-  ): RegionResponseDto {
-    const updated = this.regionsService.update(
+  ): Promise<RegionResponseDto> {
+    // エリア情報更新
+    const updated = await this.regionsService.update(
       id,
       updateRegionDto,
       req.user.id,
     );
 
-    const hogeDto = new RegionResponseDto();
-    hogeDto.name = req.user.id;
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
-      plainToInstance(RegionResponseDto, hogeDto, {
+      plainToInstance(RegionResponseDto, updated, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
