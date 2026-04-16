@@ -205,6 +205,8 @@ export class Region {
     if (props.code !== undefined) {
       this._code = props.code;
     }
+
+    this._updatedAt = new Date();
   }
 
   /**
