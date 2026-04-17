@@ -200,10 +200,6 @@ export class Region {
       this._status = props.status;
     }
 
-    if (props.code !== undefined) {
-      this._code = props.code;
-    }
-
     this._updatedAt = new Date();
   }
 
@@ -282,6 +278,8 @@ export class Region {
   }
 
   // Setterを定義
+  // ⭐️基本的に Setter は削除 し、状態変更は必ず update() や remove() といった
+  // 「意味のあるメソッド」経由に限定するのが DDD の王道なのだが、一旦実装してみている状態。
   /**
    * Getter
    * コンストラクタの引数名（内部変数名）に'_'(アンダースコア)をつけて手を加え、
