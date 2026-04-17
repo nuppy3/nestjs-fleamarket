@@ -29,9 +29,7 @@ export type CreateRegionProps = Omit<
  * 型はRegionStateをベースとした任意項目：
  *  ・Partial<Omit<RegionState, '' | '' | ''>>
  */
-export type UpdateRegionProps = Partial<
-  Omit<RegionState, 'createdAt' | 'updatedAt'>
->;
+export type UpdateRegionProps = Partial<Omit<RegionState, 'createdAt'>>;
 
 /**
  * 【再構成用】
@@ -281,6 +279,42 @@ export class Region {
   }
   get updatedAt(): Date {
     return this._updatedAt;
+  }
+
+  // Setterを定義
+  /**
+   * Getter
+   * コンストラクタの引数名（内部変数名）に'_'(アンダースコア)をつけて手を加え、
+   * 外部に見せる名前（Getter）を綺麗な 変数名（code、name、、） に保つのが一般的。
+   *
+   * なぜ _（アンダースコア）がよく使われるのか？
+   * 多くのエンジニアが private readonly _code: string と書く理由は、
+   * **「外部に公開するプロパティ名（Getter名）を、一番自然な code という名前にしたいから」**です。
+   * 内部: _code（ちょっと汚くてもいい、隠れているから）
+   * 公開: code（利用者が使いやすい、綺麗な名前）
+   */
+  set code(code: string) {
+    this._code = code;
+  }
+
+  set name(name: string) {
+    this._name = name;
+  }
+
+  set kanaName(kanaName: string) {
+    this._kanaName = kanaName;
+  }
+
+  set status(status: RegionStatus) {
+    this._status = status;
+  }
+
+  set kanaEn(kanaEn: string) {
+    this._kanaEn = kanaEn;
+  }
+
+  set updatedAt(updatedAt: Date) {
+    this._updatedAt = updatedAt;
   }
 }
 
