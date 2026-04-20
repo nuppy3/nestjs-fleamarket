@@ -9,6 +9,7 @@ import {
   RegionStatus,
 } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
+import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionRepository } from './infrastructure/region.repository';
 import { RegionsService } from './regions.service';
 
@@ -25,6 +26,7 @@ const mockPrismaSercie = {
 // MockRepository定義
 const mockRegionRepository = {
   findByIdOrFail: jest.fn(),
+  save: jest.fn(),
 };
 
 describe('■■■ Region test ■■■', () => {
@@ -471,6 +473,107 @@ describe('■■■ Region test ■■■', () => {
 
       // 検証：NotFoundException
       await expect(regionsService.remove(id, userId)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
+    });
+  });
+
+  //--------------------------------------
+  // update() test
+  //--------------------------------------
+  describe('update Test', () => {
+    it('正常系： 指定idに関連するRegion情報を更新し、Regionドメイン(＋id)(全項目)を返却する', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道のid
+      const dto = {
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // Repository.findByIdOrFail mock data 作成: domainをreconstituteで作成(時間などをセットできるため)
+      const region = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps);
+      const regionWithId = Object.assign(region, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // Repository.save mock data 作成
+      const savedRegion = Region.reconstitute({
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-25T12:30:00.000Z'),
+      }) satisfies ReconstituteRegionProps;
+      const savedRegionWithId = Object.assign(savedRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest.spyOn(regionRepository, 'save').mockResolvedValue(savedRegionWithId);
+
+      // テスト対象 service 呼び出し
+      const result = await regionsService.update(id, dto, userId);
+
+      // 期待値: Region & {id:string}型だが、_name,_codeやgetterなどが無いので
+      //        satisfiesでの型判定はしない。
+      const expected = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-25T12:30:00.000Z'),
+      };
+
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      expect(result).toMatchObject(expected);
+    });
+
+    it('異常系： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる(エラーの伝搬)', async () => {
+      // serviceの引数作成
+      const id = 'xxxx';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      const dto = {
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+
+      // mock data 作成(Repository): Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(mockException);
+
+      // 検証：NotFoundException
+      await expect(regionsService.update(id, dto, userId)).rejects.toThrow(
         new NotFoundException(
           `idに関連するエリア情報が存在しません!! regionId: ${id}`,
         ),

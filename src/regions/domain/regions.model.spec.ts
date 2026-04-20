@@ -63,22 +63,18 @@ describe('□□□ Region Domain Test □□□', () => {
   // update() test
   // -----------------------------
   describe('------ update() test ------', () => {
-    it('正常系: validateCanDeleteを通過し、プロパティ(全項目)が更新されること', () => {
-      // Region domain 生成: UTなのでdomain生成はどんなやり方でもいいが、reconstituteはでは
-      // createdAtが必要で型エラーが出るので、createNewで作る
-      const region = Region.createNew({
+    it('正常系: validateCanDeleteを通過し(status:published以外)、プロパティ(全項目)が更新されること', () => {
+      // Region domain 生成: createNewでdomainを作成すると、createdAt、updatedAtなどの
+      // 日付が指定できないので、reconstitute()を使うのがベスト。
+      const region = Region.reconstitute({
         name: '北アメリカ',
         code: '14',
         kanaName: 'キタアメリカ',
-        // status: 'editing',
+        status: 'editing',
         kanaEn: 'kitaamerika',
-        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       }) satisfies UpdateRegionProps;
-
-      // setterが呼ばれる
-      region.status = 'editing';
-      region.updatedAt = new Date('2025-04-05T12:30:00.000Z');
 
       // 実行直前の時刻
       const before = new Date();
