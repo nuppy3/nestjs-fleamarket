@@ -19,6 +19,9 @@ import { RegionMapper } from './region. mapper';
  * に移管している。
  *
  * 外部の世界（データベース、Web、UI）からユースケースとdomain(エンティティ）への変換を行う。
+ *
+ * 20260421: DDD/CAの中でのRepositoryの役割(BP)は「ドメインの境界」を守る門番
+ *
  */
 @Injectable()
 export class RegionRepository {

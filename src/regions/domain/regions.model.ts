@@ -133,28 +133,6 @@ export class Region {
   }
 
   /**
-   * domain delete(ソフトデリート)
-   * deleteロジックを集約（serviceなどに漏らさない)
-   *
-   * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
-   * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
-   *
-   * ・デリートしてもいいかの判定
-   *  例：
-   *  - すでに利用停止状態の場合は削除しない(エラーを投げる）
-   *  - 紐づく都道府県が存在する場合は削除しない
-   * ・ソフトデリート（＝status: 停止/ updateAtの更新)
-   */
-  remove() {
-    // 削除可能か判定(ガード節)：ドメインルール
-    this.validateCanDelete();
-
-    // ステータス更新と更新日付セット
-    this._status = RegionStatus.SUSPENDED;
-    this._updatedAt = new Date();
-  }
-
-  /**
    * domain update: domain更新
    * updateロジックを集約（serviceなどに漏らさない)
    *
@@ -204,15 +182,39 @@ export class Region {
   }
 
   /**
-   * 削除（利用停止）が可能かどうかのビジネスルールを判定
+   * domain delete(ソフトデリート)
+   * deleteロジックを集約（serviceなどに漏らさない)
+   *
+   * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
+   * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
+   *
+   * ・デリートしてもいいかの判定
+   *  例：
+   *  - すでに利用停止状態の場合は削除しない(エラーを投げる）
+   *  - 紐づく都道府県が存在する場合は削除しない
+   * ・ソフトデリート（＝status: 停止/ updateAtの更新)
+   */
+  remove() {
+    // 削除可能か判定(ガード節)：ドメインルール
+    this.validateCanDelete();
+
+    // ステータス更新と更新日付セット
+    this._status = RegionStatus.SUSPENDED;
+    this._updatedAt = new Date();
+  }
+
+  /**
+   * 更新が可能かどうかのビジネスルールを判定
    * 判定NGの場合はエラーをスロー(ガード節)
    *
    * 外部から「削除ボタンを表示するかどうか」の判定にも使えるよう public にするのもアリです
    */
-  private validateCanDelete(): void {
-    // ルール①：既に停止中の場合
-    if (this._status === RegionStatus.SUSPENDED) {
-      throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
+  private validateCanUpdate(): void {
+    // ルール①：ステータスが掲載中の場合
+    if (this._status === RegionStatus.PUBLISHED) {
+      throw new Error(
+        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${this._name}`,
+      );
     }
 
     // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
@@ -228,15 +230,30 @@ export class Region {
    *
    * 外部から「削除ボタンを表示するかどうか」の判定にも使えるよう public にするのもアリです
    */
-  private validateCanUpdate(): void {
-    // ルール①：ステータスが掲載中の場合
-    if (this._status === RegionStatus.PUBLISHED) {
-      throw new Error(
-        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${this._name}`,
-      );
+  private validateCanDelete(): void {
+    // ルール①：既に停止中の場合
+    if (this._status === RegionStatus.SUSPENDED) {
+      throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
     }
 
-    // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
+    // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
+    // → 判定に必要な「紐づく都道府県の件数」をdomainで保持するのは不自然なので、domain内で
+    //   当該判定は実施しない。service内で実施する。
+    //   _prefectureIds を持たせるのは「間違いではないが、もっと良い（DDD/CAらしい）方法がある」
+    //
+    // DDDの原則に照らすと、以下の懸念が出てきます。
+    // 整合性の維持が困難: Prefecture が増えたり減ったりするたびに、Region 側の _prefectureIds も
+    //                  更新しなければなりません。データが二重管理になり、バグの温床になります。
+    // 不自然な依存: 本来、都道府県（Prefecture）が地方（Region）を参照する形が自然です。
+    //             地方がわざわざ「自分の子供たちの名簿」を常に抱えているのは、ドメインモデルが
+    //             重くなりすぎる原因になります。
+    //
+    // 「外部から教えてもらう（引数）」か「詳しい人に聞く（Domain Service）」のどちらかを選ぶことで、
+    //  Region モデルを軽く、美しく保つことができますよ！
+    //
+    // 結論：
+    // 「Aを消す時にBが存在するか」というチェックは、集約を跨ぐ操作なので Domain Service に
+    // 書くのが最も一般的です。
 
     // TODO // ルール③ 例：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
 

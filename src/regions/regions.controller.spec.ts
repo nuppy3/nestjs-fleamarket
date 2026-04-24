@@ -9,6 +9,7 @@ import {
   RegionStatus,
 } from './domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from './dto/region.dto';
+import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionsController } from './regions.controller';
 import { RegionsService } from './regions.service';
 
@@ -17,6 +18,7 @@ const mockRegionsService = {
   create: jest.fn(),
   findByCodeOrFail: jest.fn(),
   remove: jest.fn(),
+  update: jest.fn(),
 };
 
 describe('■■■　Regions Controller TEST ■■■', () => {
@@ -282,6 +284,113 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       ).rejects.toThrow(PrismaClientKnownRequestError);
 
       // 検証
+    });
+  });
+
+  //--------------------------------
+  // update() test
+  //--------------------------------
+  describe('update() test', () => {
+    it('正常系：指定idに関連するエリア情報を更新し、削除対象のDto(全項目)を返却する', async () => {
+      // 引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+      const dto = {
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+
+      // mock data 作成
+      const updatedDomain = Region.reconstitute({
+        // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-25T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps);
+      const updatedDomainWithId = Object.assign(updatedDomain, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // service に mock deta セット
+      jest
+        .spyOn(regionsService, 'update')
+        .mockResolvedValue(updatedDomainWithId);
+
+      // test 対象 controller 呼び出し
+      const result = await regionsController.update(
+        id,
+        dto,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        req as ExpressRequest & { user: RequestUser },
+      );
+
+      // 検証
+      expect(result).toEqual({
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+        statusLabel: '反映中',
+      } satisfies RegionResponseDto);
+    });
+
+    it('異常系：idに関連するエリア情報が存在しない。(serviceのNotFoundExceptionを伝播', async () => {
+      // 引数作成
+      const id = 'xxxx';
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+      const dto = {
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+
+      // mock data (NotFoundException)
+      jest
+        .spyOn(regionsService, 'update')
+        .mockRejectedValue(
+          new NotFoundException(
+            `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+          ),
+        );
+
+      // 検証
+      await expect(
+        regionsController.update(
+          id,
+          dto,
+          req as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
     });
   });
 
