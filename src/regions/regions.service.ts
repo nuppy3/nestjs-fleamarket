@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import { RegionsDomainService } from './domain/regions.domain.service';
 import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
@@ -16,6 +17,7 @@ import { RegionRepository } from './infrastructure/region.repository';
 export class RegionsService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly regionsService: RegionsDomainService,
     private readonly regionRepository: RegionRepository,
   ) {}
 
@@ -262,7 +264,10 @@ export class RegionsService {
     //
     const regionWithId = await this.regionRepository.findByIdOrFail(id);
 
-    // domain 削除（ドメインルール実行）
+    // 削除可能か判定：他のドメインに依存する判定など
+    // this.regionsService.
+
+    // domain 削除（ドメインルール実行：domain内部ロジックのみ）
     regionWithId.remove();
 
     // 永続化: Region情報削除(ソフトデリート)
