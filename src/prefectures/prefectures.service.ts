@@ -252,8 +252,52 @@ export class PrefecturesService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} prefecture`;
+  /**
+   * findOne(): idに関連する都道府県情報を取得します。
+   *
+   * @param id 都道府県ID
+   * @returns 都道府県情報
+   */
+  async findOne(id: string): Promise<Prefecture & { id: string }> {
+    const domainWithId = await this.findByIdOrFail(id);
+    return domainWithId;
+  }
+
+  /**
+   * prefectureコードを元に都道府県情報を取得し返却します。
+   * 存在しない場合はNotFoundExceptionを投げます。
+   *
+   * @param id prefecture ID
+   * @returns 都道府県情報(Prefectureドメイン＋id)
+   * @throws NotFoundException 該当する都道府県が見つからない場合
+   */
+  async findByIdOrFail(id: string): Promise<Prefecture & { id: string }> {
+    // Prefectureを取得
+    const prefecture = await this.prismaService.prefecture.findUnique({
+      where: { id },
+    });
+
+    // codeに紐づく都道府県情報が無い場合
+    if (!prefecture) {
+      throw new NotFoundException(
+        `idに関連する都道府県情報が存在しません!! id: ${id}`,
+      );
+    }
+
+    // Prefecture(Prisma) → domain
+    const domain: Prefecture & { id: string } = {
+      id: prefecture.id,
+      name: prefecture.name,
+      code: prefecture.code,
+      kanaName: prefecture.kanaName,
+      kanaEn: prefecture.kanaEn,
+      status: prefecture.status,
+      createdAt: prefecture.createdAt,
+      updatedAt: prefecture.updatedAt,
+      regionId: prefecture.regionId ?? undefined,
+    };
+
+    return domain;
   }
 
   /**

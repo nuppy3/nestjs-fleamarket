@@ -143,11 +143,24 @@ export class PrefecturesController {
     ) as PrefectureResponseDto;
   }
 
+  /**
+   * findOne(): 都道府県idに関連する都道府県情報を取得します。
+   *
+   * @param id 都道府県id(key)
+   * @returns 都道府県情報
+   */
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.prefecturesService.findOne(+id);
+    // const result = this.prefecturesService.findbyIdOrFail(id);
+    return this.prefecturesService.findOne(id);
   }
 
+  /**
+   * findByCode(): コードに関連する都道府県情報を取得します。
+   *
+   * @param code 都道府県コード
+   * @returns 都道府県情報
+   */
   @Get('code/:code')
   async findByCode(
     @Param('code') code: string,
