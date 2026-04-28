@@ -937,11 +937,92 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   // ------------------------------
+  // findByIdOrFail()
+  // ------------------------------
+  describe('findByIdOrFail', () => {
+    it('正常系：idに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
+      // findByCodeOrFailの引数
+      const id: string = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
+
+      // PrismaのMockデータ作成
+      const prismaMockPrefecture = prismaMockPrefectures.find(
+        (prefecture) => prefecture.id === id,
+      )!;
+
+      // Prisma Modkデータセット
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(prismaMockPrefecture);
+
+      // テスト対象のfindByCodeOrFail
+      const result = await prefectureService.findByIdOrFail(id);
+
+      // 検証
+      expect(result).toEqual(
+        expectedPrefectures.data.find((prefecture) => prefecture.id === id),
+      );
+
+      // prisma 引数検証
+      expect(
+        jest.spyOn(prismaService.prefecture, 'findUnique'),
+      ).toHaveBeenCalledWith({ where: { id } });
+    });
+
+    it('正常系：idに紐づくPrefectureを取得。任意項目がnullの場合undefinedに変換して返却する。', async () => {
+      // findByIdOrFailの引数
+      const id: string = '274d2683-7012-462c-b7d0-7e452ba0f1ab';
+
+      // prisma mock data : 任意項目をnullに設定
+      const mockPrismaData = createPrismaMockData().find(
+        (prefecture) => prefecture.id === id,
+      )!;
+      // regionIdにnullをセット
+      mockPrismaData.regionId = null;
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(mockPrismaData);
+
+      // test対象のservice呼び出し
+      const result = await prefectureService.findByIdOrFail(id);
+
+      // 検証: 任意項目null → undefind
+      expect(result).toEqual({
+        id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '青森',
+        code: '02',
+        kanaName: 'アオモリ',
+        status: 'published',
+        kanaEn: 'aomori',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: undefined,
+      });
+    });
+
+    it('異常系：idに紐づくPrefectureを取得(0件)、NotFoundExceptionをスローする', async () => {
+      // findBYCodeOrFailの引数
+      const id: string = '99';
+
+      // prisma mock data : データなし = null
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(null);
+
+      // test対象のservice呼び出し + 検証: codeに紐づく都道府県情報がない場合
+      await expect(prefectureService.findByIdOrFail(id)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連する都道府県情報が存在しません!! id: ${id}`,
+        ),
+      );
+    });
+  });
+
+  // ------------------------------
   // findByCodeOrFail()
   // ------------------------------
   describe('findByCodeOrFail', () => {
     it('正常系：codeに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
-      // findBYCodeOrFailの引数
+      // findByCodeOrFailの引数
       const code: string = '01';
 
       // PrismaのMockデータ作成
