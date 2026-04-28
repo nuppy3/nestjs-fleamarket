@@ -325,9 +325,9 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   });
 
   //--------------------------------
-  // findByCode()
+  // findByCodeOrFail()
   //--------------------------------
-  describe('findByCode の テスト', () => {
+  describe('findByCodeOrFail の テスト', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // 引数
       const code = '13';
