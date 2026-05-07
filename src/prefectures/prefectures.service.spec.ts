@@ -111,6 +111,11 @@ describe('□□□ Prefecture Test □□□', () => {
     //      prismaService.findManyに残ったままになっていることがあり、次のテストでもエラーが
     //      発生したので。
     jest.resetAllMocks();
+    // 各テストが終わるたびに、spyOnで作ったモックをすべて解除する：「モックを壊して、『本物の関数』に戻す」
+    // findOneのUTにて、prefectureServiceの'findByIdOrFail'をmock化しているが、その後のfindByIdOrFailの
+    // UTにて、上位のmockが残ってしまいUTが期待通り動作しないので、「モックを壊して、『本物の関数』に戻す」
+    // jest.spyOn で作られたモックを完全に解除し、オリジナル（本物）の実装に戻します。
+    jest.restoreAllMocks();
   });
 
   // ------------------------------
@@ -937,10 +942,36 @@ describe('□□□ Prefecture Test □□□', () => {
   });
 
   // ------------------------------
-  // findByIdOrFail()
+  // findOne()
   // ------------------------------
   describe('findOne', () => {
-    it('正常系: findOneはfindByIdOrFail()を呼び出しているだけなのでUT省略', () => {});
+    it('正常系: findOneはfindByIdOrFail()を呼び出しているだけなのでド正常系のみテスト', async () => {
+      // findByCodeOrFailの引数
+      const id: string = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
+
+      // serrvice Mockデータ作成
+      const mockPrefecture = createExpectedData().data.find(
+        (prefecture) => prefecture.id === id,
+      )!;
+
+      //  prisma Mockデータセット
+      jest
+        .spyOn(prefectureService, 'findByIdOrFail')
+        .mockResolvedValue(mockPrefecture);
+
+      // テスト対象のfindByCodeOrFail
+      const result = await prefectureService.findOne(id);
+
+      // 検証
+      expect(result).toEqual(
+        expectedPrefectures.data.find((prefecture) => prefecture.id === id),
+      );
+
+      // prisma 引数検証
+      expect(
+        jest.spyOn(prefectureService, 'findByIdOrFail'),
+      ).toHaveBeenCalledWith(id);
+    });
   });
 
   // ------------------------------
