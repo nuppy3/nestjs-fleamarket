@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import { RegionsDomainService } from './domain/regions.domain.service';
 import {
   ReconstituteRegionProps,
   Region,
@@ -29,11 +30,17 @@ const mockRegionRepository = {
   save: jest.fn(),
 };
 
+// MockRegionsDomainService定義
+const mockRegionsDomainService = {
+  // TODO： あとで追加
+};
+
 describe('■■■ Region test ■■■', () => {
   // DIモジュール
   let regionsService: RegionsService;
   let prismaService: PrismaService;
   let regionRepository: RegionRepository;
+  let regionsDomainService: RegionsDomainService;
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -42,7 +49,7 @@ describe('■■■ Region test ■■■', () => {
     // @Module({
     //   imports: [PrismaModule],
     //   controllers: [RegionsController],
-    //   providers: [RegionsService, RegionRepository],
+    //   providers: [RegionsService, RegionRepository, RegionsDomainService],
     // })
 
     const module = await Test.createTestingModule({
@@ -50,12 +57,15 @@ describe('■■■ Region test ■■■', () => {
         RegionsService,
         { provide: PrismaService, useValue: mockPrismaSercie },
         { provide: RegionRepository, useValue: mockRegionRepository },
+        { provide: RegionsDomainService, useValue: mockRegionsDomainService },
       ],
     }).compile();
 
     regionsService = module.get<RegionsService>(RegionsService);
     prismaService = module.get<PrismaService>(PrismaService);
     regionRepository = module.get<RegionRepository>(RegionRepository);
+    regionsDomainService =
+      module.get<RegionsDomainService>(RegionsDomainService);
   });
 
   // 前処理: 各テストケースの前に毎回実行

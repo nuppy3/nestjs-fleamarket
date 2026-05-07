@@ -325,6 +325,111 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   });
 
   //--------------------------------
+  // findByIdOrFail()
+  //--------------------------------
+  describe('findByIdOrFail の テスト', () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+      // 引数
+      const code = '13';
+
+      // service mock data
+      const servieMockData = createSriviceMockData().data.find(
+        (prefecture) => prefecture.code === code,
+      )!;
+
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockResolvedValue(servieMockData);
+
+      // test対象controller呼び出し
+      const result = await prefecturesController.findByCode(code);
+
+      // 検証
+      expect(result).toEqual({
+        id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+        statusLabel: '反映中',
+      });
+
+      // 引数検証
+      expect(
+        jest.spyOn(prefecturesService, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
+    });
+
+    // 現時点で、任意項目はregionIdのみであり、DTOにそもそも当該項目が存在しないので、
+    // UT実施の意味はないが念の為。
+    it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {
+      // 引数
+      const code = '13';
+
+      // service mock data : 任意項目をundefinedに書き換え
+      const servieMockData = createSriviceMockData().data.find(
+        (prefecture) => prefecture.code === code,
+      )!;
+      servieMockData.regionId = undefined;
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockResolvedValue(servieMockData);
+
+      // test対象controller呼び出し
+      const result = await prefecturesController.findByCode(code);
+
+      // 検証
+      expect(result).toEqual({
+        id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        statusLabel: '反映中',
+      });
+    });
+
+    it('異常系：検索結果0件（idに紐づく都道府県情報なし）', async () => {
+      // 引数
+      const code = '99';
+
+      // modk data : mockRejectedValueでNotFundExceptionをセット
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockRejectedValue(
+          new NotFoundException(
+            `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+          ),
+        );
+
+      // test対象controller呼び出し + 検証
+      await expect(prefecturesController.findByCode(code)).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+        ),
+      );
+    });
+
+    it('異常系：DB接続エラー: serviceのエラーをそのまま伝搬', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(prefecturesService.findByCodeOrFail('99')).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------
   // findByCodeOrFail()
   //--------------------------------
   describe('findByCodeOrFail の テスト', () => {
