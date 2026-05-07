@@ -18,6 +18,8 @@ const mockPrerectureService = {
   findAll: jest.fn(),
   findAllWithStoreCount: jest.fn(),
   create: jest.fn(),
+  findOne: jest.fn(),
+  findByIdOrFail: jest.fn(),
   findByCodeOrFail: jest.fn(),
 };
 
@@ -325,24 +327,25 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   });
 
   //--------------------------------
-  // findByIdOrFail()
+  // findOne()
   //--------------------------------
-  describe('findByIdOrFail の テスト', () => {
+  describe('findOne の テスト', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // 引数
-      const code = '13';
+      const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // service mock data
       const servieMockData = createSriviceMockData().data.find(
-        (prefecture) => prefecture.code === code,
+        (prefecture) => prefecture.id === id,
       )!;
-
+      // memo: 本来であればfindOne()をmock化すべきだが、findOneはfindByIdOrFaill()をmock化すべきだが、findOneはfindByIdOrFaill
+      //      呼び出しているだけなので、findByIdOrFailをmock化している
       jest
-        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .spyOn(prefecturesService, 'findOne')
         .mockResolvedValue(servieMockData);
 
       // test対象controller呼び出し
-      const result = await prefecturesController.findByCode(code);
+      const result = await prefecturesController.findOne(id);
 
       // 検証
       expect(result).toEqual({
@@ -357,28 +360,28 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       });
 
       // 引数検証
-      expect(
-        jest.spyOn(prefecturesService, 'findByCodeOrFail'),
-      ).toHaveBeenCalledWith(code);
+      expect(jest.spyOn(prefecturesService, 'findOne')).toHaveBeenCalledWith(
+        id,
+      );
     });
 
     // 現時点で、任意項目はregionIdのみであり、DTOにそもそも当該項目が存在しないので、
     // UT実施の意味はないが念の為。
     it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {
       // 引数
-      const code = '13';
+      const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // service mock data : 任意項目をundefinedに書き換え
       const servieMockData = createSriviceMockData().data.find(
-        (prefecture) => prefecture.code === code,
+        (prefecture) => prefecture.id === id,
       )!;
       servieMockData.regionId = undefined;
       jest
-        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .spyOn(prefecturesService, 'findOne')
         .mockResolvedValue(servieMockData);
 
       // test対象controller呼び出し
-      const result = await prefecturesController.findByCode(code);
+      const result = await prefecturesController.findOne(id);
 
       // 検証
       expect(result).toEqual({
@@ -394,21 +397,21 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
 
     it('異常系：検索結果0件（idに紐づく都道府県情報なし）', async () => {
       // 引数
-      const code = '99';
+      const id = '99';
 
       // modk data : mockRejectedValueでNotFundExceptionをセット
       jest
-        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .spyOn(prefecturesService, 'findOne')
         .mockRejectedValue(
           new NotFoundException(
-            `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+            `idに関連する都道府県情報が存在しません!! id: ${id}`,
           ),
         );
 
       // test対象controller呼び出し + 検証
-      await expect(prefecturesController.findByCode(code)).rejects.toThrow(
+      await expect(prefecturesController.findOne(id)).rejects.toThrow(
         new NotFoundException(
-          `codeに関連する都道府県情報が存在しません!! code: ${code}`,
+          `idに関連する都道府県情報が存在しません!! id: ${id}`,
         ),
       );
     });
@@ -419,11 +422,11 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         { code: 'P1001', clientVersion: '5.0.0' },
       );
       jest
-        .spyOn(prefecturesService, 'findByCodeOrFail')
+        .spyOn(prefecturesService, 'findOne')
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
-      await expect(prefecturesService.findByCodeOrFail('99')).rejects.toThrow(
+      await expect(prefecturesService.findOne('99')).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });

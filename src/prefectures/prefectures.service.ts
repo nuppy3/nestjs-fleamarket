@@ -264,7 +264,9 @@ export class PrefecturesService {
   }
 
   /**
-   * prefectureコードを元に都道府県情報を取得し返却します。
+   * findByIdOrFail():
+   *
+   * prefectureIdを元に都道府県情報を取得し返却します。
    * 存在しない場合はNotFoundExceptionを投げます。
    *
    * @param id prefecture ID

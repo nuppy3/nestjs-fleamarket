@@ -939,6 +939,13 @@ describe('□□□ Prefecture Test □□□', () => {
   // ------------------------------
   // findByIdOrFail()
   // ------------------------------
+  describe('findOne', () => {
+    it('正常系: findOneはfindByIdOrFail()を呼び出しているだけなのでUT省略', () => {});
+  });
+
+  // ------------------------------
+  // findByIdOrFail()
+  // ------------------------------
   describe('findByIdOrFail', () => {
     it('正常系：idに紐づくPrefectureを取得(全項目)し、domain型に変換して返却する', async () => {
       // findByCodeOrFailの引数

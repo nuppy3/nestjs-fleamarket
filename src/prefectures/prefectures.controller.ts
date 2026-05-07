@@ -150,9 +150,19 @@ export class PrefecturesController {
    * @returns 都道府県情報
    */
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    // const result = this.prefecturesService.findbyIdOrFail(id);
-    return this.prefecturesService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<PrefectureResponseDto> {
+    const domain = await this.prefecturesService.findOne(id);
+
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(PrefectureResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as PrefectureResponseDto;
   }
 
   /**
