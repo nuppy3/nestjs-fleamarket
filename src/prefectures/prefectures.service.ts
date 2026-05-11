@@ -346,4 +346,14 @@ export class PrefecturesService {
   remove(id: number) {
     return `This action removes a #${id} prefecture`;
   }
+
+  /**
+   * countByRegionId(): regionIdに関連する都道府県情報をカウントし、カウント結果を返却します。
+   *
+   * @param regionId エリアID
+   * @returns （regionIdに関連する）都道府県情報の件数
+   */
+  async countByRegionId(regionId: string): Promise<number> {
+    return await this.prismaService.prefecture.count({ where: { regionId } });
+  }
 }

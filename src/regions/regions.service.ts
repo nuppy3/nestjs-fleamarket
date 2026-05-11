@@ -17,7 +17,7 @@ import { RegionRepository } from './infrastructure/region.repository';
 export class RegionsService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly regionsService: RegionsDomainService,
+    private readonly regionsDomainService: RegionsDomainService,
     private readonly regionRepository: RegionRepository,
   ) {}
 
@@ -265,7 +265,7 @@ export class RegionsService {
     const regionWithId = await this.regionRepository.findByIdOrFail(id);
 
     // 削除可能か判定：他のドメインに依存する判定など
-    // this.regionsService.
+    await this.regionsDomainService.validate(id);
 
     // domain 削除（ドメインルール実行：domain内部ロジックのみ）
     regionWithId.remove();
