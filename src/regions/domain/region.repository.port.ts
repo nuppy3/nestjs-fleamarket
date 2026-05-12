@@ -8,7 +8,7 @@ export interface RegionRepositoryPort {
   // findAllなどは、Repositoryではなく、Query Serviceに配置するのが望ましい。
   findByIdOrFail(id: string): Promise<Region & { id: string }>;
 
-  // save: DB更新
+  // save: DB更新（永続化)
   save(
     domainWithId: Region & { id: string },
     userId: string,
