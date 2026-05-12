@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { RegionRepositoryPort } from '../domain/region.repository.port';
 import { ReconstituteRegionProps, Region } from '../domain/regions.model';
 import { PrismaService } from './../../prisma/prisma.service';
 import { RegionMapper } from './region. mapper';
@@ -24,11 +25,11 @@ import { RegionMapper } from './region. mapper';
  *
  */
 @Injectable()
-export class RegionRepository {
+export class RegionRepository implements RegionRepositoryPort {
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
-   * findById(): id(Region ID)に関連するRegion情報を取得し、Region domainに
+   * findByIdOrFail(): id(Region ID)に関連するRegion情報を取得し、Region domainに
    *             詰め替えて返却します。(Region + id)
    *
    * @param id Region ID (PK)

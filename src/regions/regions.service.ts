@@ -18,6 +18,7 @@ export class RegionsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly regionsDomainService: RegionsDomainService,
+    // TODO: interface(Port)に切り替える
     private readonly regionRepository: RegionRepository,
   ) {}
 
