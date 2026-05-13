@@ -275,15 +275,16 @@ export class RegionsService {
     regionWithId.remove();
 
     // 永続化: Region情報削除(ソフトデリート)
-    // TODO： repositoryに移動
-    const deleted = await this.prismaService.region.update({
-      data: {
-        status: regionWithId.status,
-        userId: userId,
-        updatedAt: regionWithId.updatedAt,
-      },
-      where: { id: regionWithId.id },
-    });
+    // repositoryに移動
+    // const deleted = await this.prismaService.region.update({
+    //   data: {
+    //     status: regionWithId.status,
+    //     userId: userId,
+    //     updatedAt: regionWithId.updatedAt,
+    //   },
+    //   where: { id: regionWithId.id },
+    // });
+    const deleted = await this.regionRepository.save(regionWithId, userId);
 
     // prisma → domain
     // Region domainのプロパティをprivateでカプセル化したことにより、プロパティのアクセスは
@@ -329,6 +330,8 @@ export class RegionsService {
 
     // 20260402: 上記の詰め替え処理をMapperに移管
     // prisma → domain (最新の状態をドメイン形式に変換)
-    return RegionMapper.toDomain(deleted);
+    // return RegionMapper.toDomain(deleted);
+    // 20260512: Repository内でtoDomain()を実施しているので、そのままreturn。
+    return deleted;
   }
 }
