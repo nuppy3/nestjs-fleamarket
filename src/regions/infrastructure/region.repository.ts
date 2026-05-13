@@ -72,9 +72,13 @@ export class RegionRepository implements RegionRepositoryPort {
    *
    * infrastructureに位置し、prisma⇔domain間のやり取りを担う
    *
-   * @param domainWithId (更新対象domain)
-   * @param userId
-   * @returns 更新後のエリア情報
+   * ⭐️ちなみに、saveはsave(entity: T): Promise<void>のように戻り値がないことが一般的らしい。
+   *   が、save(entity: T): Promise<T>のようにEntity(domain)を返してもいいらしい。
+   *    → 今回はEntity(domain)を返すようにしている。
+   *
+   * @param domainWithId (保存対象domain)
+   * @param userId ユーザーID
+   * @returns 更新後のエリア情報(保存したEntity(domain))
    */
   async save(
     domainWithId: Region & { id: string },
