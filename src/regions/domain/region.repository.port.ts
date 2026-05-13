@@ -1,5 +1,8 @@
 import { Region } from './regions.model';
 
+// prefecture-repository.port.ts
+export const REGION_REPOSITORY_PORT = Symbol('REGION_REPOSITORY_PORT');
+
 /**
  * Regionドメインを操作・永続化するためのPort
  */

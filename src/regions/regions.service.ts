@@ -1,17 +1,19 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import type { RegionRepositoryPort } from './domain/region.repository.port';
+import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
 import { RegionsDomainService } from './domain/regions.domain.service';
 import { RegionFactory } from './domain/regions.factory';
 import { Region } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionMapper } from './infrastructure/region. mapper';
-import { RegionRepository } from './infrastructure/region.repository';
 
 @Injectable()
 export class RegionsService {
@@ -19,7 +21,8 @@ export class RegionsService {
     private readonly prismaService: PrismaService,
     private readonly regionsDomainService: RegionsDomainService,
     // TODO: interface(Port)に切り替える
-    private readonly regionRepository: RegionRepository,
+    @Inject(REGION_REPOSITORY_PORT)
+    private readonly regionRepository: RegionRepositoryPort,
   ) {}
 
   /**
