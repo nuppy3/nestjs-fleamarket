@@ -463,26 +463,26 @@ describe('■■■ Region test ■■■', () => {
       // Serviceのテストにおいて、RegionMapper は 「本物を使ってもOK」 な部類です。
       // 理由は Region ドメインと同様に、外部依存がなく、実行が高速で、副作用がないからです。
 
-      // RepositoryのUTにて実施
-      // 引数チェック
-      // expect(
-      //   jest.spyOn(prismaService.region, 'findUnique'),
-      // ).toHaveBeenCalledWith({
+      // prisma(update) → repository.save()に移動のため、コメント
+      // ⭐️以下のDate(日付)の期待値検証の誤差について、ノウハウとして残しておきたいので、削除していない。
+      // expect(jest.spyOn(prismaService.region, 'update')).toHaveBeenCalledWith({
+      //   data: {
+      //     status: RegionStatus.SUSPENDED, // 厳密には、RegionStatus.suspended(PrismaのRegionStatus)だが、多めにみる。
+      //     userId: userId,
+      //     // updatedAtについて、new Date()はミリ秒で結果と期待値に誤差が出るので
+      //     // expect.any(Date)としている。が、anyで警告が出るので、解除コメントを挿入。
+      //     // updatedAt: new Date(),
+      //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      //     updatedAt: expect.any(Date),
+      //   },
       //   where: { id },
       // });
 
-      expect(jest.spyOn(regionRepository, 'save')).toHaveBeenCalledWith({
-        data: {
-          status: RegionStatus.SUSPENDED, // 厳密には、RegionStatus.suspended(PrismaのRegionStatus)だが、多めにみる。
-          userId: userId,
-          // updatedAtについて、new Date()はミリ秒で結果と期待値に誤差が出るので
-          // expect.any(Date)としている。が、anyで警告が出るので、解除コメントを挿入。
-          // updatedAt: new Date(),
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          updatedAt: expect.any(Date),
-        },
-        where: { id },
-      });
+      // 引数チェック
+      expect(jest.spyOn(regionRepository, 'save')).toHaveBeenCalledWith(
+        regionWithId,
+        userId,
+      );
     });
 
     it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
@@ -590,9 +590,7 @@ describe('■■■ Region test ■■■', () => {
         { code: 'P1001', clientVersion: '5.0.0' },
       );
 
-      jest
-        .spyOn(prismaService.region, 'update')
-        .mockRejectedValue(connectionError);
+      jest.spyOn(regionRepository, 'save').mockRejectedValue(connectionError);
 
       // 検証: エラーをそのまま伝搬することを確認
       await expect(regionsService.remove(id, userId)).rejects.toThrow(
