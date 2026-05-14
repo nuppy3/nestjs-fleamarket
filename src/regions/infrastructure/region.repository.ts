@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma';
 import { RegionRepositoryPort } from '../domain/region.repository.port';
 import { ReconstituteRegionProps, Region } from '../domain/regions.model';
 import { PrismaService } from './../../prisma/prisma.service';
@@ -91,7 +90,10 @@ export class RegionRepository implements RegionRepositoryPort {
     // 以下はDDDを意識して、RegionMapperのtoPrismaUpdate()に移管
     // const { id, code, name, kanaName, kanaEn, status } = regionWithId;
     // const prismaInput = { code, name, kanaName, kanaEn, status };
-    const prismaInput = RegionMapper.toPrismaUpdate(domainWithId, userId);
+
+    // prisma input data 作成（update / insert)
+    const prismaUpdateInput = RegionMapper.toPrismaUpdate(domainWithId, userId);
+    const prismaCreateInput = RegionMapper.toPrismaCreate(domainWithId, userId);
 
     // DB更新：本業
     // 20260514: updateだけではなく、Update/Insertの両方をハンドリングする。
@@ -103,8 +105,8 @@ export class RegionRepository implements RegionRepositoryPort {
     // upsert (Update or Insert) を使って永続化
     const result = await this.prismaService.region.upsert({
       where: { id: domainWithId.id },
-      update: prismaInput,
-      create: prismaInput as Prisma.RegionCreateInput,
+      update: prismaUpdateInput,
+      create: prismaCreateInput,
     });
 
     // prisma → domain (toDomain)

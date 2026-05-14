@@ -31,8 +31,10 @@ export class RegionMapper {
       kanaName: domain.kanaName,
       status: domain.status,
       kanaEn: domain.kanaEn,
-      userId: userId,
-    };
+      // userId: userId, ← 型エラーになる。以下のtoPrismaUpdate()を参照
+      // userId: userId,
+      user: { connect: { id: userId } },
+    } satisfies Prisma.RegionCreateInput;
     return prismaInput;
   }
 
