@@ -12,6 +12,7 @@ const mockPrismaSercie = {
     create: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
+    upsert: jest.fn(),
   },
 };
 
@@ -138,7 +139,7 @@ describe('□□□ Region Repository TEST □□□', () => {
       } satisfies PrismaRegion;
 
       jest
-        .spyOn(prismaService.region, 'update')
+        .spyOn(prismaService.region, 'upsert')
         .mockResolvedValue(mockPrismaRegion);
 
       // Repository引数作成: 更新対象のdomain (reconstituteでもcreateNewでもなんでもいい)
@@ -187,7 +188,7 @@ describe('□□□ Region Repository TEST □□□', () => {
       expect(result.kanaEn).toBe(expectedData.kanaEn);
       expect(result.id).toBe(expectedData.id);
 
-      // objectContaining()にてプレーンなオブジェクトでの比較検証を行うのが定石 パターン
+      // objectContaining()にてプレーンなオブジェクトでの比較検証を行うのが定石パターン
       expect(result).toEqual(expect.objectContaining(expectedData));
 
       // 日付のチェック
@@ -204,8 +205,18 @@ describe('□□□ Region Repository TEST □□□', () => {
       // インスタンス型のチェック
       expect(result).toBeInstanceOf(Region);
 
-      // 引数検証用のパラメーター
-      const inputParam = {
+      // 引数検証用のパラメーター: update
+      const updateParam = {
+        code: domain.code,
+        name: domain.name,
+        kanaName: domain.kanaName,
+        status: domain.status,
+        kanaEn: domain.kanaEn,
+        user: { connect: { id: userId } },
+      } satisfies Prisma.RegionUpdateInput;
+
+      // 引数検証用のパラメーター: insert(create)
+      const createParam = {
         code: domain.code,
         name: domain.name,
         kanaName: domain.kanaName,
@@ -215,9 +226,10 @@ describe('□□□ Region Repository TEST □□□', () => {
       } satisfies Prisma.RegionUpdateInput;
 
       // 引数検証
-      expect(jest.spyOn(prismaService.region, 'update')).toHaveBeenCalledWith({
-        data: inputParam,
+      expect(jest.spyOn(prismaService.region, 'upsert')).toHaveBeenCalledWith({
         where: { id: 'b96509f2-0ba4-447c-8a98-473aa26e457a' },
+        update: updateParam,
+        create: createParam,
       });
     });
 

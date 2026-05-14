@@ -338,6 +338,7 @@ export class StoresService {
     };
 
     // prisma：Store情報をDB登録
+    // TODO: repositoryへ移管
     const created = await this.prismaService.store.create({
       data: prismaInput,
       include: {

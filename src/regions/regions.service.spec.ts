@@ -3,6 +3,10 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
+import {
+  REGION_REPOSITORY_PORT,
+  RegionRepositoryPort,
+} from './domain/region.repository.port';
 import { RegionsDomainService } from './domain/regions.domain.service';
 import {
   ReconstituteRegionProps,
@@ -11,16 +15,16 @@ import {
 } from './domain/regions.model';
 import { CreateRegionDto } from './dto/region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
-import { RegionRepository } from './infrastructure/region.repository';
 import { RegionsService } from './regions.service';
 
 // MockService定義
-const mockPrismaSercie = {
+const mockPrismaService = {
   region: {
     findMany: jest.fn(),
     create: jest.fn(),
     findUnique: jest.fn(),
     update: jest.fn(),
+    upsert: jest.fn(),
   },
 };
 
@@ -28,7 +32,7 @@ const mockPrismaSercie = {
 const mockRegionRepository = {
   findByIdOrFail: jest.fn(),
   save: jest.fn(),
-};
+} as jest.Mocked<RegionRepositoryPort>; // as jest.Mocked<>はなくてもいいが、型安全に
 
 // MockRegionsDomainService定義
 const mockRegionsDomainService = {
@@ -39,7 +43,9 @@ describe('■■■ Region test ■■■', () => {
   // DIモジュール
   let regionsService: RegionsService;
   let prismaService: PrismaService;
-  let regionRepository: RegionRepository;
+  // RegionRepositoryをinterface化したのでコメント
+  // let regionRepository: RegionRepository;
+  let regionRepository: RegionRepositoryPort;
   let regionsDomainService: RegionsDomainService;
 
   // 前処理: テスト全体の前に1回だけ実行される
@@ -55,15 +61,19 @@ describe('■■■ Region test ■■■', () => {
     const module = await Test.createTestingModule({
       providers: [
         RegionsService,
-        { provide: PrismaService, useValue: mockPrismaSercie },
-        { provide: RegionRepository, useValue: mockRegionRepository },
+        { provide: PrismaService, useValue: mockPrismaService },
+        // Repositoryはinterfaceを実装しているのでtoken(=REGION_REPOSITORY_PORT)で指定
+        {
+          provide: REGION_REPOSITORY_PORT,
+          useValue: mockRegionRepository,
+        },
         { provide: RegionsDomainService, useValue: mockRegionsDomainService },
       ],
     }).compile();
 
     regionsService = module.get<RegionsService>(RegionsService);
     prismaService = module.get<PrismaService>(PrismaService);
-    regionRepository = module.get<RegionRepository>(RegionRepository);
+    regionRepository = module.get<RegionRepositoryPort>(REGION_REPOSITORY_PORT);
     regionsDomainService =
       module.get<RegionsDomainService>(RegionsDomainService);
   });
@@ -406,6 +416,11 @@ describe('■■■ Region test ■■■', () => {
       jest
         .spyOn(regionRepository, 'findByIdOrFail')
         .mockResolvedValue(regionWithId);
+
+      // ⭐️jest.spyOn は「本物のメソッドを監視・上書きしたいとき」に使うため、本来は以下のように
+      //  直接mockに対してmockresolvedValue()するのが主流のよう。
+      //  これからはspyOn()をやめてみよう。。
+      mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
 
       // regionsDomainService mock data: void
       jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
