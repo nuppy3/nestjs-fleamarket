@@ -407,7 +407,7 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'hokkaidou',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      }) satisfies ReconstituteRegionProps;
+      } satisfies ReconstituteRegionProps) satisfies Region;
       const regionWithId = Object.assign(mockRegion, {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       });
@@ -426,8 +426,8 @@ describe('■■■ Region test ■■■', () => {
       jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
 
       // prisma region 'update' mock data
-      const mockDeleted = {
-        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      const mockDeleted = Region.reconstitute({
+        // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
         name: '北海道',
         code: '01',
         kanaName: 'ほっかいどう',
@@ -435,10 +435,13 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'hokkaidou',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      } satisfies PrismaRegion;
+        // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const deletedWithId = Object.assign(mockDeleted, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
 
-      jest.spyOn(prismaService.region, 'update').mockResolvedValue(mockDeleted);
+      jest.spyOn(regionRepository, 'save').mockResolvedValue(deletedWithId);
 
       // serviceの引数作成
       const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
@@ -468,7 +471,7 @@ describe('■■■ Region test ■■■', () => {
       //   where: { id },
       // });
 
-      expect(jest.spyOn(prismaService.region, 'update')).toHaveBeenCalledWith({
+      expect(jest.spyOn(regionRepository, 'save')).toHaveBeenCalledWith({
         data: {
           status: RegionStatus.SUSPENDED, // 厳密には、RegionStatus.suspended(PrismaのRegionStatus)だが、多めにみる。
           userId: userId,

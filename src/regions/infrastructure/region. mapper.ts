@@ -31,6 +31,7 @@ export class RegionMapper {
       kanaName: domain.kanaName,
       status: domain.status,
       kanaEn: domain.kanaEn,
+      createdAt: domain.createdAt,
       // userId: userId, ← 型エラーになる。以下のtoPrismaUpdate()を参照
       // userId: userId,
       user: { connect: { id: userId } },
@@ -56,6 +57,7 @@ export class RegionMapper {
       kanaName: domain.kanaName,
       status: domain.status,
       kanaEn: domain.kanaEn,
+      updatedAt: domain.updatedAt,
       // userId: userId, ← 型エラーになる
       // ⭐️ userIdは外部キーであるが、Prisma.RegionUpdateInputは型安全のため
       //  直接userIdをセットできない型となっている。(userIdが無い)
@@ -82,7 +84,6 @@ export class RegionMapper {
       //        }
       //      }
       //    });
-
       user: { connect: { id: userId } },
     } satisfies Prisma.RegionUpdateInput;
 

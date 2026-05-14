@@ -207,22 +207,34 @@ describe('□□□ Region Repository TEST □□□', () => {
 
       // 引数検証用のパラメーター: update
       const updateParam = {
-        code: domain.code,
-        name: domain.name,
-        kanaName: domain.kanaName,
-        status: domain.status,
-        kanaEn: domain.kanaEn,
+        // code: domain.code,
+        // name: domain.name,
+        // kanaName: domain.kanaName,
+        // status: domain.status,
+        // kanaEn: domain.kanaEn,
+        code: '77',
+        name: '北海道update',
+        kanaName: 'ほっかいどうあっぷでーと',
+        status: 'published',
+        kanaEn: 'hokkaidouupdate',
+        updatedAt: new Date('2026-04-15T12:30:00.000Z'),
         user: { connect: { id: userId } },
       } satisfies Prisma.RegionUpdateInput;
 
       // 引数検証用のパラメーター: insert(create)
       const createParam = {
-        code: domain.code,
-        name: domain.name,
-        kanaName: domain.kanaName,
-        status: domain.status,
-        kanaEn: domain.kanaEn,
+        // code: domain.code,
+        // name: domain.name,
+        // kanaName: domain.kanaName,
+        // status: domain.status,
+        // kanaEn: domain.kanaEn,
+        code: '77',
+        name: '北海道update',
+        kanaName: 'ほっかいどうあっぷでーと',
+        status: 'published',
+        kanaEn: 'hokkaidouupdate',
         user: { connect: { id: userId } },
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
       } satisfies Prisma.RegionUpdateInput;
 
       // 引数検証
@@ -256,7 +268,7 @@ describe('□□□ Region Repository TEST □□□', () => {
 
       // mock data セット (Error)
       jest
-        .spyOn(prismaService.region, 'update')
+        .spyOn(prismaService.region, 'upsert')
         .mockRejectedValue(mockGenericError);
 
       // 検証：NotFoundException
