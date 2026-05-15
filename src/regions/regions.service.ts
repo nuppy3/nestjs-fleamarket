@@ -1,10 +1,8 @@
 import {
-  ConflictException,
   Inject,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
-import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import type { RegionRepositoryPort } from './domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
@@ -116,70 +114,53 @@ export class RegionsService {
     userId: string,
   ): Promise<Region & { id: string }> {
     // dto → domain
-    // domain詰め替えはスキップしてもいいが、念の為。
+    // domain詰め替えはスキップしてもいいが(dtoから直接CreateInputを作成してもいいが)、念の為。
     // RegionFactoryを作成したので、以下のdto展開は不要
     // const { code, name, kanaName, status, kanaEn } = createDto;
     const domain = RegionFactory.fromCreateDto(createDto);
+    // TODO: 暫定ロジック: save()の引数が Region & {id:string} なので暫定で''をセット
+    const domainWithId = Object.assign(domain, { id: '' });
+
+    // 以下のDB永続化 → domain詰め替えを、Repository.save()に移管のため、コメント
 
     // domain → prisma(input)
-    // dtoから直接作成してもいいが、念の為。
-    // 完全にDDDを意識するとMapper(toPrismaCreate())に移管するのがよい
-    // 移管したので、以下をコメントアウト
-    // const prismaInput = {
-    //   code: domain.code,
-    //   name: domain.name,
-    //   kanaName: domain.kanaName,
-    //   status: domain.status,
-    //   kanaEn: domain.kanaEn,
-    //   userId: userId,
-    // };
-    const prismaInput = RegionMapper.toPrismaCreate(domain, userId);
+    // const prismaInput = RegionMapper.toPrismaCreate(domainWithId, userId);
 
-    // エリア情報登録（永続化）
-    let created: PrismaRegion;
-    try {
-      created = await this.prismaService.region.create({
-        data: prismaInput,
-      });
-    } catch (e: unknown) {
-      // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
-      // 詳細は、以下のトラブルシューティングを参照
-      // https://nuppy3.atlassian.net/wiki/spaces/~712020c7a7ba463a644114a22001124373f0fc/pages/60162052/03_99
+    // // エリア情報登録（永続化）
+    // let created: PrismaRegion;
+    // try {
+    //   created = await this.prismaService.region.create({
+    //     data: prismaInput,
+    //   });
+    // } catch (e: unknown) {
+    //   // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
+    //   // 詳細は、以下のトラブルシューティングを参照
+    //   // https://nuppy3.atlassian.net/wiki/spaces/~712020c7a7ba463a644114a22001124373f0fc/pages/60162052/03_99
 
-      // Prismaの既知のリクエストエラーであるかをチェック
+    //   // Prismaの既知のリクエストエラーであるかをチェック
 
-      // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっているが、
-      // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
-      // if (e instanceof PrismaClientKnownRequestError) {
-      if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
-        // P2002:一意制約エラー
-        if (e.code === 'P2002') {
-          const meta = e.meta as { target?: string[] } | undefined;
-          const field = meta?.target?.join(', ') || '不明なフィールド';
-          // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる
-          throw new ConflictException(`指定された ${field} は既に存在します。`);
-        } else {
-          throw e;
-        }
-      }
-      throw e;
-    }
+    //   // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっているが、
+    //   // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
+    //   // if (e instanceof PrismaClientKnownRequestError) {
+    //   if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
+    //     // P2002:一意制約エラー
+    //     if (e.code === 'P2002') {
+    //       const meta = e.meta as { target?: string[] } | undefined;
+    //       const field = meta?.target?.join(', ') || '不明なフィールド';
+    //       // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる
+    //       throw new ConflictException(`指定された ${field} は既に存在します。`);
+    //     } else {
+    //       throw e;
+    //     }
+    //   }
+    //   throw e;
+    // }
+    // const savedDomain = RegionMapper.toDomain(created);
 
-    // prisma → domain
-    // 以下の詰め替え処理をMapper(toDomain)に移管
-    // const savedDomain = {
-    //   id: created.id,
-    //   code: created.code,
-    //   name: created.name,
-    //   kanaName: created.kanaName,
-    //   status: created.status,
-    //   kanaEn: created.kanaEn,
-    //   createdAt: created.createdAt,
-    //   updatedAt: created.updatedAt,
-    // } satisfies Region & { id: string };
-    const savedDomain = RegionMapper.toDomain(created);
+    // return savedDomain;
 
-    return savedDomain;
+    // domain → prisma(永続化) → domain
+    return this.regionRepository.save(domainWithId, userId);
   }
 
   /**

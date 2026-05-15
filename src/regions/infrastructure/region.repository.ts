@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RegionRepositoryPort } from '../domain/region.repository.port';
 import { ReconstituteRegionProps, Region } from '../domain/regions.model';
 import { PrismaService } from './../../prisma/prisma.service';
@@ -86,7 +90,8 @@ export class RegionRepository implements RegionRepositoryPort {
     userId: string,
   ): Promise<Region & { id: string }> {
     // 永続化（DB更新) -----
-    // domain → prisma
+    // domain → prisma(input)
+
     // 以下はDDDを意識して、RegionMapperのtoPrismaUpdate()に移管
     // const { id, code, name, kanaName, kanaEn, status } = regionWithId;
     // const prismaInput = { code, name, kanaName, kanaEn, status };
@@ -95,23 +100,53 @@ export class RegionRepository implements RegionRepositoryPort {
     const prismaUpdateInput = RegionMapper.toPrismaUpdate(domainWithId, userId);
     const prismaCreateInput = RegionMapper.toPrismaCreate(domainWithId, userId);
 
-    // DB更新：本業
-    // 20260514: updateだけではなく、Update/Insertの両方をハンドリングする。
-    // const updated = await this.prismaService.region.update({
-    //   data: prismaInput,
-    //   where: { id: domainWithId.id },
-    // });
+    // TODO: 暫定ロジック: createの際idが無いが、upsertのwhere句にidをセットしているので
+    //       暫定で適当なuuidをセットしている。
+    const hogeId = '9a29843c-5c5a-4566-a37b-89bcc4699b3e';
 
-    // upsert (Update or Insert) を使って永続化
-    const result = await this.prismaService.region.upsert({
-      where: { id: domainWithId.id },
-      update: prismaUpdateInput,
-      create: prismaCreateInput,
-    });
+    try {
+      // DB更新：本業
+      // 20260514: updateだけではなく、Update/Insertの両方をハンドリングする。
+      // const updated = await this.prismaService.region.update({
+      //   data: prismaInput,
+      //   where: { id: domainWithId.id },
+      // });
 
-    // prisma → domain (toDomain)
-    const savedRegion = RegionMapper.toDomain(result);
+      // upsert (Update or Insert) を使って永続化
+      const result = await this.prismaService.region.upsert({
+        where: { id: !domainWithId.id ? hogeId : domainWithId.id },
+        update: prismaUpdateInput,
+        create: prismaCreateInput,
+      });
 
-    return savedRegion;
+      // prisma → domain (toDomain)
+      const savedRegion = RegionMapper.toDomain(result);
+
+      return savedRegion;
+    } catch (e: unknown) {
+      // e:unknownはPrismaClientKnownRequestErrorのinstansof問題対策のBP
+      // 詳細は、以下のトラブルシューティングを参照
+      // https://nuppy3.atlassian.net/wiki/spaces/~712020c7a7ba463a644114a22001124373f0fc/pages/60162052/03_99
+
+      // Prismaの既知のリクエストエラーであるかをチェック
+
+      // eはanyなので、instansof PrismaClientKnownRequestErrorでeの型ガードを行なっているが、
+      // instanceof は Prisma 5.x/6.x では信頼性が低い問題のため、削除
+      // if (e instanceof PrismaClientKnownRequestError) {
+      if (e && typeof e === 'object' && 'code' in e && 'meta' in e) {
+        // P2002:一意制約エラー
+        if (e.code === 'P2002') {
+          const meta = e.meta as { target?: string[] } | undefined;
+          const field = meta?.target?.join(', ') || '不明なフィールド';
+          // 409 Conflictをスローし、コントローラーとNestJSのエラーハンドリング層でキャッチされる
+          throw new ConflictException(`指定された ${field} は既に存在します。`);
+        } else {
+          throw e;
+        }
+      }
+
+      // その他の予期せぬエラー
+      throw e;
+    }
   }
 }
