@@ -200,9 +200,10 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'okinawa',
       } satisfies CreateRegionDto;
 
-      // prisma mock data 作成
-      const prismaMockData = {
-        id: '106509f2-0ba4-447c-8a98-473aa26e457a',
+      // repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
+      const mockRegion = Region.reconstitute({
+        // id: '106509f2-0ba4-447c-8a98-473aa26e457a',
         name: '沖縄',
         code: '10',
         kanaName: 'おきなわ',
@@ -210,12 +211,17 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'okinawa',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      } satisfies PrismaRegion;
+      }) satisfies Region;
 
+      // Region + id
+      const repositoryMockData = Object.assign(mockRegion, {
+        id: '106509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // repositoryにmockdataをセット
       jest
-        .spyOn(prismaService.region, 'create')
-        .mockResolvedValue(prismaMockData);
+        .spyOn(regionRepository, 'save')
+        .mockResolvedValue(repositoryMockData);
 
       // テスト対象service呼び出し
       const result = await regionsService.create(dto, userId);
@@ -279,21 +285,14 @@ describe('■■■ Region test ■■■', () => {
       // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
       // を返す場合、Prisma Client は例外をスローします。
       // 一意制約、アクセス不可などは当該Errorは同じで、codeが違うだけ。
-      const mockP2002Error = new PrismaClientKnownRequestError(
-        'Unique constraint failed on the fields: (`code`)',
-        {
-          code: 'P2002',
-          clientVersion: 'test-version',
-          meta: { target: ['code'] }, // 一意制約違反のフィールド
-        },
+      const mockError = new ConflictException(
+        '指定された code は既に存在します。',
       );
 
-      // Pricmaが、P2002 エラーを返すように設定
+      // repositoryが、P2002 エラーを返すように設定
       // Errorを返却させたい場合はmockRejectedValue()でcreateのPrisma<Region & {id:string}>の
       // 返却をアンラップして、Errorを返すようにする）
-      jest
-        .spyOn(prismaService.region, 'create')
-        .mockRejectedValue(mockP2002Error);
+      jest.spyOn(regionRepository, 'save').mockRejectedValue(mockError);
 
       // テスト対象service呼び出し、検証
       // ConflictExceptionがスローされることをテスト
@@ -326,10 +325,8 @@ describe('■■■ Region test ■■■', () => {
         },
       );
 
-      // prismaServiceのmock(Error)を設定
-      jest
-        .spyOn(prismaService.region, 'create')
-        .mockRejectedValue(mockP2000Error);
+      // repositoryのmock(Error)を設定
+      jest.spyOn(regionRepository, 'save').mockRejectedValue(mockP2000Error);
 
       // テスト対象service呼び出し、結果を検証
       await expect(regionsService.create(dto, userId)).rejects.toThrow(
@@ -357,9 +354,7 @@ describe('■■■ Region test ■■■', () => {
       const mockGenericError = new Error('Database connection failed');
 
       // モックの実装: create()が一般のエラーを投げるように設定
-      jest
-        .spyOn(prismaService.region, 'create')
-        .mockRejectedValue(mockGenericError);
+      jest.spyOn(regionRepository, 'save').mockRejectedValue(mockGenericError);
 
       // 元のエラー（Generic Error）がそのまま再スローされることをテスト
       await expect(regionsService.create(dto, userId)).rejects.toThrow(Error);
@@ -396,7 +391,7 @@ describe('■■■ Region test ■■■', () => {
       // RegionRepositoryのUTにて実施 --------------
 
       // Repository mock data 作成
-      // Region & {id:string} の生成は本物のRegion.reconstiture()を使う（BP)
+      // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
       // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。
       // これを Mock にしてしまうと、テストコードが非常に複雑になる割にメリットがありません。
       const mockRegion = Region.reconstitute({

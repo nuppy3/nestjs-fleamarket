@@ -1,6 +1,7 @@
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Prisma, Region as PrismaRegion } from 'generated/prisma';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prisma, Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ReconstituteRegionProps, Region } from '../domain/regions.model';
 import { RegionRepository } from './region.repository';
@@ -125,7 +126,7 @@ describe('□□□ Region Repository TEST □□□', () => {
   //--------------------------------------
   describe('save() test', () => {
     it('正常系: Regionデータ(全項目)が正しくPrismaに連携され、PrismaRegionが Region + id に変換されること', async () => {
-      // prisma region 'update' mock data
+      // prisma region 'upsert' mock data
       const mockPrismaRegion = {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
         name: '北海道update',
@@ -245,7 +246,57 @@ describe('□□□ Region Repository TEST □□□', () => {
       });
     });
 
-    it('異常系: エラーのテスト: 元のエラーをそのまま伝搬(スロー)する', async () => {
+    it('異常系①: 一意制約(P2002)が発生し、ConflictExceptionにラップしてスローする', async () => {
+      const domain = Region.reconstitute({
+        // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道update',
+        code: '77',
+        kanaName: 'ほっかいどうあっぷでーと',
+        status: 'published',
+        kanaEn: 'hokkaidouupdate',
+        // createdAtをセットしてもPrisaInputが作成されないこと
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-15T12:30:00.000Z'),
+        // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies ReconstituteRegionProps);
+      const domainWithId = Object.assign(domain, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // prisma P2002 error mock data 作成
+      // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
+      // を返す場合、Prisma Client は例外をスローします。
+      // 一意制約、アクセス不可などは当該Errorは同じで、codeが違うだけ。
+      const mockP2002Error = new PrismaClientKnownRequestError(
+        'Unique constraint failed on the fields: (`code`)',
+        {
+          code: 'P2002',
+          clientVersion: 'test-version',
+          meta: { target: ['code'] }, // 一意制約違反のフィールド
+        },
+      );
+
+      // Pricmaが、P2002 エラーを返すように設定
+      // Errorを返却させたい場合はmockRejectedValue()でcreateのPrisma<Region & {id:string}>の
+      // 返却をアンラップして、Errorを返すようにする）
+      jest
+        .spyOn(prismaService.region, 'upsert')
+        .mockRejectedValue(mockP2002Error);
+
+      // テスト対象service呼び出し、検証
+      // ConflictExceptionがスローされることをテスト
+      await expect(regionRepository.save(domainWithId, userId)).rejects.toThrow(
+        ConflictException,
+      );
+
+      // ConflictExceptionのmessage 検証
+      await expect(regionRepository.save(domainWithId, userId)).rejects.toThrow(
+        '指定された code は既に存在します。',
+      );
+    });
+
+    it('異常系②: エラーのテスト: 元のエラーをそのまま伝搬(スロー)する', async () => {
       // serviceの引数作成
       const userId = 'xxxxxxxxxxxxxx';
       // Repository引数作成: 更新対象のdomain (reconstituteでもcreateNewでもなんでもいい)
