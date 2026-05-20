@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from './../prisma/prisma.service';
 import type { RegionRepositoryPort } from './domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
