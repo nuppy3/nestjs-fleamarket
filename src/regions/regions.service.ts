@@ -68,7 +68,7 @@ export class RegionsService {
    * @returns Regionドメインオブジェクト（id付き）
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Region & { id: string }> {
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
     return await this.findByIdOrFail(id);
@@ -85,7 +85,7 @@ export class RegionsService {
    * @returns Regionドメインオブジェクト（id付き）
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
-  private async findByIdOrFail(id: string) {
+  private async findByIdOrFail(id: string): Promise<Region & { id: string }> {
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
     return await this.regionRepository.findByIdOrFail(id);
@@ -206,7 +206,9 @@ export class RegionsService {
 
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
-    const regionWithId = await this.regionRepository.findByIdOrFail(id);
+    // repositoryではなく、内部functionのfindByIdOrFail()を呼び出すように修正
+    // const regionWithId = await this.regionRepository.findByIdOrFail(id);
+    const regionWithId = await this.findByIdOrFail(id);
 
     // domain更新(dtoの項目で更新): ドメインルール（例：特定のステータスなら名前は変えられない等）をチェック
     regionWithId.update({
@@ -271,8 +273,9 @@ export class RegionsService {
     // Region情報取得
     // 当service内のfindOne()を呼ぶのは避けるべき（Service内でServiceを呼ぶのは好ましくない)
     // privateとして作成した内部共通functionは読んでもいいらしい。詳しくは上記の⭐️を参照
-    //
-    const regionWithId = await this.regionRepository.findByIdOrFail(id);
+    // → repositoryではなく、内部functionのfindByIdOrFail()を呼び出すように修正
+    // const regionWithId = await this.regionRepository.findByIdOrFail(id);
+    const regionWithId = await this.findByIdOrFail(id);
 
     // 削除可能か判定：他のドメインに依存する判定など
     await this.regionsDomainService.validate(id);

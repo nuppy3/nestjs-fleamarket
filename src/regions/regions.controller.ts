@@ -39,7 +39,7 @@ export class RegionsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<RegionResponseDto> {
     // エリア情報取得
     const region = await this.regionsService.findOne(id);
     // domain → dto
