@@ -58,8 +58,37 @@ export class RegionsService {
     return domains;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} region`;
+  /**
+   * findOne: 指定されたIDのエリア情報を取得します。
+   *
+   * 公開用のユースケースメソッド。
+   * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  async findOne(id: string) {
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.findByIdOrFail(id);
+  }
+
+  /**
+   * findByIdOrFail: 指定されたIDのRegionをDBから取得します（内部用）
+   *
+   * Service層内の共通取得メソッド。
+   * Repositoryの `findByIdOrFail` をラップし、存在しない場合は `NotFoundException` を投げます。
+   * 更新・削除などのユースケースから内部的に使用されます。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  private async findByIdOrFail(id: string) {
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.regionRepository.findByIdOrFail(id);
   }
 
   /**

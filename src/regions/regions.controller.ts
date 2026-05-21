@@ -39,8 +39,21 @@ export class RegionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.regionsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    // エリア情報取得
+    const region = await this.regionsService.findOne(id);
+    // domain → dto
+    const dto = instanceToPlain(
+      plainToInstance(RegionResponseDto, region, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }) satisfies RegionResponseDto,
+    ) as RegionResponseDto;
+
+    return dto;
+
+    // return this.regionsService.findOne(+id);
   }
 
   /**
