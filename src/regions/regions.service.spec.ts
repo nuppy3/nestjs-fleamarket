@@ -137,138 +137,91 @@ describe('■■■ Region test ■■■', () => {
   //--------------------------------------
   // findOne() test
   //--------------------------------------
-  // describe('findOne Test', () => {
-  //   it('正常系： 指定idに関連するRegion情報が削除され、Regionドメイン(＋id)(全項目)を返却する', async () => {
-  //     // Repository mock data 作成
-  //     // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
-  //     const mockRegion = Region.reconstitute({
-  //       name: '北海道',
-  //       code: '01',
-  //       kanaName: 'ほっかいどう',
-  //       status: 'published',
-  //       kanaEn: 'hokkaidou',
-  //       createdAt: new Date('2025-04-05T10:00:00.000Z'),
-  //       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-  //     } satisfies ReconstituteRegionProps) satisfies Region;
-  //     const regionWithId = Object.assign(mockRegion, {
-  //       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-  //     });
+  describe('findOne Test', () => {
+    it('正常系： 指定idに関連するRegionドメイン(＋id)(全項目)を返却する', async () => {
+      // Repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
 
-  //     // mock data set (Repository)
-  //     jest
-  //       .spyOn(regionRepository, 'findByIdOrFail')
-  //       .mockResolvedValue(regionWithId);
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
 
-  //     //  jest.spyOn は「本物のメソッドを監視・上書きしたいとき」に使うため、本来は以下のように
-  //     //  直接mockに対してmockresolvedValue()するのが主流のよう。
-  //     //  これからはspyOn()をやめてみよう。。
-  //     mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
+      //  jest.spyOn は「本物のメソッドを監視・上書きしたいとき」に使うため、本来は以下のように
+      //  直接mockに対してmockresolvedValue()するのが主流のよう。
+      //  これからはspyOn()をやめてみよう。。
+      mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
 
-  //     // regionsDomainService mock data: void
-  //     jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
 
-  //     // prisma region 'update' mock data
-  //     const mockDeleted = Region.reconstitute({
-  //       // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-  //       name: '北海道',
-  //       code: '01',
-  //       kanaName: 'ほっかいどう',
-  //       status: 'published',
-  //       kanaEn: 'hokkaidou',
-  //       createdAt: new Date('2025-04-05T10:00:00.000Z'),
-  //       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-  //       // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-  //     } satisfies ReconstituteRegionProps) satisfies Region;
-  //     const deletedWithId = Object.assign(mockDeleted, {
-  //       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-  //     });
+      // テスト対象 service 呼び出し
+      const result = await regionsService.findOne(id);
 
-  //     jest.spyOn(regionRepository, 'save').mockResolvedValue(deletedWithId);
+      // 検証: RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
+      expect(result).toMatchObject(
+        createExpectedData().find((region) => region.id === id)!,
+      );
 
-  //     // serviceの引数作成
-  //     const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
-  //     const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      // 引数チェック
+      expect(
+        jest.spyOn(regionRepository, 'findByIdOrFail'),
+      ).toHaveBeenCalledWith(id);
+    });
 
-  //     // テスト対象 service 呼び出し
-  //     const result = await regionsService.remove(id, userId);
+    it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'xxxx';
 
-  //     // 検証: RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
-  //     expect(result).toMatchObject(
-  //       createExpectedData().find((region) => region.id === id)!,
-  //     );
+      // mock data 作成(Repository): Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(mockException);
 
-  //     // 引数チェック
-  //     expect(jest.spyOn(regionRepository, 'save')).toHaveBeenCalledWith(
-  //       regionWithId,
-  //       userId,
-  //     );
-  //   });
+      // 検証：NotFoundException
+      await expect(regionsService.findOne(id)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
+    });
 
-  //   it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
-  //     // serviceの引数作成
-  //     const id = 'xxxx';
-  //     const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+    it('異常系②： Retion情報の更新時のエラー（DB接続エラー)', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
 
-  //     // mock data 作成(Repository): Regionが存在しない
-  //     const mockException = new NotFoundException(
-  //       `idに関連するエリア情報が存在しません!! regionId: ${id}`,
-  //     );
-  //     jest
-  //       .spyOn(regionRepository, 'findByIdOrFail')
-  //       .mockRejectedValue(mockException);
+      // DB接続エラー
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
 
-  //     // 検証：NotFoundException
-  //     await expect(regionsService.remove(id, userId)).rejects.toThrow(
-  //       new NotFoundException(
-  //         `idに関連するエリア情報が存在しません!! regionId: ${id}`,
-  //       ),
-  //     );
-  //   });
+      // mock data set (Error)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(connectionError);
 
-  //   it('異常系②： Retion情報の更新時(ソフトデリート)のエラー（DB接続エラー)', async () => {
-  //     // serviceの引数作成
-  //     const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
-  //     const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
-
-  //     // Repository mock data 作成
-  //     // Region & {id:string} の生成は本物のRegion.reconstiture()を使う（BP)
-  //     // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。
-  //     // これを Mock にしてしまうと、テストコードが非常に複雑になる割にメリットがありません。
-  //     const mockRegion = Region.reconstitute({
-  //       name: '北海道',
-  //       code: '01',
-  //       kanaName: 'ほっかいどう',
-  //       status: 'published',
-  //       kanaEn: 'hokkaidou',
-  //       createdAt: new Date('2025-04-05T10:00:00.000Z'),
-  //       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-  //     }) satisfies ReconstituteRegionProps;
-  //     const regionWithId = Object.assign(mockRegion, {
-  //       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-  //     });
-
-  //     // mock data set (Repository)
-  //     jest
-  //       .spyOn(regionRepository, 'findByIdOrFail')
-  //       .mockResolvedValue(regionWithId);
-
-  //     // regionsDomainService mock data: void
-  //     jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
-
-  //     // DB接続エラー
-  //     const connectionError = new PrismaClientKnownRequestError(
-  //       "Can't reach database server",
-  //       { code: 'P1001', clientVersion: '5.0.0' },
-  //     );
-
-  //     jest.spyOn(regionRepository, 'save').mockRejectedValue(connectionError);
-
-  //     // 検証: エラーをそのまま伝搬することを確認
-  //     await expect(regionsService.remove(id, userId)).rejects.toThrow(
-  //       PrismaClientKnownRequestError,
-  //     );
-  //   });
-  // });
+      // 検証: エラーをそのまま伝搬することを確認
+      await expect(regionsService.findOne(id)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
 
   //--------------------------------------
   // findByCodeOrFail() test
