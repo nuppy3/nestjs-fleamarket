@@ -15,6 +15,7 @@ import { RegionsService } from './regions.service';
 
 const mockRegionsService = {
   findAll: jest.fn(),
+  findOne: jest.fn(),
   create: jest.fn(),
   findByCodeOrFail: jest.fn(),
   remove: jest.fn(),
@@ -109,6 +110,54 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // Controllerがエラーをそのまま伝播（reject）することを確認
       await expect(regionsController.findAll()).rejects.toThrow(
         PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------
+  // findOne() TEST
+  //--------------------------------
+  describe('findOne test', () => {
+    it('正常系: 指定したidを元に、エリア情報DTO（全項目）を返却する', async () => {
+      // 引数
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道
+
+      // region servie mock data 作成
+      const serviceModkRegionData = createServiceMockData().find(
+        (region) => region.id === id,
+      );
+      jest
+        .spyOn(regionsService, 'findOne')
+        .mockResolvedValue(serviceModkRegionData!);
+
+      // テスト対象controller呼び出し
+      const result = await regionsController.findOne(id);
+
+      // 検証
+      const expected = createExpectedRegionDtos().find(
+        (region) => region.id === id,
+      );
+      expect(result).toEqual(expected);
+    });
+
+    it('異常系： idに紐づくエリア情報なし（データ0件)の場合、NotFoundExceptionを伝播', async () => {
+      // 引数
+      const id = 'xxxxxxxx-0ba4-xxxx-xxxx-473aa26e457a'; // 北海道
+
+      // region service mock data 作成(NotFoundException)
+      jest
+        .spyOn(regionsService, 'findOne')
+        .mockRejectedValue(
+          new NotFoundException(
+            `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+          ),
+        );
+
+      // 検証
+      await expect(jest.spyOn(regionsService, 'findOne')).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
       );
     });
   });
