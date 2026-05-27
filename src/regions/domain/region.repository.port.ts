@@ -7,8 +7,16 @@ export const REGION_REPOSITORY_PORT = Symbol('REGION_REPOSITORY_PORT');
  * Regionドメインを操作・永続化するためのPort
  */
 export interface RegionRepositoryPort {
-  // 現在のDomainの状態を正しく取得する意味で、Repositoryに配置。
-  // findAllなどは、Repositoryではなく、Query Serviceに配置するのが望ましい。
+  /**
+   * findByIdOrFail(): id(Region ID)に関連するRegion情報を取得し、Region domainに
+   *             詰め替えて返却します。(Region + id)
+   *
+   * 現在のDomainの状態を正しく取得する意味で、Repositoryに配置。
+   * findAllなどは、Repositoryではなく、Query Serviceに配置するのが望ましい。
+   *
+   * @param id Region ID (PK)
+   * @returns Region Domain(Region + id)
+   */
   findByIdOrFail(id: string): Promise<Region & { id: string }>;
 
   /**
