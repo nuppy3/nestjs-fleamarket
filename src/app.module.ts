@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { ItemsNoDbModule } from './items-no-db/items-no-db.module';
 import { ItemsModule } from './items/items.module';
 import { PrefecturesModule } from './prefectures/prefectures.module';
+import { DomainExceptionFilter } from './regions/common/presentation/filters/domain-exception.filter';
 import { RegionsModule } from './regions/regions.module';
 import { StoresModule } from './stores/stores.module';
 import { TodoItemsModule } from './todo-items/todo-items.module';
@@ -29,6 +31,13 @@ import { TodoItemsModule } from './todo-items/todo-items.module';
   // コントローラー
   controllers: [],
   // DI対象
-  providers: [],
+  // NestJSでのDomainExceptionFilterのグローバル設定(main.tsでの設定も可能であるが、
+  // app.module.tsでの設定がよい)
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter, // 自作のフィルターを指定
+    },
+  ],
 })
 export class AppModule {}
