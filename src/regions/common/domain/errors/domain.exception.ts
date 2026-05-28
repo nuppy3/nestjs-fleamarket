@@ -1,8 +1,14 @@
+import { HttpStatus } from '@nestjs/common';
+
 /**
  * DomainException
  * 純粋なJavaScriptの Error クラスを継承して、自作のエラー（カスタム例外）を実装
  */
 export class DomainException extends Error {
+  // ステータスのデフォルト:400 (必要に応じて子クラスで上書き)
+  readonly status: number = HttpStatus.BAD_REQUEST;
+  readonly errorCode: string = 'DOMAIN_ERROR';
+
   constructor(message: string) {
     super(message);
     // 解説: 通常、Error を継承しただけだと、エラーを console.log やログツールで

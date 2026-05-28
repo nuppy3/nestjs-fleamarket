@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { DomainException } from '../../common/domain/errors/domain.exception';
 
 /**
@@ -13,6 +14,10 @@ import { DomainException } from '../../common/domain/errors/domain.exception';
  * エリアドメイン特有の例外: エリアが既に利用停止中
  */
 export class RegionAlreadySuspendedException extends DomainException {
+  // ステータスを上書き
+  override readonly status: number = HttpStatus.CONFLICT;
+  override readonly errorCode: string = 'REGION_ALREADY_SUSPENDED';
+
   constructor(regionName: string) {
     super(`この地域はすでに利用停止状態です。地域： ${regionName}`);
     this.name = 'RegionAlreadySuspendedException';
@@ -23,6 +28,10 @@ export class RegionAlreadySuspendedException extends DomainException {
  * エリアドメイン特有の例外: エリアが既に掲載中
  */
 export class RegionAlreadyPublishedException extends DomainException {
+  // ステータスを上書き
+  override readonly status: number = HttpStatus.CONFLICT;
+  override readonly errorCode: string = 'REGION_ALREADY_PUBLISHED';
+
   constructor(regionName: string) {
     super(
       `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${regionName}`,
