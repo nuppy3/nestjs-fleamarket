@@ -1,4 +1,8 @@
 import {
+  RegionAlreadyPublishedException,
+  RegionAlreadySuspendedException,
+} from './errors/regions.exceptions';
+import {
   ReconstituteRegionProps,
   Region,
   RegionStatus,
@@ -53,6 +57,15 @@ describe('□□□ Region Domain Test □□□', () => {
       // 前に region.remove() を単体で書かないこと！
       // region.remove(): 「今すぐ爆弾を起動しろ！」
       // () => region.remove(): 「爆弾を起動するためのリモコンです。どうぞ」
+      // expect(() => region.remove()).toThrow(
+      //   `この地域はすでに利用停止状態です。地域： ${region.name}`,
+      // );
+
+      // DomainExceptionの検証
+      expect(() => region.remove()).toThrow(
+        new RegionAlreadySuspendedException(region.name),
+      );
+      // messageの検証
       expect(() => region.remove()).toThrow(
         `この地域はすでに利用停止状態です。地域： ${region.name}`,
       );
@@ -122,6 +135,15 @@ describe('□□□ Region Domain Test □□□', () => {
       // 前に region.remove() を単体で書かないこと！
       // region.remove(): 「今すぐ爆弾を起動しろ！」
       // () => region.remove(): 「爆弾を起動するためのリモコンです。どうぞ」
+      // expect(() => region.update(region)).toThrow(
+      //   `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${region.name}`,
+      // );
+
+      // DomainExceptionの検証
+      expect(() => region.update(region)).toThrow(
+        new RegionAlreadyPublishedException(region.name),
+      );
+      // messageの検証
       expect(() => region.update(region)).toThrow(
         `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${region.name}`,
       );

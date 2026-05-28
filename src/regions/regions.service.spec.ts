@@ -4,6 +4,10 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../generated/prisma';
 import { PrismaService } from './../prisma/prisma.service';
 import {
+  RegionAlreadyPublishedException,
+  RegionAlreadySuspendedException,
+} from './domain/errors/regions.exceptions';
+import {
   REGION_REPOSITORY_PORT,
   RegionRepositoryPort,
 } from './domain/region.repository.port';
@@ -638,7 +642,48 @@ describe('■■■ Region test ■■■', () => {
       );
     });
 
-    it('異常系③： Retion情報の更新時(ソフトデリート)のエラー（DB接続エラー)', async () => {
+    it('異常系③： 指定idに関連する都道府県情報が既に利用停止状態のため、RegionAlreadySuspendedExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // Repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.reconstiture()を使う（BP)
+      // Region は「ドメインモデル」であり、外部依存（DBやAPI）を持たない純粋なロジックのかたまりです。
+      // これを Mock にしてしまうと、テストコードが非常に複雑になる割にメリットがありません。
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        // 停止
+        status: 'suspended',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      }) satisfies ReconstituteRegionProps;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // regionsDomainService mock data: void
+      jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
+
+      // 検証: RegionAlreadySuspendedExceptionがスローされることをテスト
+      await expect(regionsService.remove(id, userId)).rejects.toThrow(
+        new RegionAlreadySuspendedException('北海道'),
+      );
+      // messageの内容を検証
+      await expect(regionsService.remove(id, userId)).rejects.toThrow(
+        `この地域はすでに利用停止状態です。地域： 北海道`,
+      );
+    });
+
+    it('異常系④： Retion情報の更新時(ソフトデリート)のエラー（DB接続エラー)', async () => {
       // serviceの引数作成
       const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
       const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
@@ -755,7 +800,7 @@ describe('■■■ Region test ■■■', () => {
       expect(result).toMatchObject(expected);
     });
 
-    it('異常系： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる(エラーの伝搬)', async () => {
+    it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる(エラーの伝搬)', async () => {
       // serviceの引数作成
       const id = 'xxxx';
       const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
@@ -780,6 +825,49 @@ describe('■■■ Region test ■■■', () => {
         new NotFoundException(
           `idに関連するエリア情報が存在しません!! regionId: ${id}`,
         ),
+      );
+    });
+
+    it('異常系②： 指定idに関連するRegion情報のステータスが掲載中のため、RegionAlreadyPublishedExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道のid
+      const dto = {
+        name: '北海道テスト',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // regions service findOne mock data 作成: domainをreconstituteで作成(時間などをセットできるため)
+      const region = Region.reconstitute({
+        name: '北海道テスト',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        // 掲載中
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps);
+      const regionWithId = Object.assign(region, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // 検証：RegionAlreadyPublishedException
+      await expect(regionsService.update(id, dto, userId)).rejects.toThrow(
+        new RegionAlreadyPublishedException('北海道テスト'),
+      );
+
+      // 検証：message
+      await expect(regionsService.update(id, dto, userId)).rejects.toThrow(
+        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： 北海道テスト`,
       );
     });
   });
