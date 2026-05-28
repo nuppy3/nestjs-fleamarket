@@ -1,3 +1,8 @@
+import {
+  RegionAlreadyPublishedException,
+  RegionAlreadySuspendedException,
+} from './errors/regions.exceptions';
+
 /**
  * Region domain 全属性(完全な状態)
  */
@@ -212,9 +217,10 @@ export class Region {
   private validateCanUpdate(): void {
     // ルール①：ステータスが掲載中の場合
     if (this._status === RegionStatus.PUBLISHED) {
-      throw new Error(
-        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${this._name}`,
-      );
+      throw new RegionAlreadyPublishedException(this._name);
+      // throw new Error(
+      //   `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： ${this._name}`,
+      // );
     }
 
     // TODO // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
@@ -233,7 +239,8 @@ export class Region {
   private validateCanDelete(): void {
     // ルール①：既に停止中の場合
     if (this._status === RegionStatus.SUSPENDED) {
-      throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
+      throw new RegionAlreadySuspendedException(this._name);
+      // throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
     }
 
     // ルール② 例：紐づく都道府県が存在する場合は削除不可（参照整合性）
