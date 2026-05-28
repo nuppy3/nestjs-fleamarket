@@ -301,7 +301,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         kanaName: 'おきなわ',
         status: RegionStatus.PUBLISHED,
         kanaEn: 'okinawa',
-        statusLabel: '反映中',
+        statusLabel: '掲載中',
       } satisfies RegionResponseDto);
     });
 
@@ -396,7 +396,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         kanaName: 'ほっかいどうてすと',
         status: 'published',
         kanaEn: 'hokkaidoutest',
-        statusLabel: '反映中',
+        statusLabel: '掲載中',
       } satisfies RegionResponseDto);
     });
 
@@ -586,7 +586,7 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'ほっかいどう',
       status: 'published',
       kanaEn: 'hokkaidou',
-      statusLabel: '反映中',
+      statusLabel: '掲載中',
     },
     {
       id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
@@ -595,7 +595,7 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'とうほく',
       status: 'published',
       kanaEn: 'tohoku',
-      statusLabel: '反映中',
+      statusLabel: '掲載中',
     },
     {
       id: '4164ffe0-d68b-4de4-9139-88c7c7849709',

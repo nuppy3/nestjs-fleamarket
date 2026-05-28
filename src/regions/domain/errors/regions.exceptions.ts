@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { DomainException } from '../../common/domain/errors/domain.exception';
+import { DomainException } from '../../../common/domain/errors/domain.exception';
 
 /**
  * regions.exceptions.ts： 実用性を意識し、一つのファイルにドメイン固有のException
