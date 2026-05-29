@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
+import { RegionAlreadyPublishedException } from './domain/errors/regions.exceptions';
 import {
   ReconstituteRegionProps,
   Region,
@@ -400,7 +401,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       } satisfies RegionResponseDto);
     });
 
-    it('異常系：idに関連するエリア情報が存在しない。(serviceのNotFoundExceptionを伝播', async () => {
+    it('異常系①：idに関連するエリア情報が存在しない。(serviceのNotFoundExceptionを伝播', async () => {
       // 引数作成
       const id = 'xxxx';
       const req: Partial<ExpressRequest & { user: RequestUser }> = {
@@ -439,6 +440,52 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         new NotFoundException(
           `idに関連するエリア情報が存在しません!! regionId: ${id}`,
         ),
+      );
+    });
+
+    it('異常系②：更新対象のエリア情報が掲載中の場合、RegionAlreadyPublishedExceptionをスローする', async () => {
+      // 引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+      const dto = {
+        name: '北海道テストUPDATE',
+        code: '99',
+        kanaName: 'ほっかいどうてすと',
+        status: 'published',
+        kanaEn: 'hokkaidoutest',
+      } satisfies UpdateRegionDto;
+
+      // mock data セット (RegionAlreadyPublishedException)
+      jest
+        .spyOn(regionsService, 'update')
+        .mockRejectedValue(new RegionAlreadyPublishedException('北海道テスト'));
+
+      // test 対象 controller 呼び出し
+      // 検証： RegionAlreadyPublishedException
+      await expect(
+        regionsController.update(
+          id,
+          dto,
+          req as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(new RegionAlreadyPublishedException('北海道テスト'));
+
+      // message検証
+      await expect(
+        regionsController.update(
+          id,
+          dto,
+          req as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(
+        `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： 北海道テスト`,
       );
     });
   });

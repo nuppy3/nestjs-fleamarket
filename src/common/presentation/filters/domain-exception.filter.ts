@@ -15,7 +15,7 @@ export class DomainExceptionFilter implements ExceptionFilter<DomainException> {
     const message = exception.message;
 
     response.status(status).json({
-      stasuCode: status,
+      statusCode: status,
       errorCode: errorCode,
       message: message,
       timestamp: new Date().toISOString(),

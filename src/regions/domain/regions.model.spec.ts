@@ -117,7 +117,7 @@ describe('□□□ Region Domain Test □□□', () => {
       region.kanaEn = 'erea99';
     });
 
-    it('異常系: 削除対象のRegionが掲載中の場合、Errorをスローする', () => {
+    it('異常系: 削除対象のRegionが掲載中の場合、RegionAlreadyPublishedExceptionをスローする', () => {
       const region = Region.createNew({
         name: '北海道',
         code: '01',
