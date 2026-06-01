@@ -3,10 +3,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RegionsController } from '../regions/presentation/regions.controller';
+import { RegionsService } from './application/regions.service';
 import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
 import { RegionsDomainService } from './domain/regions.domain.service';
 import { RegionRepository } from './infrastructure/region.repository';
-import { RegionsService } from './regions.service';
 
 @Module({
   imports: [PrismaModule],

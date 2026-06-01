@@ -1,13 +1,13 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from './../prisma/prisma.service';
-import type { RegionRepositoryPort } from './domain/region.repository.port';
-import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
-import { RegionsDomainService } from './domain/regions.domain.service';
-import { RegionFactory } from './domain/regions.factory';
-import { Region } from './domain/regions.model';
-import { CreateRegionDto } from './dto/region.dto';
-import { UpdateRegionDto } from './dto/update-region.dto';
-import { RegionMapper } from './infrastructure/region. mapper';
+import { PrismaService } from '../../prisma/prisma.service';
+import type { RegionRepositoryPort } from '../domain/region.repository.port';
+import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
+import { RegionsDomainService } from '../domain/regions.domain.service';
+import { RegionFactory } from '../domain/regions.factory';
+import { Region } from '../domain/regions.model';
+import { CreateRegionDto } from '../dto/region.dto';
+import { UpdateRegionDto } from '../dto/update-region.dto';
+import { RegionMapper } from '../infrastructure/region. mapper';
 
 @Injectable()
 export class RegionsService {

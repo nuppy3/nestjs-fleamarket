@@ -1,24 +1,24 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Region as PrismaRegion } from '../../generated/prisma';
-import { PrismaService } from './../prisma/prisma.service';
+import { Region as PrismaRegion } from '../../../generated/prisma';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   RegionAlreadyPublishedException,
   RegionAlreadySuspendedException,
-} from './domain/errors/regions.exceptions';
+} from '../domain/errors/regions.exceptions';
 import {
   REGION_REPOSITORY_PORT,
   RegionRepositoryPort,
-} from './domain/region.repository.port';
-import { RegionsDomainService } from './domain/regions.domain.service';
+} from '../domain/region.repository.port';
+import { RegionsDomainService } from '../domain/regions.domain.service';
 import {
   ReconstituteRegionProps,
   Region,
   RegionStatus,
-} from './domain/regions.model';
-import { CreateRegionDto } from './dto/region.dto';
-import { UpdateRegionDto } from './dto/update-region.dto';
+} from '../domain/regions.model';
+import { CreateRegionDto } from '../dto/region.dto';
+import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsService } from './regions.service';
 
 // MockService定義

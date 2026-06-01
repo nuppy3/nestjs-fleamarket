@@ -1,20 +1,20 @@
 import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PAGINATION } from '../common/constants/pagination.constants';
+import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
-import { RegionsService } from '../regions/regions.service';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 import {
-  Prefecture,
-  PrefectureFilter,
-  PrefectureWithCoverage,
+    Prefecture,
+    PrefectureFilter,
+    PrefectureWithCoverage,
 } from './prefectures.model';
 
 @Injectable()

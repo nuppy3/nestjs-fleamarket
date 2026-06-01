@@ -3,15 +3,15 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from 'src/types/requestUser';
+import { RegionsService } from '../application/regions.service';
 import { RegionAlreadyPublishedException } from '../domain/errors/regions.exceptions';
 import {
-  ReconstituteRegionProps,
-  Region,
-  RegionStatus,
+    ReconstituteRegionProps,
+    Region,
+    RegionStatus,
 } from '../domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
-import { RegionsService } from '../regions.service';
 import { RegionsController } from './regions.controller';
 
 const mockRegionsService = {
