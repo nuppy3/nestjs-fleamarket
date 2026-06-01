@@ -72,6 +72,45 @@ export class RegionRepository implements RegionRepositoryPort {
   }
 
   /**
+   * findByCodeOrFail(): codeに関連するRegion情報を取得し、Region domainに
+   *                   詰め替えて返却します。(Region + id)
+   *
+   * @param code Region code
+   * @returns Region Domain(Region + id)
+   */
+  async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
+    // Region情報取得
+    // TODO: いづれinfrastructure/repositoryに移動
+
+    const prismaRegion = await this.prismaService.region.findUnique({
+      where: { code },
+    });
+
+    if (!prismaRegion) {
+      throw new NotFoundException(
+        `codeに関連するエリア情報が存在しません!! code: ${code}`,
+      );
+    }
+
+    // prisma → domain
+    // TODO ここはRegionMapperのtoDomain()に移管するのがDDDを意識した実装
+    const region = Region.reconstitute({
+      code: prismaRegion.code,
+      name: prismaRegion.name,
+      kanaName: prismaRegion.kanaName,
+      status: prismaRegion.status,
+      kanaEn: prismaRegion.kanaEn,
+      createdAt: prismaRegion.createdAt,
+      updatedAt: prismaRegion.updatedAt,
+    } satisfies ReconstituteRegionProps);
+
+    // domain + id
+    const regionWithId = Object.assign(region, { id: prismaRegion.id });
+
+    return regionWithId;
+  }
+
+  /**
    * save(): エリア情報を更新し(DB更新)、結果をdomainに詰め替えて返却します。(Region + id)
    *         作成・更新・削除のユースケースにてコールされる。
    *
