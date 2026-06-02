@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { RegionRepositoryPort } from '../domain/region.repository.port';
-import { ReconstituteRegionProps, Region } from '../domain/regions.model';
+import { Region } from '../domain/regions.model';
 import { PrismaService } from './../../prisma/prisma.service';
 import { RegionMapper } from './region. mapper';
 
@@ -55,20 +55,23 @@ export class RegionRepository implements RegionRepositoryPort {
 
     // prisma → domain
     // TODO ここはRegionMapperのtoDomain()に移管するのがDDDを意識した実装
-    const region = Region.reconstitute({
-      code: prismaRegion.code,
-      name: prismaRegion.name,
-      kanaName: prismaRegion.kanaName,
-      status: prismaRegion.status,
-      kanaEn: prismaRegion.kanaEn,
-      createdAt: prismaRegion.createdAt,
-      updatedAt: prismaRegion.updatedAt,
-    } satisfies ReconstituteRegionProps);
+    // const region = Region.reconstitute({
+    //   code: prismaRegion.code,
+    //   name: prismaRegion.name,
+    //   kanaName: prismaRegion.kanaName,
+    //   status: prismaRegion.status,
+    //   kanaEn: prismaRegion.kanaEn,
+    //   createdAt: prismaRegion.createdAt,
+    //   updatedAt: prismaRegion.updatedAt,
+    // } satisfies ReconstituteRegionProps);
 
-    // domain + id
-    const regionWithId = Object.assign(region, { id });
+    // // domain + id
+    // const regionWithId = Object.assign(region, { id });
 
-    return regionWithId;
+    // return regionWithId;
+
+    // prisma → domain
+    return RegionMapper.toDomain(prismaRegion);
   }
 
   /**
@@ -80,8 +83,6 @@ export class RegionRepository implements RegionRepositoryPort {
    */
   async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
     // Region情報取得
-    // TODO: いづれinfrastructure/repositoryに移動
-
     const prismaRegion = await this.prismaService.region.findUnique({
       where: { code },
     });
@@ -93,21 +94,7 @@ export class RegionRepository implements RegionRepositoryPort {
     }
 
     // prisma → domain
-    // TODO ここはRegionMapperのtoDomain()に移管するのがDDDを意識した実装
-    const region = Region.reconstitute({
-      code: prismaRegion.code,
-      name: prismaRegion.name,
-      kanaName: prismaRegion.kanaName,
-      status: prismaRegion.status,
-      kanaEn: prismaRegion.kanaEn,
-      createdAt: prismaRegion.createdAt,
-      updatedAt: prismaRegion.updatedAt,
-    } satisfies ReconstituteRegionProps);
-
-    // domain + id
-    const regionWithId = Object.assign(region, { id: prismaRegion.id });
-
-    return regionWithId;
+    return RegionMapper.toDomain(prismaRegion);
   }
 
   /**

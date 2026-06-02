@@ -99,32 +99,22 @@ export class RegionsService {
    * @returns エリア情報
    */
   async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
-    // エリア情報取得
-    const prismaRegion = await this.prismaService.region.findUnique({
-      where: { code }, // カラム名とパラメータがイコールなら省略可能(code: code)
-    });
+    // エリア情報取得 : 以下をRepositoryへ移管
+    // const prismaRegion = await this.prismaService.region.findUnique({
+    //   where: { code }, // カラム名とパラメータがイコールなら省略可能(code: code)
+    // });
+    // if (!prismaRegion) {
+    //   throw new NotFoundException(
+    //     `codeに関連するエリア情報が存在しません!! code: ${code}`,
+    //   );
+    // }
+    // // prisma → domain
+    // const domain = RegionMapper.toDomain(prismaRegion);
+    // return domain;
 
-    if (!prismaRegion) {
-      throw new NotFoundException(
-        `codeに関連するエリア情報が存在しません!! code: ${code}`,
-      );
-    }
-
-    // prisma → domain
-    const domain = RegionMapper.toDomain(prismaRegion);
-
-    // const domain = {
-    //   id: prismaRegion.id,
-    //   code: prismaRegion.code,
-    //   name: prismaRegion.name,
-    //   kanaName: prismaRegion.kanaName,
-    //   status: prismaRegion.status,
-    //   kanaEn: prismaRegion.kanaEn,
-    //   createdAt: prismaRegion.createdAt,
-    //   updatedAt: prismaRegion.updatedAt,
-    // } satisfies Region & { id: string };
-
-    return domain;
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.regionRepository.findByCodeOrFail(code);
   }
 
   /**
