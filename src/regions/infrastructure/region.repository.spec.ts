@@ -122,6 +122,81 @@ describe('□□□ Region Repository TEST □□□', () => {
   });
 
   //--------------------------------------
+  // findByCodeOrFail test
+  //--------------------------------------
+  describe('findByCodeOrFail test', () => {
+    it('正常系: Prismaデータ(Region)が正しく Region + id に変換されること', async () => {
+      // prisma region 'findUnique' mock data
+      const mockPrismaRegion = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies PrismaRegion;
+
+      jest
+        .spyOn(prismaService.region, 'findUnique')
+        .mockResolvedValue(mockPrismaRegion);
+
+      // Repository引数作成
+      const code = '01';
+
+      // テスト対象のrepository呼び出し
+      const result = await regionRepository.findByCodeOrFail(code);
+
+      // 期待値
+      const expectedData = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      };
+
+      // 検証: RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
+      // expect(result).toEqual(
+      //   createExpectedData().find((region) => region.id === id),
+      // );
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      expect(result).toMatchObject(expectedData);
+      // 空オブジェクト{}にプロパティを保持したのもではなく、ちゃんとRegionを元にしているかチェック
+      expect(result).toBeInstanceOf(Region);
+      // 【追加】id プロパティが文字列として存在することを厳格にチェック （ここまでしなくていいが念の為）
+      expect(result).toHaveProperty('id');
+      expect(typeof result.id).toBe('string');
+
+      // 引数チェック
+      expect(
+        jest.spyOn(prismaService.region, 'findUnique'),
+      ).toHaveBeenCalledWith({
+        where: { code },
+      });
+    });
+    it('異常系: codeに関連するRegionが存在しない場合、NotFoundExceptionがスローされること', async () => {
+      // 引数作成
+      const code = 'xx';
+
+      // prisma mock data 作成: Regionが存在しない(null)
+      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
+
+      // 検証：NotFoundException
+      await expect(regionRepository.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連するエリア情報が存在しません!! code: ${code}`,
+        ),
+      );
+    });
+  });
+
+  //--------------------------------------
   // save() test
   //--------------------------------------
   describe('save() test', () => {
