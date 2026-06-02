@@ -35,6 +35,7 @@ const mockPrismaService = {
 // MockRepository定義
 const mockRegionRepository = {
   findByIdOrFail: jest.fn(),
+  findByCodeOrFail: jest.fn(),
   save: jest.fn(),
 } as jest.Mocked<RegionRepositoryPort>; // as jest.Mocked<>はなくてもいいが、型安全に
 
@@ -235,13 +236,13 @@ describe('■■■ Region test ■■■', () => {
       // serviceの引数
       const code = '02';
 
-      // prisma mock data 作成
-      const mockPrismaData = createPrismaMockData().find(
+      // repository mock data 作成
+      const mockRepositoryData = createRepositoryMockData().find(
         (region) => region.code === code,
       );
       jest
-        .spyOn(prismaService.region, 'findUnique')
-        .mockResolvedValue(mockPrismaData!);
+        .spyOn(regionRepository, 'findByCodeOrFail')
+        .mockResolvedValue(mockRepositoryData!);
 
       // test対象service呼び出し
       const result = await regionsService.findByCodeOrFail(code);
@@ -256,18 +257,25 @@ describe('■■■ Region test ■■■', () => {
       // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
       expect(result).toMatchObject(expected!);
 
-      // service→prismaService.region.findUnique()への引数の検証
+      // service→regionRepository.findByCodeOrFail()への引数の検証
       expect(
-        jest.spyOn(prismaService.region, 'findUnique'),
-      ).toHaveBeenCalledWith({ where: { code } });
+        jest.spyOn(regionRepository, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
     });
 
-    it('異常系： codeに関連するエリア情報が存在しない場合、NotFoundExcepton', async () => {
-      // mock data 作成（prismaは０件の場合、nullを返す)
-      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue(null);
+    it('異常系： codeに関連するエリア情報が存在しない場合、NotFoundExcepton(エラーの伝搬確認)', async () => {
+      // serviceの引数
+      const code = '99';
+
+      // repositoryにException(期待値)をセット
+      const mockException = new NotFoundException(
+        `codeに関連するエリア情報が存在しません!! code: ${code}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByCodeOrFail')
+        .mockRejectedValue(mockException);
 
       // 検証
-      const code = '13';
       await expect(regionsService.findByCodeOrFail(code)).rejects.toThrow(
         new NotFoundException(
           `codeに関連するエリア情報が存在しません!! code: ${code}`,
@@ -939,11 +947,91 @@ function createPrismaMockData(): PrismaRegion[] {
 }
 
 /**
+ * repository Mock Data作成
+ * @returns repository Mock Data (region domain + id の配列)
+ */
+function createRepositoryMockData(): (Region & { id: string })[] {
+  const regions: Region[] = [
+    Region.reconstitute({
+      // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies ReconstituteRegionProps),
+    Region.reconstitute({
+      // id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies ReconstituteRegionProps),
+    Region.reconstitute({
+      // id: '0324dc98-89a2-4db1-9431-b20feff57700',
+      name: '関東',
+      code: '03',
+      kanaName: 'kanto',
+      status: 'published',
+      kanaEn: 'kantou',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies ReconstituteRegionProps),
+    Region.reconstitute({
+      // id: '0424dc98-89a2-4db1-9431-b20feff57700',
+      name: '東海',
+      code: '04',
+      kanaName: 'とうかい',
+      status: 'published',
+      kanaEn: 'tokai',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies ReconstituteRegionProps),
+    Region.reconstitute({
+      // id: '0524dc98-89a2-4db1-9431-b20feff57700',
+      name: '北陸',
+      code: '05',
+      kanaName: 'ほくりく',
+      status: 'published',
+      kanaEn: 'hokuriku',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies ReconstituteRegionProps),
+  ];
+
+  const ids = [
+    'b96509f2-0ba4-447c-8a98-473aa26e457a',
+    'ad24dc98-89a2-4db1-9431-b20feff57700',
+    '0324dc98-89a2-4db1-9431-b20feff57700',
+    '0424dc98-89a2-4db1-9431-b20feff57700',
+    '0524dc98-89a2-4db1-9431-b20feff57700',
+  ];
+
+  const mockDatas: (Region & { id: string })[] = regions.map((region, index) =>
+    Object.assign(region, { id: ids[index] }),
+  );
+
+  return mockDatas;
+}
+
+/**
  * 期待値作成
  *
  * memo:
  * mockDataの型指定(Region & { id: string })[]は不要（というかRegionはプレーンオブジェクト
  * ではないので型指定すると不一致エラーが出てしまうので、削除。
+ * → 現状は期待値としてプレーンオブジェクトにしている。これは自作のRegionのreconstitube()を
+ *   使用して期待値を作ってしまうとテストの信頼性が下がってしまうから。
  *
  * @returns 期待値
  */
