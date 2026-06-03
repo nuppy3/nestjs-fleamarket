@@ -1,12 +1,12 @@
 import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
+    ConflictException,
+    Injectable,
+    NotFoundException,
 } from '@nestjs/common';
 import { RegionRepositoryPort } from '../domain/region.repository.port';
 import { Region } from '../domain/regions.model';
 import { PrismaService } from './../../prisma/prisma.service';
-import { RegionMapper } from './region. mapper';
+import { RegionMapper } from './region.mapper';
 
 /**
  * RegionRepositoryクラス
