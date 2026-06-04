@@ -13,29 +13,37 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Request as ExpressRequest } from 'express';
-import { RequestUser } from 'src/types/requestUser';
+import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
+import { RegionsQueryServiceService } from '../query/regions.query.service';
 
 @Controller('regions')
 export class RegionsController {
-  constructor(private readonly regionsService: RegionsService) {}
+  constructor(
+    private readonly regionsService: RegionsService,
+    private readonly regionsQueryService: RegionsQueryServiceService,
+  ) {}
 
   @Get()
   async findAll(): Promise<RegionResponseDto[]> {
-    // エリア情報[]取得
-    const domains = await this.regionsService.findAll();
-    // domain → dto
-    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
-    // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
-    return instanceToPlain(
-      plainToInstance(RegionResponseDto, domains, {
-        // @Expose() がないプロパティは全部消える
-        // 値が undefined or null の場合、キーごと消える
-        excludeExtraneousValues: true,
-      }),
-    ) as RegionResponseDto[];
+    // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
+    // const domains = await this.regionsService.findAll();
+
+    // // domain → dto
+    // // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    // // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
+    // return instanceToPlain(
+    //   plainToInstance(RegionResponseDto, domains, {
+    //     // @Expose() がないプロパティは全部消える
+    //     // 値が undefined or null の場合、キーごと消える
+    //     excludeExtraneousValues: true,
+    //   }),
+    // ) as RegionResponseDto[];
+
+    // エリア情報[] 取得
+    return await this.regionsQueryService.findAll();
   }
 
   @Get(':id')

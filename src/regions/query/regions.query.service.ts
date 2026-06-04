@@ -22,6 +22,7 @@ export class RegionsQueryServiceService {
   async findAll(): Promise<RegionResponseDto[]> {
     // エリア情報取得
     const regions = await this.prismaService.region.findMany({
+      include: { _count: { select: { prefectures: true } } },
       orderBy: { code: 'asc' },
     });
 
