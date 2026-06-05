@@ -17,13 +17,13 @@ import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
-import { RegionsQueryServiceService } from '../query/regions.query.service';
+import { RegionsQueryService } from '../query/regions.query.service';
 
 @Controller('regions')
 export class RegionsController {
   constructor(
     private readonly regionsService: RegionsService,
-    private readonly regionsQueryService: RegionsQueryServiceService,
+    private readonly regionsQueryService: RegionsQueryService,
   ) {}
 
   @Get()

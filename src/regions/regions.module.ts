@@ -7,7 +7,7 @@ import { RegionsService } from './application/regions.service';
 import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
 import { RegionsDomainService } from './domain/regions.domain.service';
 import { RegionRepository } from './infrastructure/region.repository';
-import { RegionsQueryServiceService } from './query/regions.query.service';
+import { RegionsQueryService } from './query/regions.query.service';
 
 @Module({
   imports: [PrismaModule],
@@ -15,7 +15,7 @@ import { RegionsQueryServiceService } from './query/regions.query.service';
   providers: [
     RegionsService,
     RegionsDomainService,
-    RegionsQueryServiceService,
+    RegionsQueryService,
     {
       provide: REGION_REPOSITORY_PORT,
       useClass: RegionRepository,

@@ -12,7 +12,7 @@ import { RegionResponseDto } from '../dto/region.dto';
  *       画面が必要な形に合わせて、複数のテーブルをjoin、カウントしたりして、DTOを返却します。
  */
 @Injectable()
-export class RegionsQueryServiceService {
+export class RegionsQueryService {
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
