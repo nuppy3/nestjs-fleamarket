@@ -12,6 +12,7 @@ import {
 } from '../domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
+import { RegionsQueryService } from '../query/regions.query.service';
 import { RegionsController } from './regions.controller';
 
 const mockRegionsService = {
@@ -23,10 +24,15 @@ const mockRegionsService = {
   update: jest.fn(),
 };
 
+const mockRegionsQueryService = {
+  findAll: jest.fn(),
+};
+
 describe('■■■　Regions Controller TEST ■■■', () => {
   // DI対象モジュール宣言
   let regionsController: RegionsController;
   let regionsService: RegionsService;
+  let regionsQueryService: RegionsQueryService;
 
   // テスト全体の前に1回だけ実行
   beforeAll(async () => {
@@ -44,11 +50,15 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
       // DI対象モジュール：module.tsをほぼコピペ（serviceのMockを指定する）
       controllers: [RegionsController],
-      providers: [{ provide: RegionsService, useValue: mockRegionsService }],
+      providers: [
+        { provide: RegionsService, useValue: mockRegionsService },
+        { provide: RegionsQueryService, useValue: mockRegionsQueryService },
+      ],
     }).compile();
 
     regionsController = module.get<RegionsController>(RegionsController);
     regionsService = module.get<RegionsService>(RegionsService);
+    regionsQueryService = module.get<RegionsQueryService>(RegionsQueryService);
   });
 
   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
@@ -63,21 +73,21 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   //--------------------------------
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
-      // service mock data 作成
-      const domains: (Region & { id: string })[] = createServiceMockData();
-      jest.spyOn(regionsService, 'findAll').mockResolvedValue(domains);
+      // query service mock data 作成
+      const mockDatas = createServiceMockDtoData();
+      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
 
       // テスト対象Controller呼び出し
       const result = await regionsController.findAll();
 
       // 検証
-      const dtos = createExpectedRegionDtos();
+      const dtos = createExpectedRegionHavingPrefectureCountDtos();
       expect(result).toEqual(dtos);
     });
 
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
       // mock data 作成(空配列)
-      jest.spyOn(regionsService, 'findAll').mockResolvedValue([]);
+      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue([]);
       // test対象Controller呼び出し
       const result = await regionsController.findAll();
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
@@ -106,7 +116,9 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         "Can't reach database server",
         { code: 'P1001', clientVersion: '5.0.0' },
       );
-      jest.spyOn(regionsService, 'findAll').mockRejectedValue(connectionError);
+      jest
+        .spyOn(regionsQueryService, 'findAll')
+        .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
       await expect(regionsController.findAll()).rejects.toThrow(
@@ -564,6 +576,59 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 });
 
 /**
+ * region service mock data (dto[]) 作成
+ *
+ * @returns region service mock data (dto[])
+ */
+function createServiceMockDtoData(): RegionResponseDto[] {
+  // dtoリスト
+  const dtos = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      statusLabel: '掲載中',
+      prefectureCount: 1,
+    } satisfies RegionResponseDto,
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      statusLabel: '掲載中',
+      prefectureCount: 2,
+    } satisfies RegionResponseDto,
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      statusLabel: '編集中',
+      prefectureCount: 3,
+    } satisfies RegionResponseDto,
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      statusLabel: '停止',
+      prefectureCount: 4,
+    } satisfies RegionResponseDto,
+  ] satisfies RegionResponseDto[];
+
+  return dtos;
+}
+
+/**
  * region service mock data 作成
  * @returns region service mock data
  */
@@ -621,8 +686,60 @@ function createServiceMockData() {
 }
 
 /**
- * 期待値：Region DTO 作成
- * @returns Region DTO
+ * 期待値：Region DTO[] 作成 (prefectureCountあり)
+ *
+ * @returns Region DTO [] (prefectureCountあり)
+ */
+function createExpectedRegionHavingPrefectureCountDtos(): RegionResponseDto[] {
+  const dtos: RegionResponseDto[] = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      statusLabel: '掲載中',
+      prefectureCount: 1,
+    },
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      statusLabel: '掲載中',
+      prefectureCount: 2,
+    },
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      statusLabel: '編集中',
+      prefectureCount: 3,
+    },
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      statusLabel: '停止',
+      prefectureCount: 4,
+    },
+  ];
+
+  return dtos;
+}
+
+/**
+ * 期待値：Region DTO [] 作成
+ * @returns Region DTO []
  */
 function createExpectedRegionDtos(): RegionResponseDto[] {
   const dtos: RegionResponseDto[] = [
