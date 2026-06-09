@@ -6,9 +6,9 @@ import { RequestUser } from 'src/types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { RegionAlreadyPublishedException } from '../domain/errors/regions.exceptions';
 import {
-    ReconstituteRegionProps,
-    Region,
-    RegionStatus,
+  ReconstituteRegionProps,
+  Region,
+  RegionStatus,
 } from '../domain/regions.model';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';

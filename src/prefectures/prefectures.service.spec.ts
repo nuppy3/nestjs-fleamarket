@@ -9,16 +9,16 @@ import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { RegionsService } from '../regions/application/regions.service';
 import {
-    ReconstituteRegionProps,
-    Region,
-    RegionStatus,
+  ReconstituteRegionProps,
+  Region,
+  RegionStatus,
 } from '../regions/domain/regions.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import {
-    Prefecture,
-    PrefectureFilter,
-    PrefectureWithCoverage,
+  Prefecture,
+  PrefectureFilter,
+  PrefectureWithCoverage,
 } from './prefectures.model';
 import { PrefecturesService } from './prefectures.service';
 

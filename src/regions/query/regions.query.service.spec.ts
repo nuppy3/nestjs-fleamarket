@@ -1,0 +1,229 @@
+import { Test } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Region as PrismaRegion } from '../../../generated/prisma';
+import { PrismaService } from '../../prisma/prisma.service';
+import { RegionResponseDto } from '../dto/region.dto';
+import { RegionsQueryService } from './regions.query.service';
+
+// MockService定義
+const mockPrismaService = {
+  region: {
+    findMany: jest.fn(),
+    // create: jest.fn(),
+    // findUnique: jest.fn(),
+    // update: jest.fn(),
+    // upsert: jest.fn(),
+  },
+};
+
+describe('■■■ Region Query Service test ■■■', () => {
+  // DIモジュール
+  let regionsQueryService: RegionsQueryService;
+  let prismaService: PrismaService;
+
+  // 前処理: テスト全体の前に1回だけ実行される
+  beforeAll(async () => {
+    console.log('beforeAll: モジュールのセットアップ（DIなど）');
+
+    const module = await Test.createTestingModule({
+      providers: [
+        RegionsQueryService,
+        { provide: PrismaService, useValue: mockPrismaService },
+      ],
+    }).compile();
+
+    regionsQueryService = module.get<RegionsQueryService>(RegionsQueryService);
+    prismaService = module.get<PrismaService>(PrismaService);
+  });
+
+  // 前処理: 各テストケースの前に毎回実行
+  beforeEach(() => {
+    console.log('beforeEach: モックをリセット');
+    // jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
+  //--------------------------------------
+  // findAll() test
+  //--------------------------------------
+
+  describe('findAll', () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+      // prisma mock data 作成
+      const mockDatas = createPrismaMockData();
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockDatas);
+
+      // テスト対象Service呼び出し
+      const result = await regionsQueryService.findAll();
+
+      // 検証
+      const dtos = createExpectedRegionDtos();
+      expect(result).toEqual(dtos);
+
+      // prisma引数検証 → 引数なしなので不要
+      // expect(jest.spyOn(prismaService.region, 'findMany')).toHaveBeenCalledWith(
+      //   {
+      //     include: { _count: { select: { prefectures: true } } },
+      //     orderBy: { code: 'asc' },
+      //   },
+      // );
+    });
+
+    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+      // mock data 作成(空配列)
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
+      // test対象Controller呼び出し
+      const result = await regionsQueryService.findAll();
+      // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
+      expect(result).toEqual([]);
+    });
+
+    it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prismaService.region, 'findMany')
+        .mockRejectedValue(connectionError);
+
+      // Query Serviceがエラーをそのまま伝播（reject）することを確認
+      await expect(regionsQueryService.findAll()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+});
+
+/**
+ * Prisma Mock Data作成
+ * @returns Prisma Mock Data
+ */
+function createPrismaMockData(): (PrismaRegion & {
+  _count: { prefectures: number };
+})[] {
+  const mockDatas: (PrismaRegion & { _count: { prefectures: number } })[] = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      _count: { prefectures: 1 },
+    },
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      _count: { prefectures: 2 },
+    },
+    {
+      id: '0324dc98-89a2-4db1-9431-b20feff57700',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'published',
+      kanaEn: 'kantou',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      _count: { prefectures: 3 },
+    },
+    {
+      id: '0424dc98-89a2-4db1-9431-b20feff57700',
+      name: '東海',
+      code: '04',
+      kanaName: 'とうかい',
+      status: 'published',
+      kanaEn: 'tokai',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      _count: { prefectures: 4 },
+    },
+    {
+      id: '0524dc98-89a2-4db1-9431-b20feff57700',
+      name: '北陸',
+      code: '05',
+      kanaName: 'ほくりく',
+      status: 'editing',
+      kanaEn: 'hokuriku',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      _count: { prefectures: 5 },
+    },
+  ];
+  return mockDatas;
+}
+
+/**
+ * 期待値：Region DTO [] 作成
+ * @returns Region DTO []
+ */
+function createExpectedRegionDtos(): RegionResponseDto[] {
+  const dtos: RegionResponseDto[] = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      statusLabel: '掲載中',
+      prefectureCount: 1,
+    },
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      statusLabel: '掲載中',
+      prefectureCount: 2,
+    },
+    {
+      id: '0324dc98-89a2-4db1-9431-b20feff57700',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'published',
+      kanaEn: 'kantou',
+      statusLabel: '掲載中',
+      prefectureCount: 3,
+    },
+    {
+      id: '0424dc98-89a2-4db1-9431-b20feff57700',
+      name: '東海',
+      code: '04',
+      kanaName: 'とうかい',
+      status: 'published',
+      kanaEn: 'tokai',
+      statusLabel: '掲載中',
+      prefectureCount: 4,
+    },
+    {
+      id: '0524dc98-89a2-4db1-9431-b20feff57700',
+      name: '北陸',
+      code: '05',
+      kanaName: 'ほくりく',
+      status: 'editing',
+      kanaEn: 'hokuriku',
+      statusLabel: '編集中',
+      prefectureCount: 5,
+    },
+  ];
+
+  return dtos;
+}
