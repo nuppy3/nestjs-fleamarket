@@ -15,6 +15,7 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
+import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsQueryService } from '../query/regions.query.service';
@@ -85,6 +86,7 @@ export class RegionsController {
 
     return dto;
   }
+
   /**
    * エリア情報登録（永続化）
    *
@@ -142,6 +144,47 @@ export class RegionsController {
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(
       plainToInstance(RegionResponseDto, updated, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto;
+  }
+
+  /**
+   * エリア情報のステータス更新（永続化）： publish
+   *
+   * 指定されたidに関連するエリア情報のステータスをpublishにします。
+   * POSTパラメータのpublishRegionDtoは基本的に{}(空オブジェクト)であるが、将来的な
+   * 拡張を考慮り、専用のDTOを用意している。
+   *
+   * 拡張例:
+   *  reason: 非公開の理由
+   *
+   * @param Region ID (uuid)
+   * @param publishRegionDto エリア情報更新専用DTO
+   * @returns エリア更新後のDTO
+   */
+  @Post('/:id/publish') // /:idの"/"が必要
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
+  async publish(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() publishRegionDto: PublishRegionDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
+  ): Promise<RegionResponseDto> {
+    // エリア情報登録（永続化）
+    // const domain = await this.regionsService.create(
+    //   createRegionDto,
+    //   req.user.id,
+    // );
+
+    const domain = {
+      name: 'publish end point of the Region API!!!',
+    };
+
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, domain, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
