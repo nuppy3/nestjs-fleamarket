@@ -17,6 +17,7 @@ import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
+import { UnpublishRegionDto } from '../dto/unpublish-region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsQueryService } from '../query/regions.query.service';
 
@@ -162,7 +163,7 @@ export class RegionsController {
    *  reason: 非公開の理由
    *
    * @param Region ID (uuid)
-   * @param publishRegionDto エリア情報更新専用DTO
+   * @param publishRegionDto エリア情報更新専用(publish専用)DTO
    * @returns エリア更新後のDTO
    */
   @Post('/:id/publish') // /:idの"/"が必要
@@ -180,6 +181,47 @@ export class RegionsController {
 
     const domain = {
       name: 'publish end point of the Region API!!!',
+    };
+
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    ) as RegionResponseDto;
+  }
+
+  /**
+   * エリア情報のステータス更新（永続化）： edit(編集中)
+   *
+   * 指定されたidに関連するエリア情報のステータスをeditにします。
+   * POSTパラメータのpublishRegionDtoは基本的に{}(空オブジェクト)であるが、将来的な
+   * 拡張を考慮り、専用のDTOを用意している。
+   *
+   * 拡張例:
+   *  reason: 非公開の理由
+   *
+   * @param Region ID (uuid)
+   * @param unpublishRegionDto エリア情報更新専用(unpublish専用)DTO
+   * @returns エリア更新後のDTO
+   */
+  @Post('/:id/unpublish') // /:idの"/"が必要
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
+  async unpublish(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() unpublishRegionDto: UnpublishRegionDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
+  ): Promise<RegionResponseDto> {
+    // エリア情報登録（永続化）
+    // const domain = await this.regionsService.create(
+    //   createRegionDto,
+    //   req.user.id,
+    // );
+
+    const domain = {
+      name: 'unpublish end point of the Region API!!!',
     };
 
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
