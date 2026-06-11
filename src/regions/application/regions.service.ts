@@ -236,7 +236,7 @@ export class RegionsService {
     const regionWithId = await this.findByIdOrFail(id);
 
     // 更新可能か判定：他のドメインに依存する判定など
-    // await this.regionsDomainService.validate(id);
+    await this.regionsDomainService.assertPublishable(id);
 
     // domain 更新（ドメインルール実行：domain内部ロジックのみ）
     regionWithId.publish();
