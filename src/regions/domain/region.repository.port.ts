@@ -46,6 +46,8 @@ export interface RegionRepositoryPort {
    * 基本的には値を返さない（void）か、保存した Entity 自体を返します。
    * →今回はEntity自体(domain)を返すようにしている。
    *
+   * エリア情報を更新し(DB更新)、結果をdomainに詰め替えて返却します。(Region + id)
+   *
    * @param domainWithId Entity (保存対象domain)
    * @param userId ユーザーID
    * @returns 更新後のエリア情報(保存したEntity(domain))

@@ -174,14 +174,11 @@ export class RegionsController {
     @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<RegionResponseDto> {
     // エリア情報登録（永続化）
-    // const domain = await this.regionsService.create(
-    //   createRegionDto,
-    //   req.user.id,
-    // );
-
-    const domain = {
-      name: 'publish end point of the Region API!!!',
-    };
+    const domain = await this.regionsService.publish(
+      id,
+      publishRegionDto,
+      req.user.id,
+    );
 
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(

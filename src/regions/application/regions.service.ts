@@ -5,6 +5,7 @@ import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
 import { RegionsDomainService } from '../domain/regions.domain.service';
 import { RegionFactory } from '../domain/regions.factory';
 import { Region } from '../domain/regions.model';
+import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionMapper } from '../infrastructure/region.mapper';
@@ -214,6 +215,36 @@ export class RegionsService {
     const saved = await this.regionRepository.save(regionWithId, userId);
 
     return saved;
+  }
+
+  /**
+   * publish(): 指定のidに関連するエリア情報を掲載中にします。
+   *            エリア情報のステータスをpublishに更新し、更新したエリア情報を返却します。
+   *
+   * ※引数のdtoは使用していないが、将来的な拡張性を考慮して用意している
+   *
+   * @param id Region ID (更新対象のエリア情報のキー)
+   * @param userId ユーザーID
+   * @returns 更新したエリア情報
+   */
+  async publish(
+    id: string,
+    dto: PublishRegionDto,
+    userId: string,
+  ): Promise<Region & { id: string }> {
+    // Region情報取得
+    const regionWithId = await this.findByIdOrFail(id);
+
+    // 更新可能か判定：他のドメインに依存する判定など
+    // await this.regionsDomainService.validate(id);
+
+    // domain 更新（ドメインルール実行：domain内部ロジックのみ）
+    regionWithId.publish();
+
+    // 永続化: ステータス更新 → prisma → domain
+    const deleted = await this.regionRepository.save(regionWithId, userId);
+
+    return deleted;
   }
 
   /**
