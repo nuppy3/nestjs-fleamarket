@@ -10,6 +10,7 @@ import {
   Region,
   RegionStatus,
 } from '../domain/regions.model';
+import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsQueryService } from '../query/regions.query.service';
@@ -22,6 +23,7 @@ const mockRegionsService = {
   findByCodeOrFail: jest.fn(),
   remove: jest.fn(),
   update: jest.fn(),
+  publish: jest.fn(),
 };
 
 const mockRegionsQueryService = {
@@ -498,6 +500,82 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         ),
       ).rejects.toThrow(
         `この地域は掲載状態のため、更新できません。(編集中/停止中のみ更新可) 地域： 北海道テスト`,
+      );
+    });
+  });
+
+  //--------------------------------
+  // publish()
+  //--------------------------------
+  describe('publish() test', () => {
+    it('正常系：指定idに関連するエリア情報を更新し、削除対象のDto(全項目)を返却する', async () => {
+      // 引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const publishRegioDto: PublishRegionDto = {};
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+
+      // mock data 作成
+      jest
+        .spyOn(regionsService, 'publish')
+        .mockResolvedValue(
+          createServiceMockData().find((region) => region.id === id)!,
+        );
+
+      // test 対象 controller 呼び出し
+      const result = await regionsController.publish(
+        id,
+        publishRegioDto,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        req as ExpressRequest & { user: RequestUser },
+      );
+
+      // 検証
+      expect(result).toEqual(
+        createExpectedRegionDtos().find((region) => region.id === id),
+      );
+    });
+
+    it('異常系：idに関連するエリア情報が存在しない。(serviceのNotFoundExceptionを伝播', async () => {
+      // 引数作成
+      const id = 'xxxx';
+      const publishRegioDto: PublishRegionDto = {};
+      const req: Partial<ExpressRequest & { user: RequestUser }> = {
+        user: {
+          id: '633931d5-2b25-45f1-8006-c137af49e53d',
+          // 以下は適当で。user: Partial<RequestUser> でもいいけどね。
+          name: '',
+          status: 'FREE',
+        },
+      };
+
+      // mock data (NotFoundException)
+      jest
+        .spyOn(regionsService, 'publish')
+        .mockRejectedValue(
+          new NotFoundException(
+            `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+          ),
+        );
+
+      // 検証
+      await expect(
+        regionsController.publish(
+          id,
+          publishRegioDto,
+          req as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
       );
     });
   });
