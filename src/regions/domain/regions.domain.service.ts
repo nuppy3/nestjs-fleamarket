@@ -48,7 +48,7 @@ export class RegionsDomainService {
     if (count === 0) {
       // 例外
       throw new ConflictException(
-        `都道府県が登録されていないため、この地域は削除できません。regionId: ${id}`,
+        `都道府県が登録されていないため、この地域は「掲載中」にできません。regionId: ${id}`,
       );
     }
   }
