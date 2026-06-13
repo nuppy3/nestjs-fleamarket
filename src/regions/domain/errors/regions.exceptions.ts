@@ -39,3 +39,17 @@ export class RegionAlreadyPublishedException extends DomainException {
     this.name = 'RegionAlreadyPublishedException';
   }
 }
+
+/**
+ * エリアドメイン特有の例外: エリアが既に編集中
+ */
+export class RegionAlreadyEditedException extends DomainException {
+  // ステータスを上書き
+  override readonly status: number = HttpStatus.CONFLICT;
+  override readonly errorCode: string = 'REGION_ALREADY_EDITED';
+
+  constructor(regionName: string) {
+    super(`この地域は既に編集中のため、更新できません。 地域： ${regionName}`);
+    this.name = 'RegionAlreadyEditedException';
+  }
+}

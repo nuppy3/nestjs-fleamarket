@@ -1,4 +1,5 @@
 import {
+  RegionAlreadyEditedException,
   RegionAlreadyPublishedException,
   RegionAlreadySuspendedException,
 } from './errors/regions.exceptions';
@@ -209,6 +210,28 @@ export class Region {
   }
 
   /**
+   * unpublish(): domainを編集中に更新
+   * unpublishロジックを集約（serviceなどに漏らさない)
+   *
+   * 当該メソッドは、すでに存在する「特定のデータ（自分自身の状態）」を持つオブジェクトに対して
+   * 命令を下すメソッドなので、staticではなく、インスタンスメソッド。
+   *
+   * ・編集中にしてもいいかの判定
+   *  例：
+   *  - すでに掲載中状態の場合は掲載中に更新しない(エラーを投げる）
+   *  - 紐づく都道府県が存在する場合は削除しない
+   * ・ソフトデリート（＝status: 停止/ updateAtの更新)
+   */
+  unpublish() {
+    // 編集中(非公開)に更新可能か判定(ガード節)：ドメインルール
+    this.validateCanUnpublish();
+
+    // ステータス更新と更新日付セット
+    this._status = RegionStatus.EDITING;
+    this._updatedAt = new Date();
+  }
+
+  /**
    * domain delete(ソフトデリート)
    * deleteロジックを集約（serviceなどに漏らさない)
    *
@@ -260,6 +283,22 @@ export class Region {
     // ルール①：既に掲載中の場合
     if (this._status === RegionStatus.PUBLISHED) {
       throw new RegionAlreadyPublishedException(this._name);
+      // throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
+    }
+
+    // TODO // ルール② 例：ビジネスルール（例: 現在キャンペーン実施中は削除不可）
+
+    // TODO // ルール③ 例：北陸地方（code:05）の場合、特定の期間中は削除不可
+  }
+
+  /**
+   * 編集中に更新が可能かどうかのビジネスルールを判定
+   * 判定NGの場合はエラーをスロー(ガード節)
+   */
+  private validateCanUnpublish(): void {
+    // ルール①：既に編集中の場合
+    if (this._status === RegionStatus.EDITING) {
+      throw new RegionAlreadyEditedException(this._name);
       // throw new Error(`この地域はすでに利用停止状態です。地域： ${this._name}`);
     }
 

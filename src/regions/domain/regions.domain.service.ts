@@ -54,6 +54,30 @@ export class RegionsDomainService {
   }
 
   /**
+   * assertUnpublishable(): 編集中に更新可能か判定します。他のドメインに依存する判定を行います。
+   *
+   * ⭐️現状、編集中(非公開)へのステータス更新時の他ドメインに依存するロジックなし。
+   *   一旦、暫定実装はしている。
+   * 例：
+   * ① エリアに紐づく都道府県が存在する場合は非公開にさせない
+   * ② XXXXXに場合は削除不可
+   *
+   * @param id 都道府県ID
+   */
+  async assertUnpublishable(id: string): Promise<void> {
+    // エリアに紐づく都道府県の件数を取得
+    const count = await this.prismaService.prefecture.count({
+      where: { regionId: id },
+    });
+    if (count > 0) {
+      // // 例外
+      // throw new ConflictException(
+      //   `掲載中の都道府県が登録されているため、この地域は「編集中」にできません。regionId: ${id}`,
+      // );
+    }
+  }
+
+  /**
    * validate(): 削除可能か判定します。他のドメインに依存する判定を行います。
    *
    * ① エリアに紐づく都道府県が1つでもある場合は削除不可

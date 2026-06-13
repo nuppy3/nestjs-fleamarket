@@ -224,6 +224,7 @@ export class RegionsService {
    * ※引数のdtoは使用していないが、将来的な拡張性を考慮して用意している
    *
    * @param id Region ID (更新対象のエリア情報のキー)
+   * @param dto 更新専用DTO
    * @param userId ユーザーID
    * @returns 更新したエリア情報
    */
@@ -242,9 +243,40 @@ export class RegionsService {
     regionWithId.publish();
 
     // 永続化: ステータス更新 → prisma → domain
-    const deleted = await this.regionRepository.save(regionWithId, userId);
+    const published = await this.regionRepository.save(regionWithId, userId);
 
-    return deleted;
+    return published;
+  }
+
+  /**
+   * unpublish(): 指定のidに関連するエリア情報を編集中(非公開/公開停止)に戻します。
+   *              エリア情報のステータスをeditingに更新し、更新したエリア情報を返却します。
+   *
+   * ※引数のdtoは使用していないが、将来的な拡張性を考慮して用意している
+   *
+   * @param id Region ID (更新対象のエリア情報のキー)
+   * @param dto 更新専用DTO
+   * @param userId ユーザーID
+   * @returns 更新したエリア情報
+   */
+  async unpublish(
+    id: string,
+    dto: PublishRegionDto,
+    userId: string,
+  ): Promise<Region & { id: string }> {
+    // Region情報取得
+    const regionWithId = await this.findByIdOrFail(id);
+
+    // 更新可能か判定：他のドメインに依存する判定など
+    await this.regionsDomainService.assertUnpublishable(id);
+
+    // domain 更新（ドメインルール実行：domain内部ロジックのみ）
+    regionWithId.unpublish();
+
+    // 永続化: ステータス更新 → prisma → domain
+    const unpublished = await this.regionRepository.save(regionWithId, userId);
+
+    return unpublished;
   }
 
   /**
