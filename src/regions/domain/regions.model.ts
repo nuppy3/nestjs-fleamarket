@@ -139,6 +139,35 @@ export class Region {
   }
 
   /**
+   * Region domain(エンティティ）のプロパティをスナップショットに変換します。
+   *
+   * ドメインエンティティの内部状態（プライベート変数）を、RegionState インターフェースの形に
+   * 綺麗にコピーして出力するだけのシンプルな関数。
+   *
+   * ポイントは、外部に渡したデータが勝手に書き換えられても、エンティティ内部の状態（オリジナル）が
+   * 汚染されないように、安全にディープコピー（またはインスタンスの複製）を行うことです。
+   *
+   * @returns Region domain propertie のスナップショット
+   */
+  toSnapshot(): RegionState {
+    // スナップショット
+    const snapshot = {
+      code: this._code,
+      name: this._name,
+      kanaName: this._kanaName,
+      status: this._status,
+      kanaEn: this._kanaEn,
+      // ⚠️ Date型などの参照型オブジェクトは、
+      // 外部で書き換えられると内部まで変わってしまう（参照透過性の破壊）ため、
+      // 必ず new Date() で新しいインスタンスにしてコピー（防御的コピー）を返します。
+      createdAt: new Date(this._createdAt.getTime()),
+      updatedAt: new Date(this._updatedAt.getTime()),
+    } as RegionState;
+
+    return snapshot;
+  }
+
+  /**
    * domain update: domain更新
    * updateロジックを集約（serviceなどに漏らさない)
    *
