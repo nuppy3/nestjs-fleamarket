@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
+  RegionAlreadyEditedException,
   RegionAlreadyPublishedException,
   RegionAlreadySuspendedException,
 } from '../domain/errors/regions.exceptions';
@@ -15,10 +16,12 @@ import { RegionsDomainService } from '../domain/regions.domain.service';
 import {
   ReconstituteRegionProps,
   Region,
+  RegionState,
   RegionStatus,
 } from '../domain/regions.model';
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto } from '../dto/region.dto';
+import { UnpublishRegionDto } from '../dto/unpublish-region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsService } from './regions.service';
 
@@ -43,6 +46,7 @@ const mockRegionRepository = {
 // MockRegionsDomainService定義
 const mockRegionsDomainService = {
   assertPublishable: jest.fn(),
+  assertUnpublishable: jest.fn(),
   validate: jest.fn(),
 };
 
@@ -252,12 +256,12 @@ describe('■■■ Region test ■■■', () => {
       // 期待値
       const expected = createExpectedData().find(
         (region) => region.code === code,
-      );
+      )!;
 
       // 検証
       // expect(result).toEqual(expected);
       // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
-      expect(result).toMatchObject(expected!);
+      expect(result).toMatchObject(expected);
 
       // service→regionRepository.findByCodeOrFail()への引数の検証
       expect(
@@ -836,6 +840,242 @@ describe('■■■ Region test ■■■', () => {
   });
 
   //--------------------------------------
+  // unpublish() test
+  //--------------------------------------
+  describe('unpublish Test', () => {
+    it('正常系： 指定idに関連するRegion情報が更新され、Regionドメイン(＋id)(全項目)を返却する', async () => {
+      // Repository mock data 作成
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (regins service findOne)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // spyOnをやめてみた
+      mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
+
+      // regionsDomainService mock data: void
+      jest.spyOn(regionsDomainService, 'assertPublishable').mockResolvedValue();
+
+      // repository 'save' mock data
+      const mockPublished = Region.reconstitute({
+        // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        // 編集中
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const publishedWithId = Object.assign(mockPublished, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      jest.spyOn(regionRepository, 'save').mockResolvedValue(publishedWithId);
+
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      const unpublishRegionDto: UnpublishRegionDto = {};
+
+      // テスト対象 service 呼び出し
+      const result = await regionsService.unpublish(
+        id,
+        unpublishRegionDto,
+        userId,
+      );
+
+      // 期待値: status = EDITING
+      const domain = createExpectedData().find((region) => region.id === id);
+      const expected = {
+        ...domain,
+        status: RegionStatus.EDITING,
+      };
+
+      // 検証: プロパティをすべて持っているか、プロパティ値が正しいか
+      //       RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
+      expect(result).toMatchObject(expected);
+
+      // 引数チェック
+      expect(jest.spyOn(regionRepository, 'save')).toHaveBeenCalledWith(
+        regionWithId,
+        userId,
+      );
+    });
+
+    it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'xxxx';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      const unpublishRegionDto: UnpublishRegionDto = {};
+
+      // mock data 作成(Repository): Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(mockException);
+
+      // 検証：NotFoundException
+      await expect(
+        regionsService.unpublish(id, unpublishRegionDto, userId),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
+    });
+
+    // 現状は当該ケースは存在しない
+    // it('異常系②： 指定idに関連する都道府県情報が存在するため、ConflictExceptionがスローされる', async () => {
+    //   // serviceの引数作成
+    //   const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+    //   const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+    //   const unpublishRegionDto: UnpublishRegionDto = {};
+
+    //   // Repository mock data 作成
+    //   const mockRegion = Region.reconstitute({
+    //     name: '北海道',
+    //     code: '01',
+    //     kanaName: 'ほっかいどう',
+    //     status: 'published',
+    //     kanaEn: 'hokkaidou',
+    //     createdAt: new Date('2025-04-05T10:00:00.000Z'),
+    //     updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    //   }) satisfies ReconstituteRegionProps;
+    //   const regionWithId = Object.assign(mockRegion, {
+    //     id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+    //   });
+
+    //   // mock data set (Repository)
+    //   jest
+    //     .spyOn(regionRepository, 'findByIdOrFail')
+    //     .mockResolvedValue(regionWithId);
+
+    //   // mock data set (Regions Domin Serivce: ConflictException)
+    //   jest
+    //     .spyOn(regionsDomainService, 'assertUnpublishable')
+    //     .mockRejectedValue(
+    //       new ConflictException(
+    //         `掲載中の都道府県が登録されているため、この地域は「編集中」にできません。regionId: ${id}`,
+    //       ),
+    //     );
+
+    //   // 検証: ConflictExceptionがスローされることをテスト
+    //   await expect(
+    //     regionsService.unpublish(id, unpublishRegionDto, userId),
+    //   ).rejects.toThrow(
+    //     new ConflictException(
+    //       `掲載中の都道府県が登録されているため、この地域は「編集中」にできません。regionId: ${id}`,
+    //     ),
+    //   );
+    // });
+
+    it('異常系③： 指定idに関連する都道府県情報が既に編集中状態のため、RegionAlreadyEditedExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      const unpublishRegionDto: UnpublishRegionDto = {};
+
+      // Repository mock data 作成
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        // 編集中
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      }) satisfies ReconstituteRegionProps;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // regionsDomainService mock data: void
+      jest
+        .spyOn(regionsDomainService, 'assertUnpublishable')
+        .mockResolvedValue();
+
+      // 検証: RegionAlreadyPublishedExceptionがスローされることをテスト
+      //      (本物のregons domainからのExceptionスローを検証している)
+      await expect(
+        regionsService.unpublish(id, unpublishRegionDto, userId),
+      ).rejects.toThrow(new RegionAlreadyEditedException('北海道'));
+      // messageの内容を検証
+      await expect(
+        regionsService.unpublish(id, unpublishRegionDto, userId),
+      ).rejects.toThrow(
+        `この地域は既に編集中のため、更新できません。 地域： 北海道`,
+      );
+    });
+
+    it('異常系④： Retion情報の更新時(ソフトデリート)のエラー（DB接続エラー)', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+      const unpublishRegionDto: UnpublishRegionDto = {};
+
+      // Repository mock data 作成
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      }) satisfies ReconstituteRegionProps;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // regionsDomainService mock data: void
+      jest
+        .spyOn(regionsDomainService, 'assertUnpublishable')
+        .mockResolvedValue();
+
+      // DB接続エラー
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest.spyOn(regionRepository, 'save').mockRejectedValue(connectionError);
+
+      // 検証: エラーをそのまま伝搬することを確認
+      await expect(
+        regionsService.unpublish(id, unpublishRegionDto, userId),
+      ).rejects.toThrow(PrismaClientKnownRequestError);
+    });
+  });
+
+  //--------------------------------------
   // remove() test
   //--------------------------------------
   describe('remove Test', () => {
@@ -1261,7 +1501,7 @@ function createRepositoryMockData(): (Region & { id: string })[] {
  *
  * @returns 期待値
  */
-function createExpectedData() {
+function createExpectedData(): (RegionState & { id: string })[] {
   // mockDataの型指定(Region & { id: string })[]は不要（というかRegionはプレーンオブジェクト
   // ではないので型指定すると不一致エラーが出てしまう。
   const expectedData = [
@@ -1274,7 +1514,7 @@ function createExpectedData() {
       kanaEn: 'hokkaidou',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies RegionState & { id: string },
     {
       id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
       name: '東北',
@@ -1284,7 +1524,7 @@ function createExpectedData() {
       kanaEn: 'tohoku',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies RegionState & { id: string },
     {
       id: '0324dc98-89a2-4db1-9431-b20feff57700',
       name: '関東',
@@ -1294,7 +1534,7 @@ function createExpectedData() {
       kanaEn: 'kantou',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies RegionState & { id: string },
     {
       id: '0424dc98-89a2-4db1-9431-b20feff57700',
       name: '東海',
@@ -1304,7 +1544,7 @@ function createExpectedData() {
       kanaEn: 'tokai',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies RegionState & { id: string },
     {
       id: '0524dc98-89a2-4db1-9431-b20feff57700',
       name: '北陸',
@@ -1314,7 +1554,7 @@ function createExpectedData() {
       kanaEn: 'hokuriku',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies RegionState & { id: string },
   ];
   return expectedData;
 }

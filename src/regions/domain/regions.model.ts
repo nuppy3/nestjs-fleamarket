@@ -7,14 +7,14 @@ import {
 /**
  * Region domain 全属性(完全な状態)
  */
-interface RegionState {
-  code: string;
-  name: string;
-  kanaName: string;
-  kanaEn: string;
-  status: RegionStatus;
-  createdAt: Date;
-  updatedAt: Date;
+export interface RegionState {
+  readonly code: string;
+  readonly name: string;
+  readonly kanaName: string;
+  readonly kanaEn: string;
+  readonly status: RegionStatus;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
 
 /**
