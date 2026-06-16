@@ -32,7 +32,15 @@ export class RegionMapper {
     const prismaInput = {
       // ⚠️ domain.xxxのようにgetter経由で取得する実装はカプセル化の防御
       // が弱いので、ロジック漏洩リスクが高まるため、domainをtoSnapshot()経由で取得するのがBP
-      ...snapshot,
+      // 本当は以下のようにスプレッド構文一発でセットしたいが、createdAtが不要なので、一つ一つ
+      // セットしていく。
+      // ...snapshot,
+      code: snapshot.code,
+      name: snapshot.name,
+      kanaName: snapshot.kanaName,
+      status: snapshot.status,
+      kanaEn: snapshot.kanaEn,
+      createdAt: snapshot.createdAt,
 
       // code: domain.code,
       // name: domain.name,
@@ -67,7 +75,15 @@ export class RegionMapper {
     const prismaInput = {
       // ⚠️ domain.xxxのようにgetter経由で取得する実装はカプセル化の防御
       // が弱いので、ロジック漏洩リスクが高まるため、domainをtoSnapshot()経由で取得するのがBP
-      ...snapshot,
+      // 本当は以下のようにスプレッド構文一発でセットしたいが、createdAtが不要なので、一つ一つ
+      // セットしていく。
+      // ...snapshot,
+      code: snapshot.code,
+      name: snapshot.name,
+      kanaName: snapshot.kanaName,
+      status: snapshot.status,
+      kanaEn: snapshot.kanaEn,
+      updatedAt: snapshot.updatedAt,
 
       // code: domain.code,
       // name: domain.name,

@@ -298,6 +298,7 @@ describe('□□□ Region Repository TEST □□□', () => {
       } satisfies Prisma.RegionUpdateInput;
 
       // 引数検証用のパラメーター: insert(create)
+      // ⭐️create paramであるが、name,kanaNameなどは、updateと同様
       const createParam = {
         // code: domain.code,
         // name: domain.name,
