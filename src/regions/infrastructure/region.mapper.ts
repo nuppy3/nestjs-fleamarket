@@ -25,13 +25,22 @@ export class RegionMapper {
     domain: Region,
     userId: string,
   ): Prisma.RegionCreateInput {
+    // domainからすべてのデータをプレーンオブジェクトとして一括取得
+    const snapshot = domain.toSnapshot();
+
+    // createのパラメータ-
     const prismaInput = {
-      code: domain.code,
-      name: domain.name,
-      kanaName: domain.kanaName,
-      status: domain.status,
-      kanaEn: domain.kanaEn,
-      createdAt: domain.createdAt,
+      // ⚠️ domain.xxxのようにgetter経由で取得する実装はカプセル化の防御
+      // が弱いので、ロジック漏洩リスクが高まるため、domainをtoSnapshot()経由で取得するのがBP
+      ...snapshot,
+
+      // code: domain.code,
+      // name: domain.name,
+      // kanaName: domain.kanaName,
+      // status: domain.status,
+      // kanaEn: domain.kanaEn,
+      // createdAt: domain.createdAt,
+
       // userId: userId, ← 型エラーになる。以下のtoPrismaUpdate()を参照
       // userId: userId,
       user: { connect: { id: userId } },
@@ -51,13 +60,22 @@ export class RegionMapper {
     domain: Region & { id: string },
     userId: string,
   ): Prisma.RegionUpdateInput {
+    // domainからすべてのデータをプレーンオブジェクトとして一括取得
+    const snapshot = domain.toSnapshot();
+
+    // Updateのパラメータ-
     const prismaInput = {
-      code: domain.code,
-      name: domain.name,
-      kanaName: domain.kanaName,
-      status: domain.status,
-      kanaEn: domain.kanaEn,
-      updatedAt: domain.updatedAt,
+      // ⚠️ domain.xxxのようにgetter経由で取得する実装はカプセル化の防御
+      // が弱いので、ロジック漏洩リスクが高まるため、domainをtoSnapshot()経由で取得するのがBP
+      ...snapshot,
+
+      // code: domain.code,
+      // name: domain.name,
+      // kanaName: domain.kanaName,
+      // status: domain.status,
+      // kanaEn: domain.kanaEn,
+      // updatedAt: domain.updatedAt,
+
       // userId: userId, ← 型エラーになる
       // ⭐️ userIdは外部キーであるが、Prisma.RegionUpdateInputは型安全のため
       //  直接userIdをセットできない型となっている。(userIdが無い)

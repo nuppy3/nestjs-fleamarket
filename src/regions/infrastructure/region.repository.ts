@@ -1,7 +1,7 @@
 import {
-    ConflictException,
-    Injectable,
-    NotFoundException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { RegionRepositoryPort } from '../domain/region.repository.port';
 import { Region } from '../domain/regions.model';
