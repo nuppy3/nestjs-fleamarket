@@ -168,9 +168,9 @@ describe('■■■ Region test ■■■', () => {
   });
 
   //--------------------------------------
-  // validate test
+  // assertDeletable test
   //--------------------------------------
-  describe('validate', () => {
+  describe('assertDeletable', () => {
     it('正常系: idに紐づく都道府県が存在しない場合は正常終了する', async () => {
       // prisma mock data 作成 : 紐づく都道府県が0件
       const mockData = 0;
@@ -180,7 +180,7 @@ describe('■■■ Region test ■■■', () => {
       const regionId = '0524dc98-89a2-4db1-9431-b20feff57700';
 
       // test対象service呼び出し： 戻り値はなし（void) なので正常終了することを確認
-      await regionsDomainService.validate(regionId);
+      await regionsDomainService.assertDeletable(regionId);
 
       // Prismaへの引数検証
       expect(
@@ -197,10 +197,12 @@ describe('■■■ Region test ■■■', () => {
       const regionId = '0524dc98-89a2-4db1-9431-b20feff57700';
 
       // ConflictExceptionがスローされることをテスト
-      await expect(regionsDomainService.validate(regionId)).rejects.toThrow(
-        ConflictException,
-      );
-      await expect(regionsDomainService.validate(regionId)).rejects.toThrow(
+      await expect(
+        regionsDomainService.assertDeletable(regionId),
+      ).rejects.toThrow(ConflictException);
+      await expect(
+        regionsDomainService.assertDeletable(regionId),
+      ).rejects.toThrow(
         `都道府県が登録されているため、この地域は削除できません。regionId: ${regionId}`,
       );
     });
@@ -219,12 +221,12 @@ describe('■■■ Region test ■■■', () => {
       const regionId = '0524dc98-89a2-4db1-9431-b20feff57700';
 
       // 元のエラー（Generic Error）がそのままスローされることをテスト
-      await expect(regionsDomainService.validate(regionId)).rejects.toThrow(
-        Error,
-      );
-      await expect(regionsDomainService.validate(regionId)).rejects.toThrow(
-        'Database connection failed',
-      );
+      await expect(
+        regionsDomainService.assertDeletable(regionId),
+      ).rejects.toThrow(Error);
+      await expect(
+        regionsDomainService.assertDeletable(regionId),
+      ).rejects.toThrow('Database connection failed');
     });
   });
 });

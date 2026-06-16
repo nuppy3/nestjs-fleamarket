@@ -47,7 +47,7 @@ const mockRegionRepository = {
 const mockRegionsDomainService = {
   assertPublishable: jest.fn(),
   assertUnpublishable: jest.fn(),
-  validate: jest.fn(),
+  assertDeletable: jest.fn(),
 };
 
 describe('■■■ Region test ■■■', () => {
@@ -1129,7 +1129,7 @@ describe('■■■ Region test ■■■', () => {
       mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
 
       // regionsDomainService mock data: void
-      jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
+      jest.spyOn(regionsDomainService, 'assertDeletable').mockResolvedValue();
 
       // repository 'save' mock data
       const mockDeleted = Region.reconstitute({
@@ -1245,7 +1245,7 @@ describe('■■■ Region test ■■■', () => {
 
       // mock data set (Regions Domin Serivce: ConflictException)
       jest
-        .spyOn(regionsDomainService, 'validate')
+        .spyOn(regionsDomainService, 'assertDeletable')
         .mockRejectedValue(
           new ConflictException(
             `都道府県が登録されているため、この地域は削除できません。regionId: ${id}`,
@@ -1289,7 +1289,7 @@ describe('■■■ Region test ■■■', () => {
         .mockResolvedValue(regionWithId);
 
       // regionsDomainService mock data: void
-      jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
+      jest.spyOn(regionsDomainService, 'assertDeletable').mockResolvedValue();
 
       // 検証: RegionAlreadySuspendedExceptionがスローされることをテスト
       await expect(regionsService.remove(id, userId)).rejects.toThrow(
@@ -1329,7 +1329,7 @@ describe('■■■ Region test ■■■', () => {
         .mockResolvedValue(regionWithId);
 
       // regionsDomainService mock data: void
-      jest.spyOn(regionsDomainService, 'validate').mockResolvedValue();
+      jest.spyOn(regionsDomainService, 'assertDeletable').mockResolvedValue();
 
       // DB接続エラー
       const connectionError = new PrismaClientKnownRequestError(
