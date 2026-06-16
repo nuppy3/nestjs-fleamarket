@@ -6,11 +6,43 @@ import {
 import {
   ReconstituteRegionProps,
   Region,
+  RegionState,
   RegionStatus,
   UpdateRegionProps,
 } from './regions.model';
 
 describe('□□□ Region Domain Test □□□', () => {
+  // -----------------------------
+  // toSnapshot() test
+  // -----------------------------
+  describe('------ toSnapshot() test ------', () => {
+    it('正常系: RegionStateの形に整形されたRegion Domainのプロパティを返却すること', () => {
+      const domain = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps);
+
+      // テスト対象function呼び出し
+      const snapshot = domain.toSnapshot();
+
+      // 検証
+      expect(snapshot).toEqual({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies RegionState);
+    });
+  });
+
   // -----------------------------
   // update() test
   // -----------------------------
