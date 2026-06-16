@@ -332,7 +332,7 @@ export class RegionsService {
     const regionWithId = await this.findByIdOrFail(id);
 
     // 削除可能か判定：他のドメインに依存する判定など
-    await this.regionsDomainService.validate(id);
+    await this.regionsDomainService.assertDeletable(id);
 
     // domain 削除（ドメインルール実行：domain内部ロジックのみ）
     regionWithId.remove();

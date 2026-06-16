@@ -23,6 +23,7 @@ export class RegionsDomainService {
 
   /**
    * assertPublishable(): 公開中に更新可能か判定します。他のドメインに依存する判定を行います。
+   * 🗒 ステータスを公開中に更新可能であることを保証します。
    *
    * ① エリアに紐づく都道府県が1つも存在しない場合は更新不可
    * ② XXXXXに場合は削除不可
@@ -55,6 +56,7 @@ export class RegionsDomainService {
 
   /**
    * assertUnpublishable(): 編集中に更新可能か判定します。他のドメインに依存する判定を行います。
+   * 🗒 ステータスを編集中に更新可能であることを保証します。
    *
    * ⭐️現状、編集中(非公開)へのステータス更新時の他ドメインに依存するロジックなし。
    *   一旦、暫定実装はしている。
@@ -78,7 +80,8 @@ export class RegionsDomainService {
   }
 
   /**
-   * validate(): 削除可能か判定します。他のドメインに依存する判定を行います。
+   * assertDeletable(): 削除可能か判定します。他のドメインに依存する判定を行います。
+   * 🗒 ステータスを削除に更新可能であることを保証します。
    *
    * ① エリアに紐づく都道府県が1つでもある場合は削除不可
    * ② XXXXXに場合は削除不可
@@ -88,7 +91,7 @@ export class RegionsDomainService {
    *
    * @param id 都道府県ID
    */
-  async validate(id: string): Promise<void> {
+  async assertDeletable(id: string): Promise<void> {
     // memo: 本来はprefecturesにRepositoryを作成して、region/domain/配下にrepositoryの
     // interface(prefecturesRepositoryPort)を作成し、prefecturesRepositoryPort(抽象)経由で
     // countを取得するのばBP。だが、PrefecturesはDDD/CAではなく3層アーキテクチャを実装しているため
