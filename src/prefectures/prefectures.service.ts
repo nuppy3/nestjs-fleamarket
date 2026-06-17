@@ -339,7 +339,7 @@ export class PrefecturesService {
     return domain;
   }
 
-  update(id: number, updatePrefectureDto: UpdatePrefectureDto) {
+  update(id: string, updatePrefectureDto: UpdatePrefectureDto, userId: string) {
     return `This action updates a #${id} prefecture`;
   }
 

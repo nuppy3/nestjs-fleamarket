@@ -190,12 +190,27 @@ export class PrefecturesController {
     ) as PrefectureResponseDto;
   }
 
+  /**
+   * update(): 都道府県情報更新API
+   *
+   * update()の引数(パラメータ)について
+   * IDをURLに含め、更新対象をBODYのDTOから取得する（REST標準）
+   * NestJs の CLI(nest g resource)などで自動生成すると、以下のパラメータとなる。
+   * update(@Param('id') id: string, @Body() updatePrefectureDto: UpdatePrefectureDto)
+   *
+   * @param id 都道府県ID(キー)
+   * @param updatePrefectureDto 都道府県情報更新対象DTO
+   * @param req リクエストパラメータ
+   * @returns
+   */
   @Patch(':id')
+  @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
   update(
     @Param('id') id: string,
     @Body() updatePrefectureDto: UpdatePrefectureDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
   ) {
-    return this.prefecturesService.update(+id, updatePrefectureDto);
+    return this.prefecturesService.update(id, updatePrefectureDto, req.user.id);
   }
 
   @Delete(':id')

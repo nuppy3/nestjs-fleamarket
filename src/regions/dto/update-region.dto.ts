@@ -1,3 +1,4 @@
+import { PartialType } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -6,6 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { RegionStatus } from '../domain/regions.model';
+import { CreateRegionDto } from './region.dto';
 
 /**
  * Update用のDTO
@@ -16,7 +18,7 @@ import { RegionStatus } from '../domain/regions.model';
  * DTO の必須プロパティには ! をつける。（例: name!: string;）
  * DTO の任意プロパティには ? をつける。（例: kanaName?: string;）
  */
-export class UpdateRegionDto {
+export class UpdateRegionDto extends PartialType(CreateRegionDto) {
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString()
   @IsNotEmpty()

@@ -124,7 +124,7 @@ export class RegionsController {
    * NestJS の CLI（nest g resource）などで自動生成すると、以下のパラメータとなる。
    * update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto)
    *
-   * @param id
+   * @param id エリアID(キー)
    * @param updateRegionDto エリア情報更新対象DTO
    * @returns エリア情報更新結果オブジェクト
    */
