@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from 'generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
@@ -339,8 +340,61 @@ export class PrefecturesService {
     return domain;
   }
 
-  update(id: string, updatePrefectureDto: UpdatePrefectureDto, userId: string) {
-    return `This action updates a #${id} prefecture`;
+  /**
+   * update(): 都道府県情報を更新します。
+   *
+   * @param id prefectureId(key)
+   * @param updatePrefectureDto 更新対象DTO
+   * @param userId ユーザーID
+   * @returns Prefecture Domain(更新結果)
+   */
+  async update(
+    id: string,
+    updatePrefectureDto: UpdatePrefectureDto,
+    userId: string,
+  ): Promise<Prefecture & { id: string }> {
+    // 更新対象の都道府県情報を取得(なければ404)
+    const prefecture = await this.prismaService.prefecture.findUnique({
+      where: { id },
+    });
+
+    if (!prefecture) {
+      throw new NotFoundException(
+        `idに関連する都道府県情報が存在しません!! prefectureId: ${id}`,
+      );
+    }
+
+    // dto → prismaInput
+    const prismaInput = {
+      name: updatePrefectureDto.name,
+      code: updatePrefectureDto.code,
+      kanaName: updatePrefectureDto.kanaName,
+      status: updatePrefectureDto.status,
+      kanaEn: updatePrefectureDto.kanaEn,
+      user: { connect: { id: userId } },
+      // region: { connect: { code: updatePrefectureDto.code } },
+    } satisfies Prisma.PrefectureUpdateInput;
+
+    // 更新（永続化)
+    const updated = await this.prismaService.prefecture.update({
+      data: prismaInput,
+      where: { id },
+    });
+
+    // prisma → domain
+    const domainWithId = {
+      id: updated.id,
+      code: updated.code,
+      name: updated.name,
+      kanaName: updated.kanaName,
+      status: updated.status,
+      kanaEn: updated.kanaEn,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+      regionId: updated.regionId ?? undefined,
+    } satisfies Prefecture & { id: string };
+
+    return domainWithId;
   }
 
   remove(id: number) {

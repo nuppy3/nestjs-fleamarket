@@ -210,7 +210,22 @@ export class PrefecturesController {
     @Body() updatePrefectureDto: UpdatePrefectureDto,
     @Request() req: ExpressRequest & { user: RequestUser },
   ) {
-    return this.prefecturesService.update(id, updatePrefectureDto, req.user.id);
+    const domain = this.prefecturesService.update(
+      id,
+      updatePrefectureDto,
+      req.user.id,
+    );
+
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(PrefectureResponseDto, domain, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as PrefectureResponseDto;
   }
 
   @Delete(':id')

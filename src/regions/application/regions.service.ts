@@ -197,6 +197,9 @@ export class RegionsService {
     const { name, code, kanaName, status, kanaEn } = updateRegionDto;
 
     // DBから更新対象のRegionを取得(なければ404) ---
+    // ドメインの整合性を守るため、更新前に現在の状態を取得し、ドメインルールによる検証を行う。
+    // 例：「掲載中のRegionは名前などを変更できない」「ステータス遷移ルールがある」など。
+
     // Region取得(DB) → domain (reconstitute)
     // repositoryではなく、内部functionのfindByIdOrFail()を呼び出すように修正
     // const regionWithId = await this.regionRepository.findByIdOrFail(id);

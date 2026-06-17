@@ -9,6 +9,12 @@ import {
 import { PrefectureStatus } from '../prefectures.model';
 import { CreatePrefectureDto } from './prefecture.dto';
 
+/**
+ * UpdatePrefectureDto: /update 用のDTO
+ *
+ * ⭐️prefeture.dto.tsに含めてもいいが、nest g コマンドにてデフォルトで生成されたので
+ *   利用してみた。
+ */
 export class UpdatePrefectureDto extends PartialType(CreatePrefectureDto) {
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
   @IsString()
