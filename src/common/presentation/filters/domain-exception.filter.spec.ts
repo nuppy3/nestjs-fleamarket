@@ -1,4 +1,4 @@
-import { ArgumentsHost, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { DomainException } from '../../../common/domain/errors/domain.exception';
 import { DomainExceptionFilter } from './domain-exception.filter';
 
@@ -67,6 +67,51 @@ describe('--- domain-exception.filter TEST ---', () => {
           timestamp: expect.any(String) as unknown, // 日時文字列が入っていればOK
         }),
       );
+    });
+
+    it('正常系： HttpExceptionをキャッチして、正しい構造のHTTPレスポンス（JSON）に変換すること', () => {
+      // ValidationPipe が返す典型的なエラー構造を模した HttpException を作成
+      const validationErrorContent = {
+        statusCode: 400,
+        message: ['code should not be empty', 'name must be a string'],
+        error: 'Bad Request',
+      };
+      const exception = new HttpException(
+        validationErrorContent,
+        HttpStatus.BAD_REQUEST,
+      );
+
+      // フィルターの実行
+      domainFilter.catch(exception, mockArgumentsHost);
+
+      // 検証: ステータスコードが正しく設定されているか
+      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+
+      // 検証: スプレッド展開され、timestamp が付与されたオブジェクトが返されているか
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        statusCode: 400,
+        message: ['code should not be empty', 'name must be a string'],
+        error: 'Bad Request',
+        timestamp: expect.any(String) as unknown, // 日時文字列が入っていればOK
+      });
+    });
+
+    // ✨ ケース4: 未知のエラー（標準の Error クラス）の場合
+    it('正常系： should return 500 and extract the error message when a standard Error is caught', () => {
+      // DB接続エラーやシンタックスエラーを模した標準 Error オブジェクト
+      const standardError = new Error('Database connection failed');
+
+      domainFilter.catch(standardError, mockArgumentsHost);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        statusCode: 500,
+        errorCode: 'INTERNAL_SERVER_ERROR',
+        message: 'Database connection failed', // 💡 Error のメッセージがセットされる
+        timestamp: expect.any(String) as unknown, // 日時文字列が入っていればOK
+      });
     });
   });
 });
