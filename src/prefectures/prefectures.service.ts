@@ -364,13 +364,13 @@ export class PrefecturesService {
       );
     }
 
-    // dto → prismaInput
+    // dto → prismaInput : nullの場合undefinedに書き換え(not-null項目)
     const prismaInput = {
-      name: updatePrefectureDto.name,
-      code: updatePrefectureDto.code,
-      kanaName: updatePrefectureDto.kanaName,
-      status: updatePrefectureDto.status,
-      kanaEn: updatePrefectureDto.kanaEn,
+      name: updatePrefectureDto.name ?? undefined,
+      code: updatePrefectureDto.code ?? undefined,
+      kanaName: updatePrefectureDto.kanaName ?? undefined,
+      status: updatePrefectureDto.status ?? undefined,
+      kanaEn: updatePrefectureDto.kanaEn ?? undefined,
       user: { connect: { id: userId } },
       // region: { connect: { code: updatePrefectureDto.code } },
     } satisfies Prisma.PrefectureUpdateInput;
