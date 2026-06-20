@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
+import { Region as PrismaRegion } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
@@ -204,6 +205,8 @@ export class PrefecturesService {
       // 以下だと、regionがundefinedの可能性があるからなのか、region.と打ってもidが補完されないので
       // やめて、久しぶりに...(スプレッド構文)で、regionオプジェクトを展開して追加。
       // region?.id;
+      // ちみに、satisfies Prisma.RegionUpdateInputで型を指定したら、
+      // region: { connect: { id: regionId } },のようなセットの仕方が必要
       ...(region && { regionId: region.id }),
     };
 
@@ -364,6 +367,14 @@ export class PrefecturesService {
       );
     }
 
+    // regionCodeの妥当性チェク
+    let prismaRegion: PrismaRegion | null = null;
+    if (updatePrefectureDto.regionCode) {
+      prismaRegion = await this.prismaService.region.findUnique({
+        where: { code: updatePrefectureDto.regionCode },
+      });
+    }
+
     // dto → prismaInput : nullの場合undefinedに書き換え(not-null項目)
     const prismaInput = {
       name: updatePrefectureDto.name ?? undefined,
@@ -372,7 +383,9 @@ export class PrefecturesService {
       status: updatePrefectureDto.status ?? undefined,
       kanaEn: updatePrefectureDto.kanaEn ?? undefined,
       user: { connect: { id: userId } },
-      // region: { connect: { code: updatePrefectureDto.code } },
+      // ‼️ 「オブジェクト展開（スプレッド）」のテクニック：
+      // prismaRegion が存在する(true)場合のみ、regionオブジェクトを合体させる
+      ...(prismaRegion && { region: { connect: { id: prismaRegion.id } } }),
     } satisfies Prisma.PrefectureUpdateInput;
 
     // 更新（永続化)
