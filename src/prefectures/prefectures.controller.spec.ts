@@ -11,6 +11,7 @@ import {
   PaginatedPrefectureResponseDto,
   PrefectureResponseDto,
 } from './dto/prefecture.dto';
+import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 import { PrefecturesController } from './prefectures.controller';
 import { Prefecture, PrefectureWithCoverage } from './prefectures.model';
 
@@ -21,6 +22,7 @@ const mockPrerectureService = {
   findOne: jest.fn(),
   findByIdOrFail: jest.fn(),
   findByCodeOrFail: jest.fn(),
+  update: jest.fn(),
 };
 
 describe('■■■ Prefectures Controller TEST ■■■', () => {
@@ -536,74 +538,177 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       );
     });
   });
+
+  //-----------------------------------
+  // 以下は、
+  // Postmanでnameなどの項目無しでリクエストすると、controllerのvalidationで弾かれるので
+  // service-prismaに対して項目無しのリクエストを投げることができないので、describeを分けて、
+  // 本物のservice-prismaを使用したテストにて検証してみる。
+  // → と思ったけど、ちゃんと型指定でリクエストパラメータを作成したらname無しのオブジェクトは
+  // 静的方チェックエラーで引っかかるので、テストする必要ないな。。と気づいた。。。
+  //-----------------------------------
+
+  // describe('■■■ PrefecturesController (Integration Tests - Real Service) ■■■', () => {
+  //   // DI対象モジュール宣言
+  //   let prefecturesController: PrefecturesController; // テスト対象
+
+  //   // テスト全体の前に1回だけ実行
+  //   beforeAll(async () => {
+  //     console.log('beforeAll: モジュールのセットアップ');
+
+  //     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
+  //     // この便利なDIの仕組みはNestJSの仕組み。
+  //     // 最後の.compile()を忘れずに(compile()にてモジュールを生成する)
+  //     const module = await Test.createTestingModule({
+  //       // @Module({
+  //       //   imports: [PrismaModule],
+  //       //   controllers: [PrefecturesController],
+  //       //   providers: [PrefecturesService],
+  //       // })
+
+  //       // DI対象モジュール：module.tsをほぼコピペ（serviceのMockを指定する）
+  //       controllers: [PrefecturesController],
+  //       // mockではなく、本物を使用。serviceだけではなく、そこから呼ばれるPrismaServiceもDI
+  //       providers: [PrefecturesService, PrismaService],
+  //     }).compile();
+
+  //     prefecturesController = module.get<PrefecturesController>(
+  //       PrefecturesController,
+  //     );
+  //   });
+
+  //   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
+  //   // 重いのでbeforeAll()で1回だけ実行するようにするのがベストプラクティス
+  //   beforeEach(() => {
+  //     console.log('beforeEach: モックをリセット jest.clearAllMocks()');
+  //     jest.clearAllMocks();
+  //   });
+
+  //   //-----------------------------------
+  //   // Postmanでnameなどの項目無しでリクエストすると、controllerのvalidationで弾かれるので
+  //   // service-prismaに対して項目無しのリクエストを投げることができないので、当該テストにて
+  //   // 検証してみる
+  //   // → と思ったけど、ちゃんと型指定でリクエストパラメータを作成したらname無しのオブジェクトは
+  //   // 静的方チェックエラーで引っかかるので、テストする必要ないな。。と気づいた。。。
+  //   //-----------------------------------
+  //   it('異常系：nameなしで都道府県情報作成（nameなし）し、エラーを返却する', async () => {
+  //     // controllerの引数作成
+  //     const reqDto: CreatePrefectureDto = {
+  //       // name: '石川県',
+  //       code: '17',
+  //       kanaName: 'イシカワ',
+  //       kanaEn: 'ishikawa',
+  //       status: 'published',
+  //     };
+  //     // テスト対象controller呼び出し
+  //     const result = await prefecturesController.create(reqDto);
+  //     // 検証
+  //   });
+  // });
+
+  //--------------------------------
+  // update()
+  //--------------------------------
+  describe('update', () => {
+    it('正常系：都道府県情報作成（DTOの全項目あり）し、DTO全項目を返却する', async () => {
+      // Controllerの引数作成
+      const id = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const requestDto: UpdatePrefectureDto = {
+        name: '石川県',
+        code: '77',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        regionCode: '05',
+      };
+
+      // 引数：リクエストパラメータ作成
+      // const request = {} satisfies ExpressRequest & { user: RequestUser };
+      const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> =
+        {
+          user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+        };
+
+      // service mock data 作成(domain + id)
+      const domainWithId: Prefecture & { id: string } = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '77',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+      };
+      jest.spyOn(prefecturesService, 'update').mockResolvedValue(domainWithId);
+
+      // test対象controller呼び出し
+      const result = await prefecturesController.update(
+        id,
+        requestDto,
+        // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
+        // 完全に一致しないため、保守性がやや低下する可能性があるため）
+        request as ExpressRequest & { user: RequestUser },
+      );
+
+      // 期待値作成(dto→plainToInstanceした時のオブジェクト)
+      const expecedData: PrefectureResponseDto = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '77',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        statusLabel: '反映中',
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+      };
+
+      // 検証
+      expect(result).toEqual(expecedData);
+    });
+
+    it('異常系: prefecturesServiceにエラーが発生した場合、元のエラーをそのまま伝搬する', async () => {
+      // Controllerの引数作成
+      const id = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const requestDto: CreatePrefectureDto = {
+        name: '石川県',
+        code: '17',
+        kanaName: 'イシカワ',
+        kanaEn: 'ishikawa',
+        status: 'published',
+        // regionCode: '05',
+      };
+
+      // 引数：リクエストパラメータ作成
+      // const request = {} satisfies ExpressRequest & { user: RequestUser };
+      const request: Partial<ExpressRequest & { user: Partial<RequestUser> }> =
+        {
+          user: { id: '633931d5-2b25-45f1-8006-c137af49e53d' },
+        };
+
+      // service mock data(Error) 作成
+      const conectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prefecturesService, 'update')
+        .mockRejectedValue(conectionError);
+
+      // テスト対象controller呼び出し
+      await expect(
+        prefecturesController.update(
+          id,
+          requestDto,
+          request as ExpressRequest & { user: RequestUser },
+        ),
+      ).rejects.toThrow(PrismaClientKnownRequestError);
+
+      // 検証
+    });
+  });
 });
-
-//-----------------------------------
-// 以下は、
-// Postmanでnameなどの項目無しでリクエストすると、controllerのvalidationで弾かれるので
-// service-prismaに対して項目無しのリクエストを投げることができないので、describeを分けて、
-// 本物のservice-prismaを使用したテストにて検証してみる。
-// → と思ったけど、ちゃんと型指定でリクエストパラメータを作成したらname無しのオブジェクトは
-// 静的方チェックエラーで引っかかるので、テストする必要ないな。。と気づいた。。。
-//-----------------------------------
-
-// describe('■■■ PrefecturesController (Integration Tests - Real Service) ■■■', () => {
-//   // DI対象モジュール宣言
-//   let prefecturesController: PrefecturesController; // テスト対象
-
-//   // テスト全体の前に1回だけ実行
-//   beforeAll(async () => {
-//     console.log('beforeAll: モジュールのセットアップ');
-
-//     // TestクラスのcreateTestingModuleメソッドを使い、module(ItemService)のDIを実施
-//     // この便利なDIの仕組みはNestJSの仕組み。
-//     // 最後の.compile()を忘れずに(compile()にてモジュールを生成する)
-//     const module = await Test.createTestingModule({
-//       // @Module({
-//       //   imports: [PrismaModule],
-//       //   controllers: [PrefecturesController],
-//       //   providers: [PrefecturesService],
-//       // })
-
-//       // DI対象モジュール：module.tsをほぼコピペ（serviceのMockを指定する）
-//       controllers: [PrefecturesController],
-//       // mockではなく、本物を使用。serviceだけではなく、そこから呼ばれるPrismaServiceもDI
-//       providers: [PrefecturesService, PrismaService],
-//     }).compile();
-
-//     prefecturesController = module.get<PrefecturesController>(
-//       PrefecturesController,
-//     );
-//   });
-
-//   // 各テストケースの前に毎回実行：こっちでcreateTestingModule()してもいいが、
-//   // 重いのでbeforeAll()で1回だけ実行するようにするのがベストプラクティス
-//   beforeEach(() => {
-//     console.log('beforeEach: モックをリセット jest.clearAllMocks()');
-//     jest.clearAllMocks();
-//   });
-
-//   //-----------------------------------
-//   // Postmanでnameなどの項目無しでリクエストすると、controllerのvalidationで弾かれるので
-//   // service-prismaに対して項目無しのリクエストを投げることができないので、当該テストにて
-//   // 検証してみる
-//   // → と思ったけど、ちゃんと型指定でリクエストパラメータを作成したらname無しのオブジェクトは
-//   // 静的方チェックエラーで引っかかるので、テストする必要ないな。。と気づいた。。。
-//   //-----------------------------------
-//   it('異常系：nameなしで都道府県情報作成（nameなし）し、エラーを返却する', async () => {
-//     // controllerの引数作成
-//     const reqDto: CreatePrefectureDto = {
-//       // name: '石川県',
-//       code: '17',
-//       kanaName: 'イシカワ',
-//       kanaEn: 'ishikawa',
-//       status: 'published',
-//     };
-//     // テスト対象controller呼び出し
-//     const result = await prefecturesController.create(reqDto);
-//     // 検証
-//   });
-// });
 
 /**
  * PrefectureServiceのMockデータを作成

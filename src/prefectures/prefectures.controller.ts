@@ -205,12 +205,12 @@ export class PrefecturesController {
    */
   @Patch(':id')
   @UseGuards(AuthGuard('jwt')) // Guard機能を使ってJWT認証を適用：JWT認証の実装はAuthModuleにて実施
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updatePrefectureDto: UpdatePrefectureDto,
     @Request() req: ExpressRequest & { user: RequestUser },
-  ) {
-    const domain = this.prefecturesService.update(
+  ): Promise<PrefectureResponseDto> {
+    const domain = await this.prefecturesService.update(
       id,
       updatePrefectureDto,
       req.user.id,
