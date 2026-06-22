@@ -378,6 +378,8 @@ export class PrefecturesService {
       prismaRegion = await this.regionsService.findByCodeOrFail(
         updatePrefectureDto.regionCode,
       );
+
+      // codeに関連するRegionが存在しない場合はExceptionをスローしてもいい
     }
 
     // dto → prismaInput : nullの場合undefinedに書き換え(not-null項目)

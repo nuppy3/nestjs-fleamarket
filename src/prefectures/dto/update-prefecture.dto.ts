@@ -12,12 +12,15 @@ import { CreatePrefectureDto } from './prefecture.dto';
 /**
  * UpdatePrefectureDto: /update 用のDTO
  *
- * ⭐️prefeture.dto.tsに含めてもいいが、nest g コマンドにてデフォルトで生成されたので
- *   利用してみた。
+ * ⭐️ prefeture.dto.tsに含めてもいいが、nest g コマンドにてデフォルトで生成されたので
+ *    利用してみた。
  */
 export class UpdatePrefectureDto extends PartialType(CreatePrefectureDto) {
-  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  // ⚠️ ただ、実際 "name" : nullと POSTパラメーターで渡されるとnullが入ってしまう現状。
+  //    nullが入ってきた場合は、Service or repositoryにて、?? でundefined変換を実施。
   @IsString()
+  @IsOptional()
   @IsNotEmpty()
   @MaxLength(40)
   name?: string;
