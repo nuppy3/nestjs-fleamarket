@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
-import { Region as PrismaRegion } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
@@ -208,6 +207,8 @@ export class PrefecturesService {
       // ちみに、satisfies Prisma.RegionUpdateInputで型を指定したら、
       // region: { connect: { id: regionId } },のようなセットの仕方が必要
       ...(region && { regionId: region.id }),
+      // memo: updatedAt をセットしてないが、、schema.prismaにて@updatedAt @db.Timestamp(0)を
+      //       指定しているので、create()のタイミングで自動設定される。
     };
 
     try {
@@ -368,11 +369,15 @@ export class PrefecturesService {
     }
 
     // regionCodeの妥当性チェク
-    let prismaRegion: PrismaRegion | null = null;
+    let prismaRegion: (Region & { id: string }) | undefined = undefined;
     if (updatePrefectureDto.regionCode) {
-      prismaRegion = await this.prismaService.region.findUnique({
-        where: { code: updatePrefectureDto.regionCode },
-      });
+      // prismaRegion = await this.prismaService.region.findUnique({
+      //   where: { code: updatePrefectureDto.regionCode },
+      // });
+      // regionCodeに紐づくエリア情報取得
+      prismaRegion = await this.regionsService.findByCodeOrFail(
+        updatePrefectureDto.regionCode,
+      );
     }
 
     // dto → prismaInput : nullの場合undefinedに書き換え(not-null項目)
@@ -386,6 +391,8 @@ export class PrefecturesService {
       // ‼️ 「オブジェクト展開（スプレッド）」のテクニック：
       // prismaRegion が存在する(true)場合のみ、regionオブジェクトを合体させる
       ...(prismaRegion && { region: { connect: { id: prismaRegion.id } } }),
+      // memo: updatedAt をセットしてないが、、schema.prismaにて@updatedAt @db.Timestamp(0)を
+      //       指定しているので、update()のタイミングで自動設定される。
     } satisfies Prisma.PrefectureUpdateInput;
 
     // 更新（永続化)

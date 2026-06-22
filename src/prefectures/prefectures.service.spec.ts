@@ -15,6 +15,7 @@ import {
 } from '../regions/domain/regions.model';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
+import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
 import {
   Prefecture,
   PrefectureFilter,
@@ -1133,6 +1134,289 @@ describe('□□□ Prefecture Test □□□', () => {
         ),
       );
     });
+  });
+
+  // ------------------------------
+  // update()
+  // ------------------------------
+  describe('update', () => {
+    // ----------------------------------------------------------------
+    // 1. 正常ケースのテスト
+    // ※ prismaServiceを3回呼び出すため(①prefecture.findUnique、
+    //   ②region.findUnique、③prefecture.update)、mockDataは3回作成している。
+    // ----------------------------------------------------------------
+    it('正常系: Prefectureの情報をPrismaに連携(全項目)し、prefectureドメイン(全項目)を返却する', async () => {
+      // serviceの引数作成
+      // prefecture id
+      const id = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
+      // 更新対象DTO
+      const dto = {
+        name: '北海道-更新',
+        code: '77',
+        kanaName: 'ホッカイドウ更新',
+        status: 'editing',
+        kanaEn: 'hokkaidoupdate',
+        regionCode: '05',
+      } satisfies UpdatePrefectureDto;
+      // User id
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // ① prisma mock data 作成 (prefecture.findUnique)
+      const prismaPrefecture = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ホッカイドウ',
+        status: 'published',
+        kanaEn: 'hokkaido',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // 更新日
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies PrismaPrefecture;
+
+      // prisma service mock data セット
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(prismaPrefecture);
+
+      // ② prisma mock data 作成 (region.findUnique)
+      jest.spyOn(prismaService.region, 'findUnique').mockResolvedValue({
+        // region id 意外はなんでもいい
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: userId,
+      });
+
+      // ③ prisma mock data 作成 (prefecture.update)
+      const prismaPrefectureUpdated = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '北海道-更新',
+        code: '77',
+        kanaName: 'ホッカイドウ更新',
+        status: 'editing',
+        kanaEn: 'hokkaidoupdate',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // 更新日
+        updatedAt: new Date('2026-04-15T12:30:00.000Z'),
+        regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      } satisfies PrismaPrefecture;
+
+      // mock data set
+      const prismaSpy = jest
+        .spyOn(prismaService.prefecture, 'update')
+        .mockResolvedValue(prismaPrefectureUpdated);
+
+      // テスト対象service呼び出し
+      const result = await prefectureService.update(id, dto, userId);
+
+      // 検証
+      expect(result).toEqual({
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '北海道-更新',
+        code: '77',
+        kanaName: 'ホッカイドウ更新',
+        status: 'editing',
+        kanaEn: 'hokkaidoupdate',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // 更新日
+        updatedAt: new Date('2026-04-15T12:30:00.000Z'),
+        regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      } satisfies Prefecture & { id: string });
+
+      // 引数検証
+      expect(prismaSpy).toHaveBeenCalledWith({
+        data: {
+          id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+          name: '北海道-更新',
+          code: '77',
+          kanaName: 'ホッカイドウ更新',
+          status: 'editing',
+          kanaEn: 'hokkaidoupdate',
+          regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+          userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        },
+      });
+    });
+
+    // it('正常系: Prefectureの情報を登録(任意項目はnull)し、prefectureドメイン(任意項目はnull→undefined変換)を返却する', async () => {
+    //   // serviceの引数作成
+    //   const dto: CreatePrefectureDto = {
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     regionCode: '99',
+    //   };
+    //   const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+    //   // RegionsService mock data 作成
+    //   const mockRegionData = {
+    //     // id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+    //     code: '05',
+    //     name: '北陸',
+    //     kanaName: 'ホクリク',
+    //     kanaEn: 'hokuriku',
+    //     status: RegionStatus.PUBLISHED,
+    //     createdAt: new Date('2025-04-05T10:00:00.000Z'),
+    //     updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    //   } satisfies ReconstituteRegionProps;
+    //   const region = Region.reconstitute(mockRegionData);
+    //   const regionWithId = Object.assign(region, {
+    //     id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+    //   });
+    //   jest
+    //     .spyOn(regionsService, 'findByCodeOrFail')
+    //     .mockResolvedValue(regionWithId);
+
+    //   // prisma modk data 作成 : Prefecture情報
+    //   jest.spyOn(prismaService.prefecture, 'create').mockResolvedValue({
+    //     id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     createdAt: new Date('2025-04-05T10:00:00.000Z'),
+    //     updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    //     regionId: null,
+    //     userId: userId,
+    //   });
+
+    //   // テスト対象service呼び出し
+    //   const result = await prefectureService.create(dto, userId);
+
+    //   // 検証
+    //   expect(result).toEqual({
+    //     id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     createdAt: new Date('2025-04-05T10:00:00.000Z'),
+    //     updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    //     regionId: undefined,
+    //   });
+    // });
+
+    // // ----------------------------------------------------------------
+    // // 2. エラーケースのテスト ： catch句のテスト
+    // // ----------------------------------------------------------------
+    // it('異常系①: Prefectureの情報を登録(全項目)し、一意制約エラー(P2002)の検証', async () => {
+    //   // serviceの引数作成
+    //   const dto: CreatePrefectureDto = {
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     // regionCode: '05',
+    //   };
+    //   const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+    //   // prismaのP2002エラーのmockを作成
+    //   // PrismaClientKnownRequestError：クエリエンジンがリクエストに関連する既知のエラー (たとえば、一意制約違反)
+    //   // を返す場合、Prisma Client は例外をスローします。
+    //   // 一意制約、アクセス不可などは当該Errorは同じで、codeが違うだけ。
+    //   const mockP2002Error = new PrismaClientKnownRequestError(
+    //     'Unique constraint failed on the fields: (`code`)',
+    //     {
+    //       code: 'P2002',
+    //       clientVersion: 'test-version',
+    //       meta: { target: ['code'] }, // 一意制約違反のフィールド
+    //     },
+    //   );
+
+    //   // Pricmaが、P2002 エラーを返すように設定
+    //   // Errorを返却させたい場合はmockRejectedValue()でcreateのPrisma<Prefecture & {id:string}>の
+    //   // 返却をアンラップして、Errorを返すようにする）
+    //   jest
+    //     .spyOn(prismaService.prefecture, 'create')
+    //     .mockRejectedValue(mockP2002Error);
+
+    //   // test対象service呼び出し、結果検証
+    //   // ConflictExceptionがスローされることをテスト
+    //   await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+    //     ConflictException,
+    //   );
+
+    //   // ConflictExceptionのmessageが正しいことを検証
+    //   await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+    //     '指定された code は既に存在します。',
+    //   );
+    // });
+
+    // it('異常系②: P2002以外のPrismaエラーの場合、そのままエラーをスローする', async () => {
+    //   // serviceの引数作成
+    //   const dto: CreatePrefectureDto = {
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     // regionCode: '05',
+    //   };
+    //   const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+    //   // P2002以外のエラーを作成（なんでもいいが、P2000:値が長すぎるエラーにしておく)
+    //   const mockP2000Error = new PrismaClientKnownRequestError(
+    //     'Value too long for column',
+    //     { code: 'P2000', clientVersion: 'test-version' },
+    //   );
+
+    //   // prismaServiceのmock(Error)を設定
+    //   jest
+    //     .spyOn(prismaService.prefecture, 'create')
+    //     .mockRejectedValue(mockP2000Error);
+
+    //   // serviceを呼び出し、結果を検証
+    //   await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+    //     PrismaClientKnownRequestError,
+    //   );
+    //   // Errorに以下が含まれることを検証（このテストはなくてもいいか）
+    //   await expect(
+    //     prefectureService.create(dto, userId),
+    //   ).rejects.toHaveProperty('code', 'P2000');
+    // });
+
+    // it('異常系③: その他エラーのテスト：元のエラーをそのままスローする', async () => {
+    //   // serviceの引数作成
+    //   const dto: CreatePrefectureDto = {
+    //     name: '石川県',
+    //     code: '24',
+    //     kanaName: 'イシカワ',
+    //     kanaEn: 'ishikawa',
+    //     status: 'published',
+    //     // regionCode: '05',
+    //   };
+    //   const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+    //   // PrismaClientKnownRequestError以外の一般エラーを作成
+    //   const mockGenericError = new Error('Database connection failed');
+
+    //   // モックの実装: create()が一般のエラーを投げるように設定
+    //   jest
+    //     .spyOn(prismaService.prefecture, 'create')
+    //     .mockRejectedValue(mockGenericError);
+
+    //   // 元のエラー（Generic Error）がそのまま再スローされることをテスト
+    //   await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+    //     Error,
+    //   );
+    //   await expect(prefectureService.create(dto, userId)).rejects.toThrow(
+    //     'Database connection failed',
+    //   );
+    // });
   });
 });
 
