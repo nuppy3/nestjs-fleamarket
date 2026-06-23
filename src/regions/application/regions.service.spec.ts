@@ -475,6 +475,9 @@ describe('■■■ Region test ■■■', () => {
   // update() test
   //--------------------------------------
   describe('update Test', () => {
+    // mock対象:
+    // ①regionRepository.findByIdOrFail()
+    // ②egionRepository.save()
     it('正常系： 指定idに関連するRegion情報を更新し、Regionドメイン(＋id)(全項目)を返却する', async () => {
       // serviceの引数作成
       const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道のid
@@ -501,7 +504,9 @@ describe('■■■ Region test ■■■', () => {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       });
 
-      // mock data set
+      // ①mock data set
+      // private findByIdOrFail()は本物で、そこから呼ばれている
+      // regionRepository.findByIdOrFail()をmock化
       jest
         .spyOn(regionRepository, 'findByIdOrFail')
         .mockResolvedValue(regionWithId);
@@ -520,7 +525,7 @@ describe('■■■ Region test ■■■', () => {
         id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       });
 
-      // mock data set (Repository)
+      // ②mock data set (Repository)
       jest.spyOn(regionRepository, 'save').mockResolvedValue(savedRegionWithId);
 
       // テスト対象 service 呼び出し
@@ -537,6 +542,77 @@ describe('■■■ Region test ■■■', () => {
         kanaEn: 'hokkaidoutest',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-25T12:30:00.000Z'),
+      };
+
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      expect(result).toMatchObject(expected);
+    });
+
+    // ⚠️本当はnull→undefined変換のテストを実施したいが、UpdateRegionDtoの型チェックにてnull
+    //   をセットすることはできない。のでundefinedで試験を実施している。（やる意味はないが)
+    //   ただ、実際のリクエストパラメータではnullがセットされるので非常に悩ましい。。。！！！
+    it('正常系： 指定idに関連するRegion情報を更新し(null項目をundefinedに変換)、Regionドメイン(＋id)(全項目)を返却する', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道のid
+      const dto = {
+        name: undefined,
+        code: undefined,
+        kanaName: undefined,
+        status: undefined,
+        kanaEn: undefined,
+      } satisfies UpdateRegionDto;
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // regions service findOne mock data 作成: domainをreconstituteで作成(時間などをセットできるため)
+      const region = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps);
+      const regionWithId = Object.assign(region, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // Repository.save mock data 作成
+      const savedRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      }) satisfies ReconstituteRegionProps;
+      const savedRegionWithId = Object.assign(savedRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest.spyOn(regionRepository, 'save').mockResolvedValue(savedRegionWithId);
+
+      // テスト対象 service 呼び出し
+      const result = await regionsService.update(id, dto, userId);
+
+      // 期待値: Region & {id:string}型だが、_name,_codeやgetterなどが無いので
+      //        satisfiesでの型判定はしない。
+      const expected = {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'editing',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       };
 
       // 検証：プロパティをすべて持っているか、プロパティ値が正しいか

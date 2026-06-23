@@ -194,6 +194,8 @@ export class RegionsService {
     userId: string,
   ): Promise<Region & { id: string }> {
     // dto取得
+    // Tweet：分割代入で展開してみてるけど、regionWithId.update()に渡す際に?? udefined変換
+    //        しちゃってるので、恩恵がない。。
     const { name, code, kanaName, status, kanaEn } = updateRegionDto;
 
     // DBから更新対象のRegionを取得(なければ404) ---
@@ -207,11 +209,11 @@ export class RegionsService {
 
     // domain更新(dtoの項目で更新): ドメインルール（例：特定のステータスなら名前は変えられない等）をチェック
     regionWithId.update({
-      name,
-      code,
-      kanaName,
-      status,
-      kanaEn,
+      name: name ?? undefined,
+      code: code ?? undefined,
+      kanaName: kanaName ?? undefined,
+      status: status ?? undefined,
+      kanaEn: kanaEn ?? undefined,
     } satisfies UpdateRegionDto);
 
     // 永続化（DB更新) → domain(toDomain)
