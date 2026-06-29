@@ -38,7 +38,9 @@ export class PrefecturesService {
     // また、リクエストパラメーターで?name=nullというパラメータがリクエストされたとしてもControllerの
     // Validationにてnumberじゃないよ！とエラーになる。のでserviceにnullが渡ることはない。
     filters: PrefectureFilter = {},
-  ): Promise<PaginatedResult<Prefecture & { id: string }>> {
+  ): Promise<
+    PaginatedResult<Prefecture & { id: string; regionName?: string }>
+  > {
     // ページネーション計算
     // size: default: 20, 1〜2000の範囲内(マイナスはNG)
     const defaultSize =
@@ -71,6 +73,16 @@ export class PrefecturesService {
         take: size,
         // Offset (最初のXX件を飛ばす)
         skip: skip,
+        // エリア名
+        include: {
+          // schema.prismaにてリレーションを張っているとwhere句でのid突合は不要
+          // ↓ 以下のようにRegionを指定するだけでOK
+          region: {
+            select: {
+              name: true,
+            },
+          },
+        },
       }),
       // count(): prefectureの総件数
       this.prismaService.prefecture.count(),
@@ -84,27 +96,32 @@ export class PrefecturesService {
 
     // prisma→domain
     // prefectures.map()は、prefecturesが空配列の場合も正常に動作し空配列を返却する仕様
-    const domains: (Prefecture & { id: string })[] = prismaPrefectures.map(
-      (prefecture) =>
-        ({
-          // ...prefecture,
-          // regionId: prefecture.regionId ?? undefined,
+    // 20260624: 都道府県に紐づくエリア名追加対応によりregionNameを追加（一旦、Type定義していない）
+    const domains: (Prefecture & { id: string; regionName?: string })[] =
+      prismaPrefectures.map(
+        (prefecture) =>
+          ({
+            // ...prefecture,
+            // regionId: prefecture.regionId ?? undefined,
 
-          // 上記スプレッド構文で全展開だと限界が訪れたので、必要項目をチクチクセットするように修正
-          id: prefecture.id,
-          code: prefecture.code,
-          name: prefecture.name,
-          kanaName: prefecture.kanaName,
-          status: prefecture.status,
-          kanaEn: prefecture.kanaEn,
-          createdAt: prefecture.createdAt,
-          updatedAt: prefecture.updatedAt,
-          regionId: prefecture.regionId ?? undefined,
-        }) satisfies Prefecture & { id: string },
-    );
+            // 上記スプレッド構文で全展開だと限界が訪れたので、必要項目をチクチクセットするように修正
+            id: prefecture.id,
+            code: prefecture.code,
+            name: prefecture.name,
+            kanaName: prefecture.kanaName,
+            status: prefecture.status,
+            kanaEn: prefecture.kanaEn,
+            createdAt: prefecture.createdAt,
+            updatedAt: prefecture.updatedAt,
+            regionId: prefecture.regionId ?? undefined,
+            regionName: prefecture.region?.name ?? undefined,
+          }) satisfies Prefecture & { id: string; regionName?: string },
+      );
 
     // 返却オブジェクト: ページネーションされたPrefectureドメイン情報
-    const paginated: PaginatedResult<Prefecture & { id: string }> = {
+    const paginated: PaginatedResult<
+      Prefecture & { id: string; regionName?: string }
+    > = {
       data: domains,
       meta: {
         totalCount: count,
