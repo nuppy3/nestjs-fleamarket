@@ -52,8 +52,12 @@ describe('□□□ Prefecture Test □□□', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let configService: ConfigService;
 
-  let prismaMockPrefectures: PrismaPrefecture[];
-  let expectedPrefectures: PaginatedResult<Prefecture & { id: string }>;
+  let prismaMockPrefectures: (PrismaPrefecture & {
+    region: { name: string | null };
+  })[];
+  let expectedPrefectures: PaginatedResult<
+    Prefecture & { id: string; regionName?: string }
+  >;
 
   // 前処理: テスト全体の前に1回だけ実行される
   beforeAll(async () => {
@@ -141,7 +145,7 @@ describe('□□□ Prefecture Test □□□', () => {
     });
 
     it('Promise.all が正しく並列で呼ばれていることを確認', async () => {
-      // mock data なんでもいい
+      // mock data (なんでもいい)
       jest
         .spyOn(prismaService.prefecture, 'findMany')
         .mockResolvedValue(prismaMockPrefectures);
@@ -166,7 +170,10 @@ describe('□□□ Prefecture Test □□□', () => {
             ...prefecture,
             userId: null, // serviceにてdomainにセットしていない項目だが、一応
             regionId: null,
-          }) satisfies PrismaPrefecture,
+            region: { regionName: null },
+          }) satisfies PrismaPrefecture & {
+            region: { regionName: string | null };
+          },
       );
       // findMany
       jest
@@ -191,7 +198,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
           {
             id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
             name: '青森',
@@ -202,7 +210,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
           {
             id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
             name: '秋田',
@@ -213,7 +222,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
           {
             id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
             name: '岩手',
@@ -224,7 +234,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
           {
             id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
             name: '山形',
@@ -235,7 +246,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
           {
             id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
             name: '東京都',
@@ -246,7 +258,8 @@ describe('□□□ Prefecture Test □□□', () => {
             createdAt: new Date('2025-04-05T10:00:00.000Z'),
             updatedAt: new Date('2025-04-05T12:30:00.000Z'),
             regionId: undefined,
-          },
+            regionName: undefined,
+          } satisfies Prefecture & { id: string; regionName?: string },
         ],
         meta: {
           totalCount: 6,
@@ -467,6 +480,14 @@ describe('□□□ Prefecture Test □□□', () => {
               take: expectedParam,
               // Offset (最初のXX件を飛ばす)
               skip: 0,
+              // エリア名
+              include: {
+                region: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
             });
           },
         );
@@ -548,6 +569,14 @@ describe('□□□ Prefecture Test □□□', () => {
               take: 20,
               // Offset (最初のXX件を飛ばす)
               skip: expectedParam,
+              // エリア名
+              include: {
+                region: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
             });
           },
         );
@@ -952,9 +981,18 @@ describe('□□□ Prefecture Test □□□', () => {
       const id: string = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // serrvice Mockデータ作成
-      const mockPrefecture = createExpectedData().data.find(
-        (prefecture) => prefecture.id === id,
-      )!;
+      const mockPrefecture = {
+        id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ホッカイドウ',
+        status: 'published',
+        kanaEn: 'hokkaido',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        // regionName: '北海道',
+      } satisfies Prefecture & { id: string; regionName?: string };
 
       //  prisma Mockデータセット
       jest
@@ -964,10 +1002,19 @@ describe('□□□ Prefecture Test □□□', () => {
       // テスト対象のfindByCodeOrFail
       const result = await prefectureService.findOne(id);
 
+      // 期待値
+      const prefecture: Prefecture & { id: string; regionName?: string } =
+        expectedPrefectures.data.find((prefecture) => prefecture.id === id)!;
+
+      // 🗒 Objectからプロパティを除外するテクニック(分割代入 + スプレッド構文)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...expected } = prefecture;
+
       // 検証
-      expect(result).toEqual(
-        expectedPrefectures.data.find((prefecture) => prefecture.id === id),
-      );
+      // expect(result).toEqual(
+      //   expectedPrefectures.data.find((prefecture) => prefecture.id === id),
+      // );
+      expect(result).toEqual(expected);
 
       // prisma 引数検証
       expect(
@@ -984,7 +1031,6 @@ describe('□□□ Prefecture Test □□□', () => {
       // findByCodeOrFailの引数
       const id: string = '174d2683-7012-462c-b7d0-7e452ba0f1ab';
 
-      // PrismaのMockデータ作成
       const prismaMockPrefecture = prismaMockPrefectures.find(
         (prefecture) => prefecture.id === id,
       )!;
@@ -997,10 +1043,16 @@ describe('□□□ Prefecture Test □□□', () => {
       // テスト対象のfindByCodeOrFail
       const result = await prefectureService.findByIdOrFail(id);
 
+      // 期待値
+      const prefecture = expectedPrefectures.data.find(
+        (prefecture) => prefecture.id === id,
+      )!;
+      // 🗒 Objectからプロパティを除外するテクニック(分割代入 + スプレッド構文)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...expected } = prefecture;
+
       // 検証
-      expect(result).toEqual(
-        expectedPrefectures.data.find((prefecture) => prefecture.id === id),
-      );
+      expect(result).toEqual(expected);
 
       // prisma 引数検証
       expect(
@@ -1078,10 +1130,15 @@ describe('□□□ Prefecture Test □□□', () => {
       // テスト対象のfindByCodeOrFail
       const result = await prefectureService.findByCodeOrFail(code);
 
+      // 期待値
+      const prefecture = expectedPrefectures.data.find(
+        (prefecture) => prefecture.code === code,
+      )!;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...expected } = prefecture;
+
       // 検証
-      expect(result).toEqual(
-        expectedPrefectures.data.find((prefecture) => prefecture.code === code),
-      );
+      expect(result).toEqual(expected);
 
       // 引数検証
       expect(
@@ -1672,8 +1729,10 @@ describe('□□□ Prefecture Test □□□', () => {
 });
 
 // Prisma Mock Data 作成
-function createPrismaMockData(): PrismaPrefecture[] {
-  const domains: PrismaPrefecture[] = [
+function createPrismaMockData(): (PrismaPrefecture & {
+  region: { name: string };
+})[] {
+  const domains: (PrismaPrefecture & { region: { name: string } })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -1684,8 +1743,10 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      region: { name: '北海道' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+      // 厳密には、regionName: string | null 型であるが、よしとしよ
+    } satisfies PrismaPrefecture & { region: { name: string | null } },
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '青森',
@@ -1696,8 +1757,9 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '東北' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+    } satisfies PrismaPrefecture & { region: { name: string } },
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '秋田',
@@ -1708,8 +1770,9 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '東北' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+    } satisfies PrismaPrefecture & { region: { name: string } },
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '岩手',
@@ -1720,8 +1783,9 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '東北' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+    } satisfies PrismaPrefecture & { region: { name: string } },
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山形',
@@ -1732,8 +1796,9 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '東北' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+    } satisfies PrismaPrefecture & { region: { name: string } },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '東京都',
@@ -1744,8 +1809,9 @@ function createPrismaMockData(): PrismaPrefecture[] {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '関東' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
+    } satisfies PrismaPrefecture & { region: { name: string } },
   ];
   return domains;
 }
@@ -1785,8 +1851,10 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
 }
 
 // 期待値作成
-function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
-  const domains: (Prefecture & { id: string })[] = [
+function createExpectedData(): PaginatedResult<
+  Prefecture & { id: string; regionName?: string }
+> {
+  const domains: (Prefecture & { id: string; regionName?: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -1797,7 +1865,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-    },
+      regionName: '北海道',
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '青森',
@@ -1808,7 +1877,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-    },
+      regionName: '東北',
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '秋田',
@@ -1819,7 +1889,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-    },
+      regionName: '東北',
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '岩手',
@@ -1830,7 +1901,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-    },
+      regionName: '東北',
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山形',
@@ -1841,7 +1913,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-    },
+      regionName: '東北',
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '東京都',
@@ -1852,7 +1925,8 @@ function createExpectedData(): PaginatedResult<Prefecture & { id: string }> {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
-    },
+      regionName: '関東',
+    } satisfies Prefecture & { id: string; regionName?: string },
   ];
 
   const expected: PaginatedResult<Prefecture & { id: string }> = {
