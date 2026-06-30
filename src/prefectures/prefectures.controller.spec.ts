@@ -31,7 +31,9 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   let prefecturesService: PrefecturesService; // Controllerから呼ばれるService
 
   // servic mock data(domain[])
-  let mockPrefectures: PaginatedResult<Prefecture & { id: string }>;
+  let mockPrefectures: PaginatedResult<
+    Prefecture & { id: string; regionName: string }
+  >;
   // controller mock data(期待値:dto[])
   let expectedPrefectureDtos: PaginatedPrefectureResponseDto;
 
@@ -84,6 +86,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       jest
         .spyOn(prefecturesService, 'findAll')
         .mockResolvedValue(paginatedDomain);
+
       // テスト対象Controller呼び出し
       // 引数
       const query: FindAllPrefectureQueryDto = {};
@@ -337,9 +340,13 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // service mock data
-      const servieMockData = createSriviceMockData().data.find(
+      const mockPrefecture = createSriviceMockData().data.find(
         (prefecture) => prefecture.id === id,
       )!;
+
+      // 🗒 オブジェクトからプロパティを除外するテクニック
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...servieMockData } = mockPrefecture;
       // memo: 本来であればfindOne()をmock化すべきだが、findOneはfindByIdOrFaill()をmock化すべきだが、findOneはfindByIdOrFaill
       //      呼び出しているだけなので、findByIdOrFailをmock化している
       jest
@@ -374,10 +381,15 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // service mock data : 任意項目をundefinedに書き換え
-      const servieMockData = createSriviceMockData().data.find(
+      const mockPrefecture = createSriviceMockData().data.find(
         (prefecture) => prefecture.id === id,
       )!;
-      servieMockData.regionId = undefined;
+      mockPrefecture.regionId = undefined;
+
+      // 🗒 オブジェクトからプロパティを除外するテクニック
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...servieMockData } = mockPrefecture;
+
       jest
         .spyOn(prefecturesService, 'findOne')
         .mockResolvedValue(servieMockData);
@@ -443,10 +455,13 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const code = '13';
 
       // service mock data
-      const servieMockData = createSriviceMockData().data.find(
+      const mockPrefecture = createSriviceMockData().data.find(
         (prefecture) => prefecture.code === code,
       )!;
 
+      // 🗒 オブジェクトからプロパティを除外するテクニック
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...servieMockData } = mockPrefecture;
       jest
         .spyOn(prefecturesService, 'findByCodeOrFail')
         .mockResolvedValue(servieMockData);
@@ -479,10 +494,14 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const code = '13';
 
       // service mock data : 任意項目をundefinedに書き換え
-      const servieMockData = createSriviceMockData().data.find(
+      const mockPrefecture = createSriviceMockData().data.find(
         (prefecture) => prefecture.code === code,
       )!;
-      servieMockData.regionId = undefined;
+      mockPrefecture.regionId = undefined;
+
+      // 🗒 オブジェクトからプロパティを除外するテクニック
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { regionName, ...servieMockData } = mockPrefecture;
       jest
         .spyOn(prefecturesService, 'findByCodeOrFail')
         .mockResolvedValue(servieMockData);
@@ -714,8 +733,10 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
  * PrefectureServiceのMockデータを作成
  * @returns
  */
-function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
-  const domains: (Prefecture & { id: string })[] = [
+function createSriviceMockData(): PaginatedResult<
+  Prefecture & { id: string; regionName: string }
+> {
+  const domains: (Prefecture & { id: string; regionName: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -724,9 +745,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'published',
       kanaEn: 'hokkaido',
       regionId: 'a1eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '北海道',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '青森',
@@ -735,9 +757,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'published',
       kanaEn: 'aomori',
       regionId: 'b2eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '秋田',
@@ -746,9 +769,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'published',
       kanaEn: 'akita',
       regionId: 'c3eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '岩手',
@@ -757,9 +781,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'suspended',
       kanaEn: 'iwate',
       regionId: 'd4eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山形',
@@ -768,9 +793,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'editing',
       kanaEn: 'yamagata',
       regionId: 'e5eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '東京都',
@@ -779,9 +805,10 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       status: 'published',
       kanaEn: 'tokyo-to',
       regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      regionName: '関東',
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-    },
+    } satisfies Prefecture & { id: string; regionName?: string },
   ];
 
   const expected = {
@@ -791,7 +818,7 @@ function createSriviceMockData(): PaginatedResult<Prefecture & { id: string }> {
       page: 1,
       size: 20,
     },
-  } satisfies PaginatedResult<Prefecture & { id: string }>;
+  } satisfies PaginatedResult<Prefecture & { id: string; regionName: string }>;
 
   return expected;
 }
@@ -848,8 +875,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'published',
       kanaEn: 'hokkaido',
       regionId: 'a1eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '北海道',
       statusLabel: '反映中',
-    },
+    } satisfies PrefectureResponseDto,
     {
       id: '274d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '青森',
@@ -858,8 +886,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'published',
       kanaEn: 'aomori',
       regionId: 'b2eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       statusLabel: '反映中',
-    },
+    } satisfies PrefectureResponseDto,
     {
       id: '374d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '秋田',
@@ -868,8 +897,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'published',
       kanaEn: 'akita',
       regionId: 'c3eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       statusLabel: '反映中',
-    },
+    } satisfies PrefectureResponseDto,
     {
       id: '474d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '岩手',
@@ -878,8 +908,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'suspended',
       kanaEn: 'iwate',
       regionId: 'd4eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       statusLabel: '停止',
-    },
+    } satisfies PrefectureResponseDto,
     {
       id: '574d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '山形',
@@ -888,8 +919,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'editing',
       kanaEn: 'yamagata',
       regionId: 'e5eed450-e4f4-4003-b03b-367360d04bb3',
+      regionName: '東北',
       statusLabel: '編集中',
-    },
+    } satisfies PrefectureResponseDto,
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '東京都',
@@ -898,8 +930,9 @@ function createExpectedPrefectureDtos(): PaginatedPrefectureResponseDto {
       status: 'published',
       kanaEn: 'tokyo-to',
       regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      regionName: '関東',
       statusLabel: '反映中',
-    },
+    } satisfies PrefectureResponseDto,
   ];
 
   const expected = {
