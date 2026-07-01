@@ -287,7 +287,9 @@ export class PrefecturesService {
    * @param id 都道府県ID
    * @returns 都道府県情報
    */
-  async findOne(id: string): Promise<Prefecture & { id: string }> {
+  async findOne(
+    id: string,
+  ): Promise<Prefecture & { id: string; regionName?: string }> {
     const domainWithId = await this.findByIdOrFail(id);
     return domainWithId;
   }
@@ -302,10 +304,19 @@ export class PrefecturesService {
    * @returns 都道府県情報(Prefectureドメイン＋id)
    * @throws NotFoundException 該当する都道府県が見つからない場合
    */
-  async findByIdOrFail(id: string): Promise<Prefecture & { id: string }> {
+  async findByIdOrFail(
+    id: string,
+  ): Promise<Prefecture & { id: string; regionName?: string }> {
     // Prefectureを取得
     const prefecture = await this.prismaService.prefecture.findUnique({
       where: { id },
+      include: {
+        region: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     // codeに紐づく都道府県情報が無い場合
@@ -316,7 +327,7 @@ export class PrefecturesService {
     }
 
     // Prefecture(Prisma) → domain
-    const domain: Prefecture & { id: string } = {
+    const domain: Prefecture & { id: string; regionName?: string } = {
       id: prefecture.id,
       name: prefecture.name,
       code: prefecture.code,
@@ -326,6 +337,7 @@ export class PrefecturesService {
       createdAt: prefecture.createdAt,
       updatedAt: prefecture.updatedAt,
       regionId: prefecture.regionId ?? undefined,
+      regionName: prefecture.region?.name ?? undefined,
     };
 
     return domain;
