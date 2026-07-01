@@ -634,10 +634,15 @@ describe('□□□ Prefecture Test □□□', () => {
     it('正常系： domain専用モデル(PrefectureWithCoverage[])を返却する(任意項目はundefined)', async () => {
       // prisma mock data : 任意項目にnullをセット
       const prismaMockData = createPrismaMockDataIncludeStoreCount().map(
-        (prefecture) => ({
-          ...prefecture,
-          regionId: null,
-        }),
+        (prefecture) =>
+          ({
+            ...prefecture,
+            regionId: null,
+            region: { name: null },
+          }) satisfies PrismaPrefecture & {
+            _count: { store: number };
+            region: { name: string | null };
+          },
       );
       jest
         .spyOn(prismaService.prefecture, 'findMany')
@@ -658,8 +663,9 @@ describe('□□□ Prefecture Test □□□', () => {
             kanaEn: data.prefecture.kanaEn,
             createdAt: data.prefecture.createdAt,
             updatedAt: data.prefecture.updatedAt,
-            // regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-          },
+            regionId: undefined,
+            regionName: undefined,
+          } satisfies Prefecture & { regionName?: string },
         }),
       );
       expect(results).toEqual(expectedData);
@@ -1816,10 +1822,20 @@ function createPrismaMockData(): (PrismaPrefecture & {
   return domains;
 }
 
+/**
+ * 店舗ありの都道府県情報と紐づく店舗数を取得するPrismaのmock data
+ * 型：
+ *  PrismaPrefecture & { _count: { store: number }; region: { name: string | null };
+}
+ */
 function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
   _count: { store: number };
+  region: { name: string | null };
 })[] {
-  const domains: (PrismaPrefecture & { _count: { store: number } })[] = [
+  const domains: (PrismaPrefecture & {
+    _count: { store: number };
+    region: { name: string | null };
+  })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -1831,7 +1847,11 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      region: { name: '北海道' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies PrismaPrefecture & {
+      _count: { store: number };
+      region: { name: string | null };
     },
     {
       id: '674d2683-7012-462c-b7d0-7e452ba0f1ab',
@@ -1844,9 +1864,14 @@ function createPrismaMockDataIncludeStoreCount(): (PrismaPrefecture & {
       createdAt: new Date('2025-04-05T10:00:00.000Z'),
       updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
+      region: { name: '関東' },
       userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+    } satisfies PrismaPrefecture & {
+      _count: { store: number };
+      region: { name: string | null };
     },
   ];
+
   return domains;
 }
 
@@ -1941,6 +1966,12 @@ function createExpectedData(): PaginatedResult<
   return expected;
 }
 
+/**
+ * findAllWithStoreCount() service の mock data
+ * 店舗有りの都道府県情報と紐づく店舗数
+ *
+ * @returns PrefectureWithCoverage[]
+ */
 function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
   const domains: PrefectureWithCoverage[] = [
     {
@@ -1953,7 +1984,8 @@ function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         regionId: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-      },
+        regionName: '北海道',
+      } satisfies Prefecture & { regionName?: string },
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       storeCount: 1,
     },
@@ -1968,7 +2000,8 @@ function createExpectedPrefectureWithCoverageData(): PrefectureWithCoverage[] {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
-      },
+        regionName: '関東',
+      } satisfies Prefecture & { regionName?: string },
       storeCount: 10,
     },
   ];
