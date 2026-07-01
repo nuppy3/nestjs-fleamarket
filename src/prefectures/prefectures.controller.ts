@@ -97,6 +97,8 @@ export class PrefecturesController {
       kanaName: domain.prefecture.kanaName,
       status: domain.prefecture.status,
       kanaEn: domain.prefecture.kanaEn,
+      regionId: domain.prefecture.regionId,
+      regionName: domain.prefecture.regionName,
       createdAt: domain.prefecture.createdAt,
       updatedAt: domain.prefecture.updatedAt,
       storeCount: domain.storeCount,

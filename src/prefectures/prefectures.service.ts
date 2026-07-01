@@ -150,6 +150,12 @@ export class PrefecturesService {
             store: { where: { status: 'published' } },
           },
         },
+        // エリア名
+        region: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: { code: 'asc' },
     });
@@ -166,7 +172,8 @@ export class PrefecturesService {
         createdAt: prefecture.createdAt,
         updatedAt: prefecture.updatedAt,
         regionId: prefecture.regionId ?? undefined,
-      } satisfies Prefecture,
+        regionName: prefecture.region?.name ?? undefined,
+      } satisfies Prefecture & { regionName?: string },
       id: prefecture.id,
       storeCount: prefecture._count.store,
     }));

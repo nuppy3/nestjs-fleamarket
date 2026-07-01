@@ -31,7 +31,7 @@ export interface Prefecture {
  * 当該Domain専用モデルではPrefectureドメインに加え、storeCountを保持している。
  */
 export interface PrefectureWithCoverage {
-  readonly prefecture: Prefecture;
+  readonly prefecture: Prefecture & { regionName?: string };
   readonly id: string;
   readonly storeCount: number; //
 }
