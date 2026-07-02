@@ -340,15 +340,9 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
 
       // service mock data
-      const mockPrefecture = createSriviceMockData().data.find(
+      const servieMockData = createSriviceMockData().data.find(
         (prefecture) => prefecture.id === id,
       )!;
-
-      // 🗒 オブジェクトからプロパティを除外するテクニック
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { regionName, ...servieMockData } = mockPrefecture;
-      // memo: 本来であればfindOne()をmock化すべきだが、findOneはfindByIdOrFaill()をmock化すべきだが、findOneはfindByIdOrFaill
-      //      呼び出しているだけなので、findByIdOrFailをmock化している
       jest
         .spyOn(prefecturesService, 'findOne')
         .mockResolvedValue(servieMockData);
@@ -365,6 +359,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         status: 'published',
         kanaEn: 'tokyo-to',
         regionId: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+        regionName: '関東',
         statusLabel: '反映中',
       });
 
@@ -374,8 +369,6 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       );
     });
 
-    // 現時点で、任意項目はregionIdのみであり、DTOにそもそも当該項目が存在しないので、
-    // UT実施の意味はないが念の為。
     it('正常系：dto配列(任意項目削除)が返却される(任意項目はkey毎削除)', async () => {
       // 引数
       const id = '674d2683-7012-462c-b7d0-7e452ba0f1ab';
@@ -384,15 +377,14 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
       const mockPrefecture = createSriviceMockData().data.find(
         (prefecture) => prefecture.id === id,
       )!;
+      // regionIdをundefined: regionIdはResponseDTOの項目に存在しないが念の為
       mockPrefecture.regionId = undefined;
-
-      // 🗒 オブジェクトからプロパティを除外するテクニック
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { regionName, ...servieMockData } = mockPrefecture;
+      // regionNameをundefined
+      mockPrefecture.regionName = undefined;
 
       jest
         .spyOn(prefecturesService, 'findOne')
-        .mockResolvedValue(servieMockData);
+        .mockResolvedValue(mockPrefecture);
 
       // test対象controller呼び出し
       const result = await prefecturesController.findOne(id);
@@ -406,7 +398,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
         status: 'published',
         kanaEn: 'tokyo-to',
         statusLabel: '反映中',
-      });
+      } satisfies PrefectureResponseDto);
     });
 
     it('異常系：検索結果0件（idに紐づく都道府県情報なし）', async () => {
@@ -734,9 +726,9 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
  * @returns
  */
 function createSriviceMockData(): PaginatedResult<
-  Prefecture & { id: string; regionName: string }
+  Prefecture & { id: string; regionName?: string }
 > {
-  const domains: (Prefecture & { id: string; regionName: string })[] = [
+  const domains: (Prefecture & { id: string; regionName?: string })[] = [
     {
       id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       name: '北海道',
@@ -818,7 +810,7 @@ function createSriviceMockData(): PaginatedResult<
       page: 1,
       size: 20,
     },
-  } satisfies PaginatedResult<Prefecture & { id: string; regionName: string }>;
+  } satisfies PaginatedResult<Prefecture & { id: string; regionName?: string }>;
 
   return expected;
 }
