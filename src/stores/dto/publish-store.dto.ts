@@ -4,4 +4,4 @@
  * 現時点ではパラメータなし（将来、予約公開日時などを追加可能）
  *
  */
-export class PublishPrefectureDto {}
+export class PublishStoreDto {}
