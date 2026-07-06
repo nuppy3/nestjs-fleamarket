@@ -11,6 +11,7 @@ import {
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { PrefecturesService } from '../prefectures/prefectures.service';
 import { RegionsModule } from '../regions/regions.module';
+import { PublishStoreDto } from './dto/publish-store.dto';
 import { CreateStoreDto } from './dto/store.dto';
 import { SortOrder, Store, StoreFilter, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
@@ -23,6 +24,7 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     create: jest.fn(),
     count: jest.fn(),
+    update: jest.fn(),
   },
   prefecture: { findUnique: jest.fn() },
 };
@@ -865,6 +867,199 @@ describe('StoresService Test', () => {
     });
   });
 
+  //-----------------------------------------------------
+  // findBYCodeOrFail(): TEST
+  //-----------------------------------------------------
+  describe('--- findByCodeOrFail() TEST---', () => {
+    it('正常系: codeに紐づく店舗情報取得し、Stroeドメインに詰め替え返却する（全項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      // meme:
+      // prismaMockStores.find((store) => store.code == code) は undefinedを返す可能性があるため
+      // 厳密な型チェックによりエラーが発生している。
+      // ので、対策としてsprismaMockStores.find(
+      //   (store) => store.code == code,
+      // )!
+      // の様に末尾に「!」をつけている。
+      // TypeScriptにおける「!」 は、「Non-null Assertion Operator」（非 Null アサーション演算子）と呼ばれます。
+      // これは、プログラマーがTypeScriptコンパイラに対して、「この値は、たとえコンパイラが null や
+      // undefined の可能性があると推論しても、実行時には決して null や undefined にならない」と
+      // 断言するための構文です。
+      const prismaMockData = createMockStores().find(
+        (store) => store.code === code,
+      )!;
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      const expectedStore = createExpectStores().data.find(
+        (store) => store.code === code,
+      )!;
+      expect(result).toEqual(expectedStore);
+    });
+
+    it('正常系: 店舗情報の任意項目が取得できない場合、null→undefinedに変換して返却（任意項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      const prismaMockData = createMockStores().find(
+        (store) => store.code === code,
+      )!;
+      // 任意項目をnullにセット（holidaysはWeekDay[]なので空配列[]をセット)
+      // prismaMockData.code = null;
+      prismaMockData.kanaName = null;
+      prismaMockData.zipCode = null;
+      prismaMockData.address = null;
+      prismaMockData.businessHours = null;
+      prismaMockData.holidays = [];
+      prismaMockData.prefecture = null;
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      expect(result).toEqual({
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: undefined,
+        // prefecture: '東京都',
+        // service.findByCodeOrFail()のholidaysについて、findAll()とは違うコードを
+        // あえて書いてみた。undefinedではなく空配列が期待値。
+        holidays: [],
+        zipCode: undefined,
+        address: undefined,
+        businessHours: undefined,
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: undefined,
+      });
+    });
+
+    it('正常系: やる必要ないが: 店舗情報内の都道府県情報のprefectureIdが取得できた場合、Storeドメインにセットされず、返却されないこと（任意項目)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成
+      const prismaMockData = {
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: StoreStatus.PUBLISHED,
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+        // prefecture: '東京都',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '東京都江戸川区西念1丁目10番地',
+        businessHours: '10:00-20:00',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: {
+          name: '東京都',
+          code: '13',
+          kanaName: 'トウキョウト',
+          status: 'published',
+          kanaEn: 'tokyo-to',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
+      };
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockResolvedValue(prismaMockData);
+
+      // テスト対象service呼び出し
+      const result = await storesService.findByCodeOrFail(code);
+
+      // 結果検証
+      const expectedStore = {
+        id: '70299537-4f16-435f-81ed-7bed4ae63758',
+        code: '00002',
+        name: '山田電気 江戸川店',
+        status: 'published',
+        email: 'yamada-akabane@test.co.jp',
+        phoneNumber: '03-1122-9901',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+        // prefecture: '東京都',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '東京都江戸川区西念1丁目10番地',
+        businessHours: '10:00-20:00',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+        // prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
+        prefecture: {
+          name: '東京都',
+          code: '13',
+          kanaName: 'トウキョウト',
+          status: 'published',
+          kanaEn: 'tokyo-to',
+          createdAt: new Date('2025-04-05T10:00:00.000Z'),
+          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        },
+      };
+      expect(result).toEqual(expectedStore);
+    });
+
+    it('正常系: codeに紐づく店舗情報が存在しない(0件)', async () => {
+      // servieの引数
+      const code = '00002';
+
+      // prisma mock data 作成 : データなし
+      jest.spyOn(prismaService.store, 'findUnique').mockResolvedValue(null);
+
+      // テスト対象service呼び出し + 結果検証
+      // await(非同期)メソッドの場合、Promiseを返却する必要があるが、Promiseをアンラップ(rejects)して別の
+      // Matcherを連鎖させるようにして、toThrowを呼んだりする。
+      await expect(storesService.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(`
+            codeに関連する都道府県情報が存在しません!! code: ${code}`),
+      );
+    });
+    // エラーを隠蔽・変換せずに透過的に投げているか
+    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: findUnique()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockRejectedValue(mockGenericError);
+
+      // 元のエラー（Generic Error）がそのままスローされることをテスト(引数は何でもいい)
+      await expect(storesService.findByCodeOrFail('')).rejects.toThrow(Error);
+      // await expect(storesService.findByCodeOrFail('')).rejects.toThrow(
+      //   'Database connection failed',
+      // );
+      await expect(storesService.findByCodeOrFail('')).rejects.toMatchObject({
+        name: 'Error',
+        message: 'Database connection failed',
+      });
+    });
+  });
+
+  //-----------------------------------------------------
+  // create(): TEST
+  //-----------------------------------------------------
   describe('create', () => {
     it('正常系: 店舗情報登録(全項目)し、Storeドメイン＋idの形で返却する', async () => {
       // storesService.create()の引数作成（登録対象の店舗情報）
@@ -1229,189 +1424,130 @@ describe('StoresService Test', () => {
   });
 
   //-----------------------------------------------------
-  describe('--- findByCodeOrFail() TEST---', () => {
-    it('正常系: codeに紐づく店舗情報取得し、Stroeドメインに詰め替え返却する（全項目)', async () => {
-      // servieの引数
-      const code = '00002';
+  // publish(): TEST
+  //-----------------------------------------------------
+  describe('publish test', () => {
+    // mock: prismaService.store.findUnique()
+    //       prismaService.store.update()
+    it('正常系: 店舗情報を更新(全項目)し、Storeドメイン＋idの形で返却する', async () => {
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
-      // prisma mock data 作成
-      // meme:
-      // prismaMockStores.find((store) => store.code == code) は undefinedを返す可能性があるため
-      // 厳密な型チェックによりエラーが発生している。
-      // ので、対策としてsprismaMockStores.find(
-      //   (store) => store.code == code,
-      // )!
-      // の様に末尾に「!」をつけている。
-      // TypeScriptにおける「!」 は、「Non-null Assertion Operator」（非 Null アサーション演算子）と呼ばれます。
-      // これは、プログラマーがTypeScriptコンパイラに対して、「この値は、たとえコンパイラが null や
-      // undefined の可能性があると推論しても、実行時には決して null や undefined にならない」と
-      // 断言するための構文です。
-      const prismaMockData = createMockStores().find(
-        (store) => store.code === code,
+      // modk data set: prismaService.store.findUnique()
+      const findUniqueMockData = createMockStores().find(
+        (store) => store.id === id,
+      );
+      mockPrismaService.store.findUnique.mockResolvedValue(findUniqueMockData);
+
+      // mock data set: prismaService.store.update()
+      const updateMockData = createMockStores().find(
+        (store) => store.id === id,
       )!;
-      jest
-        .spyOn(prismaService.store, 'findUnique')
-        .mockResolvedValue(prismaMockData);
+      // createMockStoresのデータは全てpublishなので、あえて以下のようにpublishに更新する
+      // 必要はないが、念の為。
+      updateMockData.status = 'published';
+      mockPrismaService.store.update.mockResolvedValue(updateMockData);
 
-      // テスト対象service呼び出し
-      const result = await storesService.findByCodeOrFail(code);
+      // test 対象 service 呼び出し
+      const result = await storesService.publish(id, dto, userId);
 
-      // 結果検証
-      const expectedStore = createExpectStores().data.find(
-        (store) => store.code === code,
-      )!;
-      expect(result).toEqual(expectedStore);
-    });
-
-    it('正常系: 店舗情報の任意項目が取得できない場合、null→undefinedに変換して返却（任意項目)', async () => {
-      // servieの引数
-      const code = '00002';
-
-      // prisma mock data 作成
-      const prismaMockData = createMockStores().find(
-        (store) => store.code === code,
-      )!;
-      // 任意項目をnullにセット（holidaysはWeekDay[]なので空配列[]をセット)
-      // prismaMockData.code = null;
-      prismaMockData.kanaName = null;
-      prismaMockData.zipCode = null;
-      prismaMockData.address = null;
-      prismaMockData.businessHours = null;
-      prismaMockData.holidays = [];
-      prismaMockData.prefecture = null;
-      jest
-        .spyOn(prismaService.store, 'findUnique')
-        .mockResolvedValue(prismaMockData);
-
-      // テスト対象service呼び出し
-      const result = await storesService.findByCodeOrFail(code);
-
-      // 結果検証
+      // 検証
       expect(result).toEqual({
-        id: '70299537-4f16-435f-81ed-7bed4ae63758',
-        code: '00002',
-        name: '山田電気 江戸川店',
+        id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+        code: '00001',
+        name: '山田電気 赤羽店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
-        kanaName: undefined,
-        // prefecture: '東京都',
-        // service.findByCodeOrFail()のholidaysについて、findAll()とは違うコードを
-        // あえて書いてみた。undefinedではなく空配列が期待値。
-        holidays: [],
-        zipCode: undefined,
-        address: undefined,
-        businessHours: undefined,
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+        holidays: ['WEDNESDAY', 'SUNDAY'],
+        zipCode: '100-0001',
+        address: '東京都北区赤羽３丁目',
+        businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-        prefecture: undefined,
+      });
+
+      // 引数検証: prismaService.store.findUnique
+      expect(
+        jest.spyOn(prismaService.store, 'findUnique'),
+      ).toHaveBeenCalledWith({
+        where: { id },
+      });
+
+      // 引数検証: prismaService.store.findUnique
+      expect(jest.spyOn(prismaService.store, 'update')).toHaveBeenCalledWith({
+        data: { status: 'published', userId: userId },
+        where: { id },
       });
     });
 
-    it('正常系: やる必要ないが: 店舗情報内の都道府県情報のprefectureIdが取得できた場合、Storeドメインにセットされず、返却されないこと（任意項目)', async () => {
-      // servieの引数
-      const code = '00002';
+    // mock: prismaService.store.findUnique()
+    //       prismaService.store.update()
+    it('正常系: 店舗情報を更新(任意項目undefind)し、Storeドメイン＋idの形で返却する', async () => {
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
-      // prisma mock data 作成
-      const prismaMockData = {
-        id: '70299537-4f16-435f-81ed-7bed4ae63758',
-        code: '00002',
-        name: '山田電気 江戸川店',
-        status: StoreStatus.PUBLISHED,
-        email: 'yamada-akabane@test.co.jp',
-        phoneNumber: '03-1122-9901',
-        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
-        // prefecture: '東京都',
-        holidays: ['WEDNESDAY', 'SUNDAY'],
-        zipCode: '100-0001',
-        address: '東京都江戸川区西念1丁目10番地',
-        businessHours: '10:00-20:00',
-        createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-        prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
-        prefecture: {
-          name: '東京都',
-          code: '13',
-          kanaName: 'トウキョウト',
-          status: 'published',
-          kanaEn: 'tokyo-to',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        },
+      // modk data set: prismaService.store.findUnique()
+      const findUniqueMockData = createMockStores().find(
+        (store) => store.id === id,
+      );
+      mockPrismaService.store.findUnique.mockResolvedValue(findUniqueMockData);
+
+      // mock data set: prismaService.store.update()
+      let updateMockData = createMockStores().find((store) => store.id === id)!;
+      // createMockStoresのデータは全てpublishなので、あえて以下のようにpublishに更新する
+      // 必要はないが、念の為。
+      updateMockData.status = 'published';
+      // 🗒 取得したObjectの中身を更新するテクニック
+      updateMockData = {
+        ...updateMockData,
+        code: null,
+        kanaName: null,
+        zipCode: null,
+        address: null,
+        businessHours: null,
       };
-      jest
-        .spyOn(prismaService.store, 'findUnique')
-        .mockResolvedValue(prismaMockData);
 
-      // テスト対象service呼び出し
-      const result = await storesService.findByCodeOrFail(code);
+      mockPrismaService.store.update.mockResolvedValue(updateMockData);
 
-      // 結果検証
-      const expectedStore = {
-        id: '70299537-4f16-435f-81ed-7bed4ae63758',
-        code: '00002',
-        name: '山田電気 江戸川店',
+      // test 対象 service 呼び出し
+      const result = await storesService.publish(id, dto, userId);
+
+      // 検証
+      expect(result).toEqual({
+        id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+        code: '00001',
+        name: '山田電気 赤羽店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
-        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
-        // prefecture: '東京都',
+        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
         holidays: ['WEDNESDAY', 'SUNDAY'],
         zipCode: '100-0001',
-        address: '東京都江戸川区西念1丁目10番地',
+        address: '東京都北区赤羽３丁目',
         businessHours: '10:00-20:00',
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-        // prefectureId: '999999d5-2b25-45f1-8006-c137af49e53d',
-        prefecture: {
-          name: '東京都',
-          code: '13',
-          kanaName: 'トウキョウト',
-          status: 'published',
-          kanaEn: 'tokyo-to',
-          createdAt: new Date('2025-04-05T10:00:00.000Z'),
-          updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        },
-      };
-      expect(result).toEqual(expectedStore);
-    });
+      });
 
-    it('正常系: codeに紐づく店舗情報が存在しない(0件)', async () => {
-      // servieの引数
-      const code = '00002';
+      // 引数検証: prismaService.store.findUnique
+      expect(
+        jest.spyOn(prismaService.store, 'findUnique'),
+      ).toHaveBeenCalledWith({
+        where: { id },
+      });
 
-      // prisma mock data 作成 : データなし
-      jest.spyOn(prismaService.store, 'findUnique').mockResolvedValue(null);
-
-      // テスト対象service呼び出し + 結果検証
-      // await(非同期)メソッドの場合、Promiseを返却する必要があるが、Promiseをアンラップ(rejects)して別の
-      // Matcherを連鎖させるようにして、toThrowを呼んだりする。
-      await expect(storesService.findByCodeOrFail(code)).rejects.toThrow(
-        new NotFoundException(`
-            codeに関連する都道府県情報が存在しません!! code: ${code}`),
-      );
-    });
-    // エラーを隠蔽・変換せずに透過的に投げているか
-    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
-      // PrismaClientKnownRequestError以外の一般エラーを作成
-      const mockGenericError = new Error('Database connection failed');
-
-      // モックの実装: findUnique()が一般のエラーを投げるように設定
-      jest
-        .spyOn(prismaService.store, 'findUnique')
-        .mockRejectedValue(mockGenericError);
-
-      // 元のエラー（Generic Error）がそのままスローされることをテスト(引数は何でもいい)
-      await expect(storesService.findByCodeOrFail('')).rejects.toThrow(Error);
-      // await expect(storesService.findByCodeOrFail('')).rejects.toThrow(
-      //   'Database connection failed',
-      // );
-      await expect(storesService.findByCodeOrFail('')).rejects.toMatchObject({
-        name: 'Error',
-        message: 'Database connection failed',
+      // 引数検証: prismaService.store.findUnique
+      expect(jest.spyOn(prismaService.store, 'update')).toHaveBeenCalledWith({
+        data: { status: 'published', userId: userId },
+        where: { id },
       });
     });
   });
@@ -1455,7 +1591,7 @@ function createMockStores(): (StorePrisma & {
         regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       },
-    },
+    } satisfies StorePrisma & { prefecture: PrefecturePrisma | null },
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
       code: '00002',
@@ -1485,8 +1621,7 @@ function createMockStores(): (StorePrisma & {
         regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       },
-    },
-
+    } satisfies StorePrisma & { prefecture: PrefecturePrisma | null },
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
       code: '00003',
@@ -1516,7 +1651,7 @@ function createMockStores(): (StorePrisma & {
         regionId: '0324dc98-89a2-4db1-9431-b20feff57700',
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       },
-    },
+    } satisfies StorePrisma & { prefecture: PrefecturePrisma | null },
   ];
   return stores;
 }

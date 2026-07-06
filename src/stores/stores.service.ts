@@ -139,7 +139,10 @@ export class StoresService {
         // → エラーにならないっぽい。。prismaStore.holidays as Weekday[] : undefinedの
         // 方がシンプルだな。。findByCodeOrFail()では、prismaStore.holidays as Weekday[] : undefined
         // で実装している。
-        holidays: prismaStore.holidays?.length
+        // 🗒20260706： schema.prisma定義上、holidays(string[])は?指定(null指定)が
+        //   できないので、prismaStore.holidays as Weekday[] : undefinedは無意味。
+        //   よって、以下のようにlengthで[]の場合はundefinedに書き換える処理がBP
+        holidays: prismaStore.holidays.length
           ? (prismaStore.holidays as Weekday[])
           : undefined,
         createdAt: prismaStore.createdAt,
@@ -436,9 +439,15 @@ export class StoresService {
       zipCode: updated.zipCode ?? undefined,
       email: updated.email,
       address: updated.address ?? undefined,
-      phoneNumber: updated.phoneNumber ?? undefined,
+      phoneNumber: updated.phoneNumber,
       businessHours: updated.businessHours ?? undefined,
-      holidays: (updated.holidays as Weekday[]) ?? undefined,
+      // 🗒20260706： schema.prisma定義上、holidays(string[])は?指定(null指定)が
+      //   できないので、prismaStore.holidays as Weekday[] : undefinedは無意味。
+      //   よって、以下のようにlengthで[]の場合はundefinedに書き換える処理がBP
+      // holidays: (updated.holidays as Weekday[]) ?? undefined,
+      holidays: updated.holidays.length
+        ? (updated.holidays as Weekday[])
+        : undefined,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
       userId: updated.userId,
