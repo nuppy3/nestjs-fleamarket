@@ -149,13 +149,19 @@ export class StoresController {
     @Request() req: ExpressRequest & { user: RequestUser },
   ) {
     // ステータス更新：掲載中
-    const domain = await this.storesService.publish(
+    const updated = await this.storesService.publish(
       id,
       publishStoreDto,
       req.user.id,
     );
 
-    return domain;
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(StoreResponseDto, updated, {
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
   @Delete(':id')
