@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -15,6 +16,7 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import type { Request as ExpressRequest } from 'express';
 
 import { RequestUser } from 'src/types/requestUser';
+import { PublishStoreDto } from './dto/publish-store.dto';
 import {
   CreateStoreDto,
   FindAllStoresQueryDto,
@@ -137,6 +139,23 @@ export class StoresController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
     return this.storesService.update(+id, updateStoreDto);
+  }
+
+  @Post('/:id/publish') // /:id の "/" が必要
+  @UseGuards(AuthGuard('jwt'))
+  async publish(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() publishStoreDto: PublishStoreDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
+  ) {
+    // ステータス更新：掲載中
+    const domain = await this.storesService.publish(
+      id,
+      publishStoreDto,
+      req.user.id,
+    );
+
+    return domain;
   }
 
   @Delete(':id')
