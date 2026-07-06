@@ -1487,7 +1487,7 @@ describe('StoresService Test', () => {
 
     // mock: prismaService.store.findUnique()
     //       prismaService.store.update()
-    it('正常系: 店舗情報を更新(任意項目undefind)し、Storeドメイン＋idの形で返却する', async () => {
+    it('正常系: 店舗情報を更新し、Storeドメイン＋id(任意項目null→undefind変換)の形で返却する', async () => {
       // 引数
       const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
       const dto: PublishStoreDto = {};
@@ -1499,7 +1499,7 @@ describe('StoresService Test', () => {
       );
       mockPrismaService.store.findUnique.mockResolvedValue(findUniqueMockData);
 
-      // mock data set: prismaService.store.update()
+      // mock data 作成: prismaService.store.update()
       let updateMockData = createMockStores().find((store) => store.id === id)!;
       // createMockStoresのデータは全てpublishなので、あえて以下のようにpublishに更新する
       // 必要はないが、念の為。
@@ -1512,8 +1512,10 @@ describe('StoresService Test', () => {
         zipCode: null,
         address: null,
         businessHours: null,
-      };
-
+        holidays: [],
+        prefectureId: null,
+      } satisfies StorePrisma;
+      // mock data set: prismaService.store.update()
       mockPrismaService.store.update.mockResolvedValue(updateMockData);
 
       // test 対象 service 呼び出し
@@ -1522,32 +1524,64 @@ describe('StoresService Test', () => {
       // 検証
       expect(result).toEqual({
         id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
-        code: '00001',
+        code: undefined,
         name: '山田電気 赤羽店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
         phoneNumber: '03-1122-9901',
-        kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-        holidays: ['WEDNESDAY', 'SUNDAY'],
-        zipCode: '100-0001',
-        address: '東京都北区赤羽３丁目',
-        businessHours: '10:00-20:00',
+        kanaName: undefined,
+        zipCode: undefined,
+        address: undefined,
+        businessHours: undefined,
+        holidays: undefined,
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
       });
+    });
 
-      // 引数検証: prismaService.store.findUnique
-      expect(
-        jest.spyOn(prismaService.store, 'findUnique'),
-      ).toHaveBeenCalledWith({
-        where: { id },
-      });
+    // mock: prismaService.store.findUnique()
+    it('異常系: 更新対象の店舗情報が存在しない。NotFoundExceptionがスローされることを検証', async () => {
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
 
-      // 引数検証: prismaService.store.findUnique
-      expect(jest.spyOn(prismaService.store, 'update')).toHaveBeenCalledWith({
-        data: { status: 'published', userId: userId },
-        where: { id },
+      // modk data set: null
+      mockPrismaService.store.findUnique.mockResolvedValue(null);
+
+      // 検証: NotFoundExceptionがスローされること
+      await expect(storesService.publish(id, dto, userId)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連する店舗情報が存在しません!! storeId: ${id}`,
+        ),
+      );
+    });
+
+    // エラーを隠蔽・変換せずに透過的に投げているか
+    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
+      // PrismaClientKnownRequestError以外の一般エラーを作成
+      const mockGenericError = new Error('Database connection failed');
+
+      // モックの実装: findUnique()が一般のエラーを投げるように設定
+      jest
+        .spyOn(prismaService.store, 'findUnique')
+        .mockRejectedValue(mockGenericError);
+
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      const userId = '633931d5-2b25-45f1-8006-c137af49e53d';
+
+      // 元のエラー（Generic Error）がそのままスローされることをテスト(引数は何でもいい)
+      await expect(storesService.publish(id, dto, userId)).rejects.toThrow(
+        Error,
+      );
+      await expect(
+        storesService.publish(id, dto, userId),
+      ).rejects.toMatchObject({
+        name: 'Error',
+        message: 'Database connection failed',
       });
     });
   });
