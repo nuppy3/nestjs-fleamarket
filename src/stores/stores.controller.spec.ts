@@ -2,8 +2,10 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import type { Request as ExpressRequest } from 'express';
-import { PaginatedResult } from 'src/common/interfaces/paginated-result.interface';
-import { RequestUser } from 'src/types/requestUser';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { Prefecture } from '../prefectures/prefectures.model';
+import { RequestUser } from '../types/requestUser';
+import { PublishStoreDto } from './dto/publish-store.dto';
 import {
   CreateStoreDto,
   FindAllStoresQueryDto,
@@ -20,6 +22,7 @@ const mockStoresService = {
   findAll: jest.fn(),
   create: jest.fn(),
   findByCodeOrFail: jest.fn(),
+  publish: jest.fn(),
 };
 
 // 関連する複数のテストをグループ化
@@ -729,6 +732,151 @@ describe('StoresController TEST', () => {
       );
     });
   });
+
+  //-------------------------------------------
+  // publish() TEST
+  //-------------------------------------------
+  describe('publish', () => {
+    it('正常系：店舗情報を返却する(DTOの全項目)', async () => {
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const req: ExpressRequest & { user: RequestUser } = createRequest();
+
+      // ServiceのMockデータを作成
+      const domainWithPrefecture = createMockStoresWithId().data.find(
+        (store) => store.id === id,
+      )!;
+      // 🗒 Store domainからPrefectueを除外： UTなので除外しなくてもいいが、実際のpublish serviceは
+      // Prefectureを返却していないので、念の為に除外している。
+      // 以下だと、prefectureが重複してしまうので、やむなくdeleteを使う → なんとprefectureは
+      // reeadOnlyを指定しているため、deleteが使えない!
+      // const { prefecture, ...domainMockData } = domainWithPrefecture;
+      // 20270707: Object(Store)からprefectureをOmitするfunctionを実装し、呼び出し
+      mockStoresService.publish.mockResolvedValue(
+        omitPrefecture(domainWithPrefecture) as Store & { id: string },
+      );
+
+      // テスト対象Controller呼び出し
+      const resoult = await storesController.publish(id, dto, req);
+
+      // 期待値作成
+      const dtoWithPrefecture = createExpectedStoreDto().data.find(
+        (store) => store.id === id,
+      )!;
+      // dtoからprefectureを除外: 上記mockデータと同様に念の為。
+      const expectedData = omitPrefecture(
+        dtoWithPrefecture,
+      ) as StoreResponseDto;
+
+      // 検証
+      expect(resoult).toEqual(expectedData);
+    });
+
+    it('正常系：店舗情報を返却する(domainの任意項目undefined→DTOの任意項目除外)', async () => {
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const req: ExpressRequest & { user: RequestUser } = createRequest();
+
+      // ServiceのMockデータを作成
+      let domainWithPrefecture = createMockStoresWithId().data.find(
+        (store) => store.id === id,
+      )!;
+      // 任意項目をundefined
+      domainWithPrefecture = {
+        ...domainWithPrefecture,
+        code: undefined,
+        kanaName: undefined,
+        zipCode: undefined,
+        address: undefined,
+        businessHours: undefined,
+        holidays: undefined,
+        prefecture: undefined,
+      };
+      mockStoresService.publish.mockResolvedValue(
+        omitPrefecture(domainWithPrefecture) as Store & { id: string },
+      );
+
+      // テスト対象Controller呼び出し
+      const resoult = await storesController.publish(id, dto, req);
+
+      // 期待値作成
+      const dtoWithPrefecture = createExpectedStoreDto().data.find(
+        (store) => store.id === id,
+      )!;
+      // undefined項目を除外
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        code,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        kanaName,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        zipCode,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        address,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        businessHours,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        holidays,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        holidaysLabel,
+        ...excludeUndefindDto
+      } = dtoWithPrefecture;
+
+      // dtoからprefectureを除外: 上記mockデータと同様に念の為。
+      const expectedData = omitPrefecture(
+        excludeUndefindDto,
+      ) as StoreResponseDto;
+
+      // 検証
+      expect(resoult).toEqual(expectedData);
+    });
+
+    it('異常系： DB接続エラーなどのエラー確認(エラーの伝搬)', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      mockStoresService.publish.mockRejectedValue(connectionError);
+
+      // 引数
+      const id = 'b74d2683-7012-462c-b7d0-7e452ba0f1ab';
+      const dto: PublishStoreDto = {};
+      // ExpressRequest & { user: RequestUser }
+      // ExpressRequestの全項目を作成することはむずかしいためPartial(任意項目)として作成(mockデータ作成)
+      const req: ExpressRequest & { user: RequestUser } = createRequest();
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      // 🗒エラーの伝搬の検証方法について、以下の①〜③のどれかで検証することが多いが、検証②が
+      // いい気がする。PrismaClientKnownRequestErrorをnewしているので、パラメーターの
+      // 静的チェックが入るし、メッセージの内容も検証できるので。
+      // 検証①
+      await expect(storesController.publish(id, dto, req)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+      // 検証②
+      await expect(storesController.publish(id, dto, req)).rejects.toThrow(
+        new PrismaClientKnownRequestError("Can't reach database server", {
+          code: 'P1001',
+          clientVersion: '5.0.0',
+        }),
+      );
+      // 検証③
+      await expect(
+        storesController.publish(id, dto, req),
+      ).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        message: "Can't reach database server",
+        code: 'P1001',
+        clientVersion: '5.0.0',
+      });
+    });
+  });
 });
 
 /**
@@ -952,4 +1100,18 @@ function createRequest(): ExpressRequest & { user: RequestUser } {
   // 型アサーションでキャスト（Partialで作成したmockRequestは実際の型(ExpressRequestを使っている)と
   // 完全に一致しないため、保守性がやや低下する可能性があるため）
   return mockRequest as ExpressRequest & { user: RequestUser };
+}
+
+/**
+ * ObjectからPrefectureを除外します。
+ *
+ * @param obj 最低限Prefectureを保持しているObject T すなわち、<T extends { prefecture: Prefecture }>
+ * @returns Prerectreを除外したオブジェクト
+ */
+function omitPrefecture<T extends { prefecture?: Prefecture }>(
+  obj: T,
+): Omit<T, 'prefecture'> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { prefecture, ...result } = obj;
+  return result;
 }

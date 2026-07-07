@@ -158,10 +158,12 @@ export class StoresController {
     // domain → dto
     return instanceToPlain(
       plainToInstance(StoreResponseDto, updated, {
-        // 値が undefined or null の場合、キーごと消える
+        // @Expose() がないプロパティは全部消える
         excludeExtraneousValues: true,
       }),
-    );
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as StoreResponseDto;
   }
 
   @Delete(':id')
