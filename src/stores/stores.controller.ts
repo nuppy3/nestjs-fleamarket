@@ -202,7 +202,7 @@ export class StoresController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() publishStoreDto: PublishStoreDto,
     @Request() req: ExpressRequest & { user: RequestUser },
-  ) {
+  ): Promise<StoreResponseDto> {
     // ステータス更新：編集中
     const updated = await this.storesService.unpublish(
       id,
@@ -210,16 +210,15 @@ export class StoresController {
       req.user.id,
     );
 
-    return `This end point is unpublish (id : #${id}) `;
-    // // domain → dto
-    // return instanceToPlain(
-    //   plainToInstance(StoreResponseDto, updated, {
-    //     // @Expose() がないプロパティは全部消える
-    //     excludeExtraneousValues: true,
-    //   }),
-    //   // 値が undefined or null の場合、キーごと消える
-    //   { exposeUnsetFields: false },
-    // ) as StoreResponseDto;
+    // domain → dto
+    return instanceToPlain(
+      plainToInstance(StoreResponseDto, updated, {
+        // @Expose() がないプロパティは全部消える
+        excludeExtraneousValues: true,
+      }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as StoreResponseDto;
   }
 
   @Delete(':id')
