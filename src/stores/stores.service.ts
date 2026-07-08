@@ -457,6 +457,70 @@ export class StoresService {
     return domain;
   }
 
+  /**
+   * unpublish(): 指定IDに関連する店舗情報を掲載中にします。
+   *              店舗情報のステータスをeditingに更新し、更新した店舗情報を返却します。
+   *
+   * ※引数のdtoは使用していないが、将来的な拡張性を考慮して用意している
+   *  stroeはdomainがinterfaceでありドメインルール(ロジック)を実装していない。
+   *  例えば更新対象の店舗が既に掲載中の場合もエラーにはしていない。
+   *
+   * @param id Stroe ID (更新対象の店舗情報のキー)
+   * @param publishStoreDto 更新専用DTO
+   * @param userId ユーザーID
+   * @returns 更新した店舗情報(domain)
+   */
+  async unpublish(
+    id: string,
+    publishStoreDto: PublishStoreDto,
+    userId: string,
+  ) {
+    // 更新対象の店舗情報取得(なければ404)
+    const prismaStore = await this.prismaService.store.findUnique({
+      where: { id },
+    });
+
+    if (!prismaStore) {
+      throw new NotFoundException(
+        `idに関連する店舗情報が存在しません!! storeId: ${id}`,
+      );
+    }
+
+    // ステータス更新：掲載中
+    // const updated = await this.prismaService.store.update({
+    //   data: { status: 'published', userId: userId },
+    //   where: { id },
+    // });
+
+    // prisma → domain
+    const domain = {
+      //   id: updated.id,
+      //   code: updated.code ?? undefined,
+      //   name: updated.name,
+      //   kanaName: updated.kanaName ?? undefined,
+      //   status: updated.status,
+      //   zipCode: updated.zipCode ?? undefined,
+      //   email: updated.email,
+      //   address: updated.address ?? undefined,
+      //   phoneNumber: updated.phoneNumber,
+      //   businessHours: updated.businessHours ?? undefined,
+      //   // 🗒20260706： schema.prisma定義上、holidays(string[])は?指定(null指定)が
+      //   //   できないので、prismaStore.holidays as Weekday[] : undefinedは無意味。
+      //   //   よって、以下のようにlengthで[]の場合はundefinedに書き換える処理がBP
+      //   // holidays: (updated.holidays as Weekday[]) ?? undefined,
+      //   holidays: updated.holidays.length
+      //     ? (updated.holidays as Weekday[])
+      //     : undefined,
+      //   createdAt: updated.createdAt,
+      //   updatedAt: updated.updatedAt,
+      //   userId: updated.userId,
+      //   // prefectureは不要
+      // } satisfies Store & { id: string };
+    };
+
+    return domain;
+  }
+
   remove(id: number) {
     return `This action removes a #${id} store`;
   }

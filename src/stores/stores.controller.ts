@@ -141,13 +141,28 @@ export class StoresController {
     return this.storesService.update(+id, updateStoreDto);
   }
 
+  /**
+   * 店舗情報のステータス更新（永続化）： publish(掲載中)
+   *
+   * 指定されたidに関連する店舗情報のステータスをeditにします。
+   * POSTパラメータのpublishRegionDtoは基本的に{}(空オブジェクト)であるが、将来的な
+   * 拡張を考慮り、専用のDTOを用意している。
+   *
+   * 拡張例:
+   *  reason: 公開の理由
+   *
+   * @param id Store ID
+   * @param publishStoreDto 店舗情報更新専用(unpublish専用)DTO
+   * @param req リクエストパラメーター
+   * @returns StoreResponseDTO
+   */
   @Post('/:id/publish') // /:id の "/" が必要
   @UseGuards(AuthGuard('jwt'))
   async publish(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() publishStoreDto: PublishStoreDto,
     @Request() req: ExpressRequest & { user: RequestUser },
-  ) {
+  ): Promise<StoreResponseDto> {
     // ステータス更新：掲載中
     const updated = await this.storesService.publish(
       id,
@@ -164,6 +179,47 @@ export class StoresController {
       // 値が undefined or null の場合、キーごと消える
       { exposeUnsetFields: false },
     ) as StoreResponseDto;
+  }
+
+  /**
+   * 店舗情報のステータス更新（永続化）： edit(編集中)
+   *
+   * 指定されたidに関連する店舗情報のステータスをeditにします。
+   * POSTパラメータのpublishRegionDtoは基本的に{}(空オブジェクト)であるが、将来的な
+   * 拡張を考慮り、専用のDTOを用意している。
+   *
+   * 拡張例:
+   *  reason: 非公開の理由
+   *
+   * @param id Store ID
+   * @param publishStoreDto 店舗情報更新専用(unpublish専用)DTO
+   * @param req リクエストパラメーター
+   * @returns StoreResponseDTO
+   */
+  @Post('/:id/unpublish') // /:id の "/" が必要
+  @UseGuards(AuthGuard('jwt'))
+  async unpublish(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() publishStoreDto: PublishStoreDto,
+    @Request() req: ExpressRequest & { user: RequestUser },
+  ) {
+    // ステータス更新：編集中
+    const updated = await this.storesService.unpublish(
+      id,
+      publishStoreDto,
+      req.user.id,
+    );
+
+    return `This end point is unpublish (id : #${id}) `;
+    // // domain → dto
+    // return instanceToPlain(
+    //   plainToInstance(StoreResponseDto, updated, {
+    //     // @Expose() がないプロパティは全部消える
+    //     excludeExtraneousValues: true,
+    //   }),
+    //   // 値が undefined or null の場合、キーごと消える
+    //   { exposeUnsetFields: false },
+    // ) as StoreResponseDto;
   }
 
   @Delete(':id')
