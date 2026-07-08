@@ -63,6 +63,30 @@ export interface Store {
   userId: string;
   // Prefecture：値オブジェクト(prefectureというstringを持つのではなくオブジェクトを持たせる)
   // prefecture?: string;
+  // →
+  // 🗒20270708: DDDの原則：「集約はできるだけ小さく保つ」「他の集約はID参照で持つ」
+  // 結論：DDDの原則により、Prefectureオブジェクトを持つのではなくPrefecture IDを持つべき!!
+  //
+  // 集約の境界
+  // Store は独立した Aggregate（集約）
+  // Prefecture は参照用の マスタデータ（別のAggregate）
+  // 集約ルート（Store）は、他集約のID参照で持つのが基本
+  //
+  // 永続化の単位
+  // Storeを保存するときにPrefecture全体を一緒に保存する必要はない
+  //
+  // 整合性境界
+  // Prefectureの名前変更などがStoreに直接影響しないようにする
+  //
+  // よって、いづれprefecture → prefectureIdに修正する
+  //
+  // 補足：日本の都道府県は47個で固定、業務ルール的に「都道府県自体を編集・削除する」という
+  // 操作はまず発生しません。つまり実態としては、ID、コード、名称（漢字・かな）を持つだけの
+  // 不変な参照マスタであり、多くのDDD実践者はこれを「軽量なEntity」ではなく
+  // 「Value Object（列挙的な値）」として扱います。この観点からいくと、PrefectureのValue Objectは
+  // Storeに保持することはDDD違反ではない。が、マスタどうし、domain同士の結合が強くなるので
+  // idを持たせるのがベスト!!!
+  //
   prefecture?: Prefecture;
 }
 
