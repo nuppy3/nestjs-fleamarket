@@ -86,8 +86,9 @@ export interface Store {
   // 「Value Object（列挙的な値）」として扱います。この観点からいくと、PrefectureのValue Objectは
   // Storeに保持することはDDD違反ではない。が、マスタどうし、domain同士の結合が強くなるので
   // idを持たせるのがベスト!!!
-  //
+  // TODO : prefecureは削除する
   prefecture?: Prefecture;
+  prefectureId: string;
 }
 
 // enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）
