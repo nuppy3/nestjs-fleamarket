@@ -88,7 +88,7 @@ export interface Store {
   // idを持たせるのがベスト!!!
   // TODO : prefecureは削除する
   prefecture?: Prefecture;
-  prefectureId: string;
+  prefectureId?: string;
 }
 
 // enum キーワードは完全に死にました。→ enumを見つけたら即りファクタ（新人教育）
