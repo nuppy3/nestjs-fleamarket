@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PublishStoreDto } from './dto/publish-store.dto';
 import { CreateStoreDto } from './dto/store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
+import { StoreReadModel } from './query/stores.read-model';
 import { SortOrder, Store, StoreFilter, Weekday } from './stores.model';
 
 @Injectable()
@@ -48,7 +49,7 @@ export class StoresService {
     // controllerはname='null'という文字列で受け取るためValidationにてnumberじゃないよと
     // エラーになるため、serviceにnullが渡ってくることはない。
     filters: StoreFilter = {},
-  ): Promise<PaginatedResult<Store & { id: string }>> {
+  ): Promise<PaginatedResult<StoreReadModel>> {
     console.log('*** service ***');
     console.log('filters: ');
     console.log(filters);
@@ -110,11 +111,12 @@ export class StoresService {
     // Stroe一覧の件数取得は上記のように「Promise.all」を使って複数の非同期処理を並列実行
     // await this.prismaService.store.count(・・・・);
 
-    // prisma → domain
+    // prisma → domain(Read Model)
     // stores.map((strore) => {})
-    const domains: (Store & { id: string })[] = [];
+    const readModels: StoreReadModel[] = [];
     for (const prismaStore of resultStores) {
-      const domain: Store & { id: string } = {
+      // Read Modelへの詰め替え
+      const readModel = {
         // 本来はスプレッド構文(...store)で書きたいが、null / undefined変換問題があるので
         // スプレッド構文で、任意項目(?)を上書きというコードは型エラーが発生するため、
         // 「スプレッド + 上書き」は諦めて、全部明示的に書くのが一番安全で読みやすい
@@ -141,7 +143,7 @@ export class StoresService {
         // で実装している。
         // 🗒20260706： schema.prisma定義上、holidays(string[])は?指定(null指定)が
         //   できないので、prismaStore.holidays as Weekday[] : undefinedは無意味。
-        //   よって、以下のようにlengthで[]の場合はundefinedに書き換える処理がBP
+        //   よって、以下のようにlengthがfalse(0)の場合はundefinedに書き換える処理がBP
         holidays: prismaStore.holidays.length
           ? (prismaStore.holidays as Weekday[])
           : undefined,
@@ -157,17 +159,18 @@ export class StoresService {
               kanaName: prismaStore.prefecture?.kanaName,
               status: prismaStore.prefecture?.status,
               kanaEn: prismaStore.prefecture?.kanaEn,
-              createdAt: prismaStore.prefecture?.createdAt,
-              updatedAt: prismaStore.prefecture?.updatedAt,
+              // createdAt: prismaStore.prefecture?.createdAt,
+              // updatedAt: prismaStore.prefecture?.updatedAt,
             }
           : undefined,
-      };
-      domains.push(domain);
+      } satisfies StoreReadModel;
+
+      readModels.push(readModel);
     }
 
     // 返却オブジェクト: ページネーションされたStoreドメイン情報
-    const paginated: PaginatedResult<Store & { id: string }> = {
-      data: domains,
+    const paginated: PaginatedResult<StoreReadModel> = {
+      data: readModels,
       meta: {
         totalCount: count,
         page: filters.page,
