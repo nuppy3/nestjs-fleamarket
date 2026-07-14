@@ -278,7 +278,7 @@ export class StoresService {
   async create(
     createStoreDto: CreateStoreDto,
     userId: string,
-  ): Promise<Store & { id: string }> {
+  ): Promise<StoreReadModel> {
     // 分割代入で必要な項目のみを取得：これがベスト(理由は以下の超重要!!を参照)
     const {
       name,
@@ -338,8 +338,9 @@ export class StoresService {
       phoneNumber,
       businessHours,
       holidays,
-      userId, // Userとのリレーション
-      prefecture,
+      // Userとのリレーション
+      userId,
+      prefectureId: prefecture?.id,
     };
 
     // domain → primsaデータ
@@ -356,7 +357,7 @@ export class StoresService {
       userId: domainStore.userId,
       // prefectureIdだけで、紐づくPrefectureが自動で関連付けされ、セットされる(schema.prismaにて
       // リレーションを定義しているので)
-      prefectureId: prefecture?.id,
+      prefectureId: domainStore.prefectureId,
     };
 
     // prisma：Store情報をDB登録
@@ -379,7 +380,8 @@ export class StoresService {
     });
 
     // prisma → domain
-    const savedStore: Store & { id: string } = {
+    // const savedStore: Store & { id: string } = {
+    const savedStore = {
       id: created.id,
       code: created.code ?? undefined,
       name: created.name,
@@ -401,9 +403,12 @@ export class StoresService {
       // 警告が出る理由：外部キーの特殊性のため、Unsafe assignment of an error typed value.」エラー
       // 回避のため、as stringを追加
       userId: created.userId,
-      // prefecture(値オブジェクト)
+      // 🗒: PrismaにてPrefectureの必要な項目を指定して取得しているので、
+      // Prefecture = PrismaPrefecture となるため、以下のようにprismaPrefectureをそのまま
+      // セットできている。取得の仕方によって一致しないこともあるので、findAll()のようにprefecture:{}
+      // を個別にセットする方法を採用することもよくある。
       prefecture: created.prefecture ?? undefined,
-    };
+    } satisfies StoreReadModel;
 
     return savedStore;
   }
