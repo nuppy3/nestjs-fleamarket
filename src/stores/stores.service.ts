@@ -152,17 +152,32 @@ export class StoresService {
         userId: prismaStore.userId,
         // prismaStore.prefectureがnull/undefinedでなければ必要なプロパティをセットした
         // オブジェクトをprefecture(値オブジェクト ≒ prefectureドメイン)にセット
-        prefecture: prismaStore.prefecture
-          ? {
-              name: prismaStore.prefecture?.name,
-              code: prismaStore.prefecture?.code,
-              kanaName: prismaStore.prefecture?.kanaName,
-              status: prismaStore.prefecture?.status,
-              kanaEn: prismaStore.prefecture?.kanaEn,
-              // createdAt: prismaStore.prefecture?.createdAt,
-              // updatedAt: prismaStore.prefecture?.updatedAt,
-            }
-          : undefined,
+        // prefecture: prismaStore.prefecture
+        //   ? {
+        //       name: prismaStore.prefecture?.name,
+        //       code: prismaStore.prefecture?.code,
+        //       kanaName: prismaStore.prefecture?.kanaName,
+        //       status: prismaStore.prefecture?.status,
+        //       kanaEn: prismaStore.prefecture?.kanaEn,
+        //       createdAt: prismaStore.prefecture?.createdAt,
+        //       updatedAt: prismaStore.prefecture?.updatedAt,
+        //     }
+        //   : undefined,
+        //
+        // 🗒以下の...(スプレッド構文)での展開エレガント方式でもOK
+        // prismaStore.prefectureがnullの場合は、prefecture{}自体が存在しないため、undefined
+        // になる。上記と同様の結果が得られる。
+        ...(prismaStore.prefecture && {
+          prefecture: {
+            name: prismaStore.prefecture.name,
+            code: prismaStore.prefecture.code,
+            kanaName: prismaStore.prefecture.kanaName,
+            status: prismaStore.prefecture.status,
+            kanaEn: prismaStore.prefecture.kanaEn,
+            createdAt: prismaStore.prefecture.createdAt,
+            updatedAt: prismaStore.prefecture.updatedAt,
+          },
+        }),
       } satisfies StoreReadModel;
 
       readModels.push(readModel);

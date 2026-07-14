@@ -1886,10 +1886,10 @@ function createExpectStoresHaveReadModel(): PaginatedResult<StoreReadModel> {
         kanaName: 'トウキョウト',
         status: 'published',
         kanaEn: 'tokyo-to',
-        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       },
-    },
+    } satisfies StoreReadModel,
     {
       id: '70299537-4f16-435f-81ed-7bed4ae63758',
       code: '00002',
@@ -1912,10 +1912,10 @@ function createExpectStoresHaveReadModel(): PaginatedResult<StoreReadModel> {
         kanaName: 'トウキョウト',
         status: 'published',
         kanaEn: 'tokyo-to',
-        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       },
-    },
+    } satisfies StoreReadModel,
     {
       id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
       code: '00003',
@@ -1938,10 +1938,10 @@ function createExpectStoresHaveReadModel(): PaginatedResult<StoreReadModel> {
         kanaName: 'トウキョウト',
         status: 'published',
         kanaEn: 'tokyo-to',
-        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
       },
-    },
+    } satisfies StoreReadModel,
   ];
 
   // ページネーションされたStoreドメインオブジェクト

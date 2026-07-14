@@ -13,6 +13,7 @@ import {
   PaginationMetaDto,
   StoreResponseDto,
 } from './dto/store.dto';
+import { StoreReadModel } from './query/stores.read-model';
 import { StoresController } from './stores.controller';
 import { SortBy, SortOrder, Store, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
@@ -65,13 +66,16 @@ describe('StoresController TEST', () => {
   describe('findAll', () => {
     it('正常系：店舗情報のリストを返却する(DTOの全項目) - RequestPrameter 無し', async () => {
       // ServiceのMockデータを作成
-      jest.spyOn(storesService, 'findAll').mockResolvedValue(mockStores);
+      jest
+        .spyOn(storesService, 'findAll')
+        .mockResolvedValue(createMockStoresHaveReadModel());
       // テスト対象Controller呼び出し
       // 引数: 絞り込み条件無し
       const query: FindAllStoresQueryDto = {};
       const resoult = await storesController.findAll(query);
+
       // 検証
-      expect(resoult).toEqual(expectedStoreDto);
+      expect(resoult).toEqual(createExpectedStoreDto());
     });
 
     describe('findAllの絞り込み(filter)テスト', () => {
@@ -1020,7 +1024,103 @@ describe('StoresController TEST', () => {
 });
 
 /**
+ * Serviceの返却値(PaginatedResult<StoreReadModel>)を作成
+ */
+function createMockStoresHaveReadModel(): PaginatedResult<StoreReadModel> {
+  const stores = [
+    {
+      id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
+      name: '山田電気 赤羽店',
+      status: 'published',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都北区赤羽３丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    } satisfies StoreReadModel,
+    {
+      id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
+      name: '山田電気 江戸川店',
+      status: 'editing',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都江戸川区西念1丁目10番地',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    } satisfies StoreReadModel,
+    {
+      id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
+      name: '山田電気 銀座店',
+      status: 'suspended',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都中央区西銀座5丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    } satisfies StoreReadModel,
+  ];
+
+  return {
+    data: stores,
+    meta: {
+      totalCount: 3,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedResult<StoreReadModel>;
+}
+
+/**
  * Serviceの返却値(Store+idの配列)を作成
+ * TODO: 今後、上記ののfunctionに切り替える。
  */
 function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
   const stores: (Store & { id: string })[] = [
@@ -1112,6 +1212,105 @@ function createMockStoresWithId(): PaginatedResult<Store & { id: string }> {
       size: 20,
     },
   } satisfies PaginatedResult<Store & { id: string }>;
+}
+
+/**
+ * Controllerの期待値/返却値(data: Store+idの配列/ meta: totalCount/limit/offset)を作成
+ * TODO 暫定
+ */
+function createExpectedStoreDtoNotExistCreatedUpdatedAt(): PaginatedStoreResponseDto {
+  const stores: StoreResponseDto[] = [
+    {
+      id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
+      code: '00001',
+      name: '山田電気 赤羽店',
+      status: 'published',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都北区赤羽３丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      statusLabel: '営業中',
+      holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    },
+    {
+      id: '70299537-4f16-435f-81ed-7bed4ae63758',
+      code: '00002',
+      name: '山田電気 江戸川店',
+      status: 'editing',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都江戸川区西念1丁目10番地',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      statusLabel: '編集中',
+      holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    },
+    {
+      id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
+      code: '00003',
+      name: '山田電気 銀座店',
+      status: 'suspended',
+      email: 'yamada-akabane@test.co.jp',
+      phoneNumber: '03-1122-9901',
+      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
+      // prefecture: '東京都',
+      holidays: ['WEDNESDAY', 'SUNDAY'],
+      zipCode: '100-0001',
+      address: '東京都中央区西銀座5丁目',
+      businessHours: '10:00-20:00',
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      statusLabel: '閉店',
+      holidaysLabel: ['水', '日'],
+      prefecture: {
+        name: '東京都',
+        code: '13',
+        kanaName: 'トウキョウト',
+        status: 'published',
+        kanaEn: 'tokyo-to',
+        // createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        // updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      },
+    },
+  ];
+
+  return {
+    data: stores,
+    meta: {
+      totalCount: 3,
+      size: 20,
+      page: 1,
+    } satisfies PaginationMetaDto,
+  } satisfies PaginatedStoreResponseDto;
 }
 
 /**
