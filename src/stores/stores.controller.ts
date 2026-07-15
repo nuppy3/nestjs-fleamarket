@@ -133,6 +133,8 @@ export class StoresController {
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
       }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
     ) as StoreResponseDto;
   }
 

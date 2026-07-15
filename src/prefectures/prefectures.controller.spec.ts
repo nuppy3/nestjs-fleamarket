@@ -233,7 +233,7 @@ describe('■■■ Prefectures Controller TEST ■■■', () => {
   });
 
   //--------------------------------
-  // create()
+  // create() TEST
   //--------------------------------
   describe('create', () => {
     it('正常系：都道府県情報作成（DTOの全項目あり）し、DTO全項目を返却する', async () => {

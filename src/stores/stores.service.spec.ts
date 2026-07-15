@@ -1061,6 +1061,9 @@ describe('StoresService Test', () => {
   //-----------------------------------------------------
   // create(): TEST
   //-----------------------------------------------------
+  // mock :
+  // 1. prismaService.prefecture, 'findUnique'
+  // 2. prismaService.store, 'create'
   describe('create', () => {
     it('正常系: 店舗情報登録(全項目)し、Storeドメイン＋idの形で返却する', async () => {
       // storesService.create()の引数作成（登録対象の店舗情報）
@@ -1077,8 +1080,25 @@ describe('StoresService Test', () => {
         businessHours: '10:00-20:00',
       };
 
+      // 1. 「Prisma Prefecture Mock Data」 prismaService.prefecture, 'findUnique'
+      const mockPrefectureValue: PrefecturePrisma = {
+        id: '000d2683-7012-462c-b7d0-7e452ba0f1ab',
+        name: '石川県',
+        code: '17',
+        kanaName: 'イシカワケン',
+        status: 'published',
+        kanaEn: 'ishikawa',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
+        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
+      };
+      jest
+        .spyOn(prismaService.prefecture, 'findUnique')
+        .mockResolvedValue(mockPrefectureValue);
+
       // ------------------------------------------
-      // Prisma mock Data 設定
+      // 2. Prisma mock Data 設定 prismaService.store, 'create'
       // ------------------------------------------
       // 「Prisma Store Mock Data」
       const mockStoreValue: PrismaStoreWithPrefecture = {
@@ -1111,23 +1131,6 @@ describe('StoresService Test', () => {
         .spyOn(prismaService.store, 'create')
         .mockResolvedValue(mockStoreValue);
 
-      // 「Prisma Prefecture Mock Data」
-      const mockPrefectureValue: PrefecturePrisma = {
-        id: '000d2683-7012-462c-b7d0-7e452ba0f1ab',
-        name: '石川県',
-        code: '17',
-        kanaName: 'イシカワケン',
-        status: 'published',
-        kanaEn: 'ishikawa',
-        createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-        regionId: '0524dc98-89a2-4db1-9431-b20feff57700',
-        userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      };
-      jest
-        .spyOn(prismaService.prefecture, 'findUnique')
-        .mockResolvedValue(mockPrefectureValue);
-
       // テスト対象service呼び出し
       const result = await storesService.create(
         storeDto,
@@ -1159,7 +1162,7 @@ describe('StoresService Test', () => {
           createdAt: new Date('2025-04-05T10:00:00.000Z'),
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         },
-      });
+      } satisfies StoreReadModel);
 
       // 1回呼ばれたか
       expect(jest.spyOn(prismaService.store, 'create')).toHaveBeenCalledTimes(
