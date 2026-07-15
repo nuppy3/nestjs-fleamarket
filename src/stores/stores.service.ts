@@ -207,7 +207,7 @@ export class StoresService {
    * @param code 店舗コード（検索対象)
    * @returns 店舗情報
    */
-  async findByCodeOrFail(code: string): Promise<Store & { id: string }> {
+  async findByCodeOrFail(code: string): Promise<StoreReadModel> {
     // 店舗情報を取得
     const prismaStore = await this.prismaService.store.findUnique({
       include: { prefecture: true },
@@ -222,7 +222,7 @@ export class StoresService {
     // codeに紐づく店舗情報が無い場合
     if (!prismaStore) {
       throw new NotFoundException(`
-            codeに関連する都道府県情報が存在しません!! code: ${code}`);
+            codeに関連する店舗情報が存在しません!! code: ${code}`);
     }
 
     // prisma → domain(Store & id)
@@ -264,7 +264,7 @@ export class StoresService {
             updatedAt: prismaStore.prefecture.updatedAt,
           }
         : undefined,
-    } satisfies Store & { id: string };
+    } satisfies StoreReadModel;
 
     return domain;
   }

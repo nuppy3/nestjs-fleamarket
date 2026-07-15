@@ -90,6 +90,12 @@ export class StoresController {
     return this.storesService.findOne(+id);
   }
 
+  /**
+   * 店舗コードに関連する店舗情報を取得します。
+   *
+   * @param code 店舗コード
+   * @returns 店舗情報（指定の店舗コードに関連する）
+   */
   @Get('code/:code')
   async findByCode(@Param('code') code: string): Promise<StoreResponseDto> {
     // 店舗情報(Store domain)取得
