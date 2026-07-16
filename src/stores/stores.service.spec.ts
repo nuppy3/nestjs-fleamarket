@@ -14,7 +14,7 @@ import { RegionsModule } from '../regions/regions.module';
 import { PublishStoreDto } from './dto/publish-store.dto';
 import { CreateStoreDto } from './dto/store.dto';
 import { StoreReadModel } from './query/stores.read-model';
-import { SortOrder, Store, StoreFilter, StoreStatus } from './stores.model';
+import { SortOrder, StoreFilter, StoreStatus } from './stores.model';
 import { StoresService } from './stores.service';
 
 // PrismaServiceのMock
@@ -45,7 +45,7 @@ describe('StoresService Test', () => {
     prefecture: PrefecturePrisma | null;
   })[];
   // 期待値: seriveの返却値
-  let expectedStores: PaginatedResult<Store & { id: string }>;
+  let expectedStores: PaginatedResult<StoreReadModel>;
   // Prismaの型：Store + Prefectrue
   // prefectureのidを取得していないので除外するためPartialとして定義(Omitだと都度除外しないといけないのでPartialで対応)
   type PrismaStoreWithPrefecture = StorePrisma & {
@@ -93,7 +93,7 @@ describe('StoresService Test', () => {
     // 推奨する。下名もfindByCodeOrFail()のテストにおいてハマった経験あり。
     prismaMockStores = createMockStores();
     // 期待値：Serviceの返却値
-    expectedStores = createExpectStores();
+    expectedStores = createExpectStoresHaveReadModel();
   });
 
   // 前処理: 書くテストケースの前に毎回実行
@@ -772,7 +772,7 @@ describe('StoresService Test', () => {
             address: undefined,
             businessHours: undefined,
             userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-            prefecture: undefined,
+            // prefecture: undefined,
           },
         ],
         meta: {
@@ -780,7 +780,7 @@ describe('StoresService Test', () => {
           page: 1,
           size: 20,
         },
-      } satisfies PaginatedResult<Store & { id: string }>);
+      } satisfies PaginatedResult<StoreReadModel>);
     });
 
     it('正常系: Storeの任意項目が取得できない場合、null→undefinedで返す（複数件)', async () => {
@@ -824,7 +824,7 @@ describe('StoresService Test', () => {
           page: 1,
           size: 20,
         },
-      } satisfies PaginatedResult<Store & { id: string }>);
+      } satisfies PaginatedResult<StoreReadModel>);
     });
 
     // prismaのfindManyはデータがない場合[]を返す仕様。null,undefindedは返さない。
@@ -842,7 +842,7 @@ describe('StoresService Test', () => {
           page: 1,
           size: 20,
         },
-      } satisfies PaginatedResult<Store & { id: string }>);
+      } satisfies PaginatedResult<StoreReadModel>);
     });
 
     // 実施する必要はない気がするが、一応
@@ -864,7 +864,7 @@ describe('StoresService Test', () => {
           page: 1,
           size: 20,
         },
-      } satisfies PaginatedResult<Store & { id: string }>);
+      } satisfies PaginatedResult<StoreReadModel>);
     });
   });
 
@@ -1473,7 +1473,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      });
+      } satisfies StoreReadModel);
 
       // 引数検証: prismaService.store.findUnique
       expect(
@@ -1541,7 +1541,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      });
+      } satisfies StoreReadModel);
     });
 
     // mock: prismaService.store.findUnique()
@@ -1636,7 +1636,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      } satisfies Store & { id: string });
+      } satisfies StoreReadModel);
 
       // 引数検証: prismaService.store.findUnique
       expect(
@@ -1704,7 +1704,7 @@ describe('StoresService Test', () => {
         createdAt: new Date('2025-04-05T10:00:00.000Z'),
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      } satisfies Store & { id: string });
+      } satisfies StoreReadModel);
     });
 
     // mock: prismaService.store.findUnique()
@@ -1949,102 +1949,6 @@ function createExpectStoresHaveReadModel(): PaginatedResult<StoreReadModel> {
 
   // ページネーションされたStoreドメインオブジェクト
   const paginatedResult: PaginatedResult<StoreReadModel> = {
-    data: stores,
-    meta: {
-      totalCount: 3,
-      page: 1,
-      size: 20,
-    },
-  };
-
-  return paginatedResult;
-}
-
-// 期待値作成：serviceの返却値: TODO いづれ、上記のfunctionに置き換える
-function createExpectStores(): PaginatedResult<Store & { id: string }> {
-  const stores: (Store & { id: string })[] = [
-    {
-      id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
-      code: '00001',
-      name: '山田電気 赤羽店',
-      status: 'published',
-      email: 'yamada-akabane@test.co.jp',
-      phoneNumber: '03-1122-9901',
-      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｱｶﾊﾞﾈｼﾃﾝ',
-      // prefecture: '東京都',
-      holidays: ['WEDNESDAY', 'SUNDAY'],
-      zipCode: '100-0001',
-      address: '東京都北区赤羽３丁目',
-      businessHours: '10:00-20:00',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      prefecture: {
-        name: '東京都',
-        code: '13',
-        kanaName: 'トウキョウト',
-        status: 'published',
-        kanaEn: 'tokyo-to',
-        createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      },
-    },
-    {
-      id: '70299537-4f16-435f-81ed-7bed4ae63758',
-      code: '00002',
-      name: '山田電気 江戸川店',
-      status: 'published',
-      email: 'yamada-akabane@test.co.jp',
-      phoneNumber: '03-1122-9901',
-      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｴﾄﾞｶﾞﾜｼﾃﾝ',
-      // prefecture: '東京都',
-      holidays: ['WEDNESDAY', 'SUNDAY'],
-      zipCode: '100-0001',
-      address: '東京都江戸川区西念1丁目10番地',
-      businessHours: '10:00-20:00',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      prefecture: {
-        name: '東京都',
-        code: '13',
-        kanaName: 'トウキョウト',
-        status: 'published',
-        kanaEn: 'tokyo-to',
-        createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      },
-    },
-    {
-      id: '1dfe32a5-ddac-4f3c-ad16-98e48a4dd63d',
-      code: '00003',
-      name: '山田電気 銀座店',
-      status: 'published',
-      email: 'yamada-akabane@test.co.jp',
-      phoneNumber: '03-1122-9901',
-      kanaName: 'ﾔﾏﾀﾞﾃﾞﾝｷ ｷﾞﾝｻﾞｼﾃﾝ',
-      // prefecture: '東京都',
-      holidays: ['WEDNESDAY', 'SUNDAY'],
-      zipCode: '100-0001',
-      address: '東京都中央区西銀座5丁目',
-      businessHours: '10:00-20:00',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-      prefecture: {
-        name: '東京都',
-        code: '13',
-        kanaName: 'トウキョウト',
-        status: 'published',
-        kanaEn: 'tokyo-to',
-        createdAt: new Date('2025-04-05T10:00:00.000Z'),
-        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      },
-    },
-  ];
-
-  // ページネーションされたStoreドメインオブジェクト
-  const paginatedResult: PaginatedResult<Store & { id: string }> = {
     data: stores,
     meta: {
       totalCount: 3,
