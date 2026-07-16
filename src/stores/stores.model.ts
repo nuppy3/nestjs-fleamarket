@@ -3,7 +3,6 @@
 // type・interface・enum・union などをまとめる。
 //------------------------------------------
 
-import { Prefecture } from '../prefectures/prefectures.model';
 
 /**
  * 店舗情報 （Domainモデル)
@@ -90,7 +89,6 @@ export interface Store {
   // prefectureIdを持たせた状態で永続化(DB登録)すると、Store-Prefectureのリレーションにより、prefectureId
   // を登録(create)する際に、関連するPrefectureが登録される。
   // TODO : prefecureは削除する
-  prefecture?: Prefecture;
   prefectureId?: string;
 }
 

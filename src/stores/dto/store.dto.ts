@@ -132,7 +132,7 @@ export const StoreResponseKeys = [
   'phoneNumber',
   'businessHours',
   'holidays',
-  'prefecture',
+  'prefectureId',
   // satisfiesは配列が(keyof Store)[]型に一致するか確認
   // 要するに、配列内の各要素がStore型のkeyのみであることを強制
 ] satisfies (keyof Store)[];
