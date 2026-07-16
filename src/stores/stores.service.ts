@@ -434,7 +434,7 @@ export class StoresService {
     id: string,
     publishStoreDto: PublishStoreDto,
     userId: string,
-  ): Promise<Store & { id: string }> {
+  ): Promise<StoreReadModel> {
     // 更新対象の店舗情報取得(なければ404)
     const prismaStore = await this.prismaService.store.findUnique({
       where: { id },
@@ -475,7 +475,7 @@ export class StoresService {
       updatedAt: updated.updatedAt,
       userId: updated.userId,
       // prefectureは不要
-    } satisfies Store & { id: string };
+    } satisfies StoreReadModel;
 
     return domain;
   }
@@ -497,7 +497,7 @@ export class StoresService {
     id: string,
     publishStoreDto: PublishStoreDto,
     userId: string,
-  ): Promise<Store & { id: string }> {
+  ): Promise<StoreReadModel> {
     // 更新対象の店舗情報取得(なければ404)
     const prismaStore = await this.prismaService.store.findUnique({
       where: { id },
@@ -538,7 +538,7 @@ export class StoresService {
       updatedAt: updated.updatedAt,
       userId: updated.userId,
       // prefectureは不要
-    } satisfies Store & { id: string };
+    } satisfies StoreReadModel;
 
     return domain;
   }
