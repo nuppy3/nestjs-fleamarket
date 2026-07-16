@@ -611,6 +611,9 @@ describe('StoresController TEST', () => {
   //   });
   // });
 
+  //-----------------------------------------------
+  // findByCode() : TEST
+  //-----------------------------------------------
   describe('findByCodeのテスト', () => {
     it('正常系： 店舗情報を返却する(DTOの全項目)', async () => {
       // 引数
@@ -620,7 +623,9 @@ describe('StoresController TEST', () => {
       jest
         .spyOn(storesService, 'findByCodeOrFail')
         .mockResolvedValue(
-          createMockStoresWithId().data.find((store) => store.code === code)!,
+          createMockStoresHaveReadModel().data.find(
+            (store) => store.code === code,
+          )!,
         );
 
       // テスト対象controller呼び出し
@@ -641,10 +646,11 @@ describe('StoresController TEST', () => {
       const code = '00001';
 
       // service mock data 作成
-      const mockServiceData = createMockStoresWithId().data.find(
+      const mockServiceData = createMockStoresHaveReadModel().data.find(
         (store) => store.code === code,
       )!;
       // 任意項目にundefinedをセット
+      mockServiceData.code = undefined;
       mockServiceData.kanaName = undefined;
       mockServiceData.zipCode = undefined;
       mockServiceData.address = undefined;
@@ -675,19 +681,9 @@ describe('StoresController TEST', () => {
       // 上記の通りなので、Omitでprefectureなどを除外した型を定義して、値をセットしていく
       // const expectedStoreData: Omit<StoreResponseDto, | 'kanaName' | ....> で
       // 直接constで定義して値をセットしてもいいが、一旦typeで型を定義してみた。
-      type expectedDto = Omit<
-        StoreResponseDto,
-        | 'kanaName'
-        | 'zipCode'
-        | 'address'
-        | 'businessHours'
-        | 'holidays'
-        | 'prefecture'
-        | 'holidaysLabel'
-      >;
-      const expectedStoreData: expectedDto = {
+      const expectedStoreData = {
         id: 'b74d2683-7012-462c-b7d0-7e452ba0f1ab',
-        code: '00001',
+        // code: '00001',
         name: '山田電気 赤羽店',
         status: 'published',
         email: 'yamada-akabane@test.co.jp',
@@ -696,7 +692,7 @@ describe('StoresController TEST', () => {
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         statusLabel: '営業中',
         // holidaysLabel: ['水', '日'],
-      };
+      } satisfies StoreResponseRequiredDto;
       expect(result).toEqual(expectedStoreData);
 
       // 検証：controller→serviceの引数(codeがそのまま渡されること)
