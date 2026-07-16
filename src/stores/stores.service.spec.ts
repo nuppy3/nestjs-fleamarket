@@ -899,7 +899,7 @@ describe('StoresService Test', () => {
       const result = await storesService.findByCodeOrFail(code);
 
       // 結果検証
-      const expectedStore = createExpectStores().data.find(
+      const expectedStore = createExpectStoresHaveReadModel().data.find(
         (store) => store.code === code,
       )!;
       expect(result).toEqual(expectedStore);
@@ -948,7 +948,7 @@ describe('StoresService Test', () => {
         updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         userId: '633931d5-2b25-45f1-8006-c137af49e53d',
         prefecture: undefined,
-      });
+      } satisfies StoreReadModel);
     });
 
     it('正常系: やる必要ないが: 店舗情報内の都道府県情報のprefectureIdが取得できた場合、Storeドメインにセットされず、返却されないこと（任意項目)', async () => {
@@ -1017,7 +1017,7 @@ describe('StoresService Test', () => {
           createdAt: new Date('2025-04-05T10:00:00.000Z'),
           updatedAt: new Date('2025-04-05T12:30:00.000Z'),
         },
-      };
+      } satisfies StoreReadModel;
       expect(result).toEqual(expectedStore);
     });
 
@@ -1033,7 +1033,7 @@ describe('StoresService Test', () => {
       // Matcherを連鎖させるようにして、toThrowを呼んだりする。
       await expect(storesService.findByCodeOrFail(code)).rejects.toThrow(
         new NotFoundException(`
-            codeに関連する都道府県情報が存在しません!! code: ${code}`),
+            codeに関連する店舗情報が存在しません!! code: ${code}`),
       );
     });
     // エラーを隠蔽・変換せずに透過的に投げているか
