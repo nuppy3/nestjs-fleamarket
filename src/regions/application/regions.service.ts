@@ -22,7 +22,7 @@ export class RegionsService {
 
   /**
    * エリア情報取得（全て）:
-   * memo 当findAllはどこからも呼ばれていない。Query ServiceにfindAll()を移動している。
+   * memo 当findAll()はどこからも呼ばれていない。Query ServiceにfindAll()を移動している。
    */
   async findAll(): Promise<(Region & { id: string })[]> {
     // エリア情報取得
