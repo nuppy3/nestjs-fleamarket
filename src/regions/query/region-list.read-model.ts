@@ -8,13 +8,14 @@ import { RegionStatus } from '../domain/regions.model';
  * メモ：Domainとたまたま同等のプロパティだったとしても(将来変わる可能性もあるし）、Domainルールは
  *.     流出させたくないので、Read Modelに詰め替えるのがBPとされる。
  */
-export type regionListReadModel = {
+export type RegionListReadModel = {
   id: string;
   code: string;
   name: string;
   kanaName: string;
   kanaEn: string;
   status: RegionStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  // createdAt: Date;
+  // updatedAt: Date;
+  prefectureCount?: number;
 };

@@ -33,19 +33,21 @@ export class RegionsController {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 
-    // // domain → dto
-    // // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
-    // // plainToInstanceは以下のように配列(store[]→dto[])にも使えるよ!!
-    // return instanceToPlain(
-    //   plainToInstance(RegionResponseDto, domains, {
-    //     // @Expose() がないプロパティは全部消える
-    //     // 値が undefined or null の場合、キーごと消える
-    //     excludeExtraneousValues: true,
-    //   }),
-    // ) as RegionResponseDto[];
-
     // エリア情報[] 取得
-    return await this.regionsQueryService.findAll();
+    const readModels = await this.regionsQueryService.findAll();
+
+    // domain → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    // plainToInstanceは以下のように配列(readModels[]→dto[])にも使えるよ!!
+    return instanceToPlain(
+      plainToInstance(RegionResponseDto, readModels, {
+        // @Expose() がないプロパティは全部消える
+        // 値が undefined or null の場合、キーごと消える
+        excludeExtraneousValues: true,
+      }),
+      // 値が undefined or null の場合、キーごと消える
+      { exposeUnsetFields: false },
+    ) as RegionResponseDto[];
   }
 
   @Get(':id')

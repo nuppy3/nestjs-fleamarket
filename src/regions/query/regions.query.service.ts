@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegionResponseDto } from '../dto/region.dto';
+import { RegionListReadModel } from './region-list.read-model';
 
 /**
  * RegionsQueryServiceService: 参照・表示用のQuery Service
@@ -19,18 +18,46 @@ export class RegionsQueryService {
    * エリア情報取得（全て）
    * @returns
    */
-  async findAll(): Promise<RegionResponseDto[]> {
+  async findAll(): Promise<RegionListReadModel[]> {
     // エリア情報取得
     const regions = await this.prismaService.region.findMany({
       include: { _count: { select: { prefectures: true } } },
       orderBy: { code: 'asc' },
     });
 
-    // prisma[] → dto[] の 変換ロジック
-    // ⭐️UIを意識して、データ変換などが必要になった際は以下のようなロジックがいい感じ
-    const dtos = regions.map((prismaRegion) => {
+    // 20270801: prisma[] → Read Model[] 変換対応のため、以下、コメント
+    // // prisma[] → dto[] の 変換ロジック
+    // // ⭐️UIを意識して、データ変換などが必要になった際は以下のようなロジックがいい感じ
+    // const dtos = regions.map((prismaRegion) => {
+    //   // データ変換
+    //   const plainObj = {
+    //     id: prismaRegion.id,
+    //     name: prismaRegion.name,
+    //     code: prismaRegion.code,
+    //     // kanaName: prismaRegion.kanaName ?? undefined, // 例: nullならundefined
+    //     kanaName: prismaRegion.kanaName,
+    //     status: prismaRegion.status,
+    //     kanaEn: prismaRegion.kanaEn,
+    //     prefectureCount: prismaRegion._count.prefectures,
+    //     // sortOrder: index + 1, // 例: 連番を画面用に付与
+    //   } satisfies Partial<RegionResponseDto>;
+
+    //   // prisma[] → dto[]
+    //   return instanceToPlain(
+    //     plainToInstance(RegionResponseDto, plainObj, {
+    //       // @Expose() がないプロパティは全部消える
+    //       // 値が undefined or null の場合、キーごと消える
+    //       excludeExtraneousValues: true,
+    //     }),
+    //   ) as RegionResponseDto;
+    // });
+    //
+    // return dtos;
+
+    // prisma[] → Read Model[]の変換
+    const readModels = regions.map((prismaRegion) => {
       // データ変換
-      const plainObj = {
+      const readModel = {
         id: prismaRegion.id,
         name: prismaRegion.name,
         code: prismaRegion.code,
@@ -40,28 +67,11 @@ export class RegionsQueryService {
         kanaEn: prismaRegion.kanaEn,
         prefectureCount: prismaRegion._count.prefectures,
         // sortOrder: index + 1, // 例: 連番を画面用に付与
-      } satisfies Partial<RegionResponseDto>;
+      } satisfies RegionListReadModel;
 
-      // prisma[] → dto[]
-      return instanceToPlain(
-        plainToInstance(RegionResponseDto, plainObj, {
-          // @Expose() がないプロパティは全部消える
-          // 値が undefined or null の場合、キーごと消える
-          excludeExtraneousValues: true,
-        }),
-      ) as RegionResponseDto;
+      return readModel;
     });
 
-    return dtos;
-
-    // prisma[] → dto[]
-    // memo: 元々controller()で実装していたdto変換処理をそのまま
-    // return instanceToPlain(
-    //   plainToInstance(RegionResponseDto, regions, {
-    //     // @Expose() がないプロパティは全部消える
-    //     // 値が undefined or null の場合、キーごと消える
-    //     excludeExtraneousValues: true,
-    //   }),
-    // ) as RegionResponseDto[];
+    return readModels;
   }
 }
