@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegionResponseDto } from '../dto/region.dto';
+import { RegionListReadModel } from './region-list.read-model';
 import { RegionsQueryService } from './regions.query.service';
 
 // MockService定義
@@ -57,7 +57,7 @@ describe('■■■ Region Query Service test ■■■', () => {
       const result = await regionsQueryService.findAll();
 
       // 検証
-      const dtos = createExpectedRegionDtos();
+      const dtos = createExpectedReadModels();
       expect(result).toEqual(dtos);
 
       // prisma引数検証 → 引数なしなので不要
@@ -168,11 +168,11 @@ function createPrismaMockData(): (PrismaRegion & {
 }
 
 /**
- * 期待値：Region DTO [] 作成
- * @returns Region DTO []
+ * 期待値：Region Read Model [] 作成
+ * @returns Region Read Model []
  */
-function createExpectedRegionDtos(): RegionResponseDto[] {
-  const dtos: RegionResponseDto[] = [
+function createExpectedReadModels(): RegionListReadModel[] {
+  const readModels: RegionListReadModel[] = [
     {
       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       name: '北海道',
@@ -180,9 +180,8 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'ほっかいどう',
       status: 'published',
       kanaEn: 'hokkaidou',
-      statusLabel: '掲載中',
       prefectureCount: 1,
-    },
+    } satisfies RegionListReadModel,
     {
       id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
       name: '東北',
@@ -190,9 +189,8 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'とうほく',
       status: 'published',
       kanaEn: 'tohoku',
-      statusLabel: '掲載中',
       prefectureCount: 2,
-    },
+    } satisfies RegionListReadModel,
     {
       id: '0324dc98-89a2-4db1-9431-b20feff57700',
       name: '関東',
@@ -200,9 +198,8 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'かんとう',
       status: 'published',
       kanaEn: 'kantou',
-      statusLabel: '掲載中',
       prefectureCount: 3,
-    },
+    } satisfies RegionListReadModel,
     {
       id: '0424dc98-89a2-4db1-9431-b20feff57700',
       name: '東海',
@@ -210,9 +207,8 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'とうかい',
       status: 'published',
       kanaEn: 'tokai',
-      statusLabel: '掲載中',
       prefectureCount: 4,
-    },
+    } satisfies RegionListReadModel,
     {
       id: '0524dc98-89a2-4db1-9431-b20feff57700',
       name: '北陸',
@@ -220,10 +216,9 @@ function createExpectedRegionDtos(): RegionResponseDto[] {
       kanaName: 'ほくりく',
       status: 'editing',
       kanaEn: 'hokuriku',
-      statusLabel: '編集中',
       prefectureCount: 5,
-    },
+    } satisfies RegionListReadModel,
   ];
 
-  return dtos;
+  return readModels;
 }
