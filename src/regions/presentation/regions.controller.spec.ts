@@ -13,6 +13,7 @@ import {
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
+import { RegionListReadModel } from '../query/region-list.read-model';
 import { RegionsQueryService } from '../query/regions.query.service';
 import { UnpublishRegionDto } from './../dto/unpublish-region.dto';
 import { RegionsController } from './regions.controller';
@@ -78,7 +79,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // query service mock data 作成
-      const mockDatas = createServiceMockDtoData();
+      const mockDatas = createServiceMockReadModels();
       jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
 
       // テスト対象Controller呼び出し
@@ -732,13 +733,13 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 });
 
 /**
- * region service mock data (dto[]) 作成
+ * region query service mock data (dto[]) 作成
  *
  * @returns region service mock data (dto[])
  */
-function createServiceMockDtoData(): RegionResponseDto[] {
+function createServiceMockReadModels(): RegionListReadModel[] {
   // dtoリスト
-  const dtos = [
+  const readModels = [
     {
       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
       name: '北海道',
@@ -746,9 +747,8 @@ function createServiceMockDtoData(): RegionResponseDto[] {
       kanaName: 'ほっかいどう',
       status: 'published',
       kanaEn: 'hokkaidou',
-      statusLabel: '掲載中',
       prefectureCount: 1,
-    } satisfies RegionResponseDto,
+    } satisfies RegionListReadModel,
     {
       id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
       name: '東北',
@@ -756,9 +756,8 @@ function createServiceMockDtoData(): RegionResponseDto[] {
       kanaName: 'とうほく',
       status: 'published',
       kanaEn: 'tohoku',
-      statusLabel: '掲載中',
       prefectureCount: 2,
-    } satisfies RegionResponseDto,
+    } satisfies RegionListReadModel,
     {
       id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
       name: '関東',
@@ -766,9 +765,8 @@ function createServiceMockDtoData(): RegionResponseDto[] {
       kanaName: 'かんとう',
       status: 'editing',
       kanaEn: 'kanto',
-      statusLabel: '編集中',
       prefectureCount: 3,
-    } satisfies RegionResponseDto,
+    } satisfies RegionListReadModel,
     {
       id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
       name: '沖縄',
@@ -776,12 +774,11 @@ function createServiceMockDtoData(): RegionResponseDto[] {
       kanaName: '沖縄',
       status: RegionStatus.SUSPENDED,
       kanaEn: 'okinawa',
-      statusLabel: '停止',
       prefectureCount: 4,
-    } satisfies RegionResponseDto,
-  ] satisfies RegionResponseDto[];
+    } satisfies RegionListReadModel,
+  ] satisfies RegionListReadModel[];
 
-  return dtos;
+  return readModels;
 }
 
 /**
