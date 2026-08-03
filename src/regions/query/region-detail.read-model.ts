@@ -15,6 +15,7 @@ export type RegionDetailReadModel = {
   kanaName: string;
   kanaEn: string;
   status: RegionStatus;
+  prefectureCount?: number;
   createdAt: Date;
   updatedAt: Date;
 };

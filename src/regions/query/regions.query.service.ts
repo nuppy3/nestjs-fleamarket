@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
 
 /**
@@ -15,8 +16,9 @@ export class RegionsQueryService {
   constructor(private readonly prismaService: PrismaService) {}
 
   /**
-   * エリア情報取得（全て）
-   * @returns
+   * エリア情報リスト取得（全て）
+   *
+   * @returns エリア情報一覧
    */
   async findAll(): Promise<RegionListReadModel[]> {
     // エリア情報取得
@@ -73,5 +75,44 @@ export class RegionsQueryService {
     });
 
     return readModels;
+  }
+
+  /**
+   * getDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
+   *                            存在しない場合、NotFoundExceptionをthrowします。
+   * 公開用のユースケースメソッド。
+   * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  async getDetailByIdOrThrow(id: string): Promise<RegionDetailReadModel> {
+    // DBから更新対象のRegionを取得
+    const prismaRegion = await this.prismaService.region.findUnique({
+      include: { _count: { select: { prefectures: true } } },
+      where: { id },
+    });
+
+    // エリア情報が無ければ
+    if (!prismaRegion) {
+      throw new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+    }
+    // region(DB) → Read Model
+    const readModel = {
+      id: prismaRegion.id,
+      code: prismaRegion.code,
+      name: prismaRegion.name,
+      kanaName: prismaRegion.kanaName,
+      kanaEn: prismaRegion.kanaEn,
+      status: prismaRegion.status,
+      prefectureCount: prismaRegion._count.prefectures,
+      createdAt: prismaRegion.createdAt,
+      updatedAt: prismaRegion.updatedAt,
+    } satisfies RegionDetailReadModel;
+
+    return readModel;
   }
 }

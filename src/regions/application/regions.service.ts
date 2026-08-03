@@ -23,6 +23,7 @@ export class RegionsService {
   /**
    * エリア情報取得（全て）:
    * memo 当findAll()はどこからも呼ばれていない。Query ServiceにfindAll()を移動している。
+   * TODO：削除して、UTのテストコードをQuery Serviceを呼ぶように修正する。
    */
   async findAll(): Promise<(Region & { id: string })[]> {
     // エリア情報取得
@@ -59,22 +60,6 @@ export class RegionsService {
       //
     );
     return domains;
-  }
-
-  /**
-   * getDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
-   *                            存在しない場合、NotFoundExceptionをthrowします。
-   * 公開用のユースケースメソッド。
-   * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
-   *
-   * @param id - 取得対象のRegion ID
-   * @returns Regionドメインオブジェクト（id付き）
-   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
-   */
-  async getDetailByIdOrThrow(id: string): Promise<Region & { id: string }> {
-    // DBから更新対象のRegionを取得(なければ404) ---
-    // Region取得(DB) → domain (reconstitute)
-    return await this.findByIdOrFail(id);
   }
 
   /**
