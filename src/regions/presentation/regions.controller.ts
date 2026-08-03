@@ -28,6 +28,10 @@ export class RegionsController {
     private readonly regionsQueryService: RegionsQueryService,
   ) {}
 
+  /**
+   * エリア情報リスト取得： エリア情報の一覧を取得します。
+   * @returns エリア情報一覧
+   */
   @Get()
   async findAll(): Promise<RegionResponseDto[]> {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
@@ -50,6 +54,12 @@ export class RegionsController {
     ) as RegionResponseDto[];
   }
 
+  /**
+   * エリア情報詳細取得： エリアIDに関連するエリア情報詳細を取得し返却します。
+   *                   存在しない場合は404。
+   * @param id エリア情報
+   * @returns エリア情報詳細(IDに関連する)
+   */
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<RegionResponseDto> {
     // エリア情報取得
@@ -70,6 +80,7 @@ export class RegionsController {
 
   /**
    * findByCode: 指定されたcodeに関連するエリア情報を取得し、返却します。
+   *             存在しない場合は404。
    *
    * @param code エリアコード
    * @returns エリア情報（エリアコードに関連する）

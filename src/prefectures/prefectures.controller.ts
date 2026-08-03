@@ -28,8 +28,9 @@ export class PrefecturesController {
   constructor(private readonly prefecturesService: PrefecturesService) {}
 
   /**
-   * 都道府県情報取得（店舗の有無関係なし）
-   * @returns 都道府県情報
+   * 都道府県情リスト報取得（店舗の有無関係なし）
+   *
+   * @returns 都道府県情報一覧
    */
   @Get()
   async findAll(
