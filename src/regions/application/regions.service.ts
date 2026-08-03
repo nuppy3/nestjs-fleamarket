@@ -62,7 +62,25 @@ export class RegionsService {
   }
 
   /**
-   * findOne: 指定されたIDのエリア情報を取得します。
+   * getStoreDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
+   *                            存在しない場合、NotFoundExceptionをthrowします。
+   * 公開用のユースケースメソッド。
+   * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  async getStoreDetailByIdOrThrow(
+    id: string,
+  ): Promise<Region & { id: string }> {
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.findByIdOrFail(id);
+  }
+
+  /**
+   * findOne: 指定されたIDのエリア情報(Domain(Entity))を取得します。
    *
    * 公開用のユースケースメソッド。
    * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
@@ -71,7 +89,7 @@ export class RegionsService {
    * @returns Regionドメインオブジェクト（id付き）
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
-  async findOne(id: string): Promise<Region & { id: string }> {
+  private async findOne(id: string): Promise<Region & { id: string }> {
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
     return await this.findByIdOrFail(id);
@@ -79,6 +97,7 @@ export class RegionsService {
 
   /**
    * findByIdOrFail: 指定されたIDのRegionをDBから取得します（内部用）
+   *                 永続化されたRegion Domainを返却します。
    *
    * Service層内の共通取得メソッド。
    * Repositoryの `findByIdOrFail` をラップし、存在しない場合は `NotFoundException` を投げます。
