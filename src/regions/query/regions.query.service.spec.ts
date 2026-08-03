@@ -1,7 +1,9 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
 import { RegionsQueryService } from './regions.query.service';
 
@@ -10,7 +12,7 @@ const mockPrismaService = {
   region: {
     findMany: jest.fn(),
     // create: jest.fn(),
-    // findUnique: jest.fn(),
+    findUnique: jest.fn(),
     // update: jest.fn(),
     // upsert: jest.fn(),
   },
@@ -46,7 +48,6 @@ describe('■■■ Region Query Service test ■■■', () => {
   //--------------------------------------
   // findAll() test
   //--------------------------------------
-
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // prisma mock data 作成
@@ -91,6 +92,78 @@ describe('■■■ Region Query Service test ■■■', () => {
       await expect(regionsQueryService.findAll()).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
+    });
+  });
+
+  //--------------------------------------
+  // getDetailByIdOrThrow() test
+  //--------------------------------------
+  describe('getDetailByIdOrThrow', () => {
+    it('正常系: idに関連するReadModel(全項目)を返却する', async () => {
+      // 引数
+      const id = 'ad24dc98-89a2-4db1-9431-b20feff57700';
+
+      // prisma mock data set
+      mockPrismaService.region.findUnique.mockResolvedValue(
+        createPrismaMockData().find((region) => region.id === id),
+      );
+
+      // test 対象 Query Service 呼び出し
+      const result = await regionsQueryService.getDetailByIdOrThrow(id);
+
+      // 検証
+      expect(result).toEqual({
+        id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+        name: '東北',
+        code: '02',
+        kanaName: 'とうほく',
+        status: 'published',
+        kanaEn: 'tohoku',
+        prefectureCount: 2,
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies RegionDetailReadModel);
+    });
+
+    it('異常系: 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
+      // 引数
+      const id = 'xxxxxxx';
+
+      // mock data 作成: Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+
+      // prisma mock data set
+      mockPrismaService.region.findUnique.mockRejectedValue(mockException);
+
+      // Exception検証（①NotFoundExceptionの検証 ②メッセージの検証）のやり方より以下のように
+      // 一発で検証するやり方がBP。
+      await expect(
+        regionsQueryService.getDetailByIdOrThrow(id),
+      ).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
+    });
+
+    it('異常系(エラーの伝搬)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prismaService.region, 'findUnique')
+        .mockRejectedValue(connectionError);
+
+      // 引数
+      const id = 'ad24dc98-89a2-4db1-9431-b20feff57700';
+
+      // Query Serviceがエラーをそのまま伝播（reject）することを確認
+      await expect(
+        regionsQueryService.getDetailByIdOrThrow(id),
+      ).rejects.toThrow(PrismaClientKnownRequestError);
     });
   });
 });

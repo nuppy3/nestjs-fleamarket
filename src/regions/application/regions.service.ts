@@ -65,14 +65,14 @@ export class RegionsService {
   /**
    * findOne: 指定されたIDのエリア情報(Domain(Entity))を取得します。
    *
-   * 公開用のユースケースメソッド。
+   * 未公開開のメソッド。
    * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
    *
    * @param id - 取得対象のRegion ID
    * @returns Regionドメインオブジェクト（id付き）
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
-  private async findOne(id: string): Promise<Region & { id: string }> {
+  async findOne(id: string): Promise<Region & { id: string }> {
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
     return await this.findByIdOrFail(id);

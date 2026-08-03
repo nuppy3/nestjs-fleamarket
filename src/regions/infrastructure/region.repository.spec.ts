@@ -180,6 +180,7 @@ describe('□□□ Region Repository TEST □□□', () => {
         where: { code },
       });
     });
+
     it('異常系: codeに関連するRegionが存在しない場合、NotFoundExceptionがスローされること', async () => {
       // 引数作成
       const code = 'xx';
