@@ -62,7 +62,7 @@ export class RegionsService {
   }
 
   /**
-   * getStoreDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
+   * getDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
    *                            存在しない場合、NotFoundExceptionをthrowします。
    * 公開用のユースケースメソッド。
    * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
@@ -71,9 +71,7 @@ export class RegionsService {
    * @returns Regionドメインオブジェクト（id付き）
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
-  async getStoreDetailByIdOrThrow(
-    id: string,
-  ): Promise<Region & { id: string }> {
+  async getDetailByIdOrThrow(id: string): Promise<Region & { id: string }> {
     // DBから更新対象のRegionを取得(なければ404) ---
     // Region取得(DB) → domain (reconstitute)
     return await this.findByIdOrFail(id);
