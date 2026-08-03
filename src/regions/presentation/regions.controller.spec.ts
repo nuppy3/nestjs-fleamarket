@@ -13,6 +13,7 @@ import {
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
+import { RegionDetailReadModel } from '../query/region-detail.read-model';
 import { RegionListReadModel } from '../query/region-list.read-model';
 import { RegionsQueryService } from '../query/regions.query.service';
 import { UnpublishRegionDto } from './../dto/unpublish-region.dto';
@@ -31,6 +32,7 @@ const mockRegionsService = {
 
 const mockRegionsQueryService = {
   findAll: jest.fn(),
+  getDetailByIdOrThrow: jest.fn(),
 };
 
 describe('■■■　Regions Controller TEST ■■■', () => {
@@ -141,18 +143,18 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a'; // 北海道
 
       // region servie mock data 作成
-      const serviceModkRegionData = createServiceMockData().find(
+      const serviceModkRegionData = createQueryServiceMockData().find(
         (region) => region.id === id,
-      );
+      )!;
       jest
-        .spyOn(regionsService, 'findOne')
-        .mockResolvedValue(serviceModkRegionData!);
+        .spyOn(regionsQueryService, 'getDetailByIdOrThrow')
+        .mockResolvedValue(serviceModkRegionData);
 
       // テスト対象controller呼び出し
       const result = await regionsController.findOne(id);
 
       // 検証
-      const expected = createExpectedRegionDtos().find(
+      const expected = createExpectedRegionHavingPrefectureCountDtos().find(
         (region) => region.id === id,
       );
       expect(result).toEqual(expected);
@@ -162,9 +164,9 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // 引数
       const id = 'xxxxxxxx-0ba4-xxxx-xxxx-473aa26e457a'; // 北海道
 
-      // region service mock data 作成(NotFoundException)
+      // region query service mock data 作成(NotFoundException)
       jest
-        .spyOn(regionsService, 'findOne')
+        .spyOn(regionsQueryService, 'getDetailByIdOrThrow')
         .mockRejectedValue(
           new NotFoundException(
             `idに関連するエリア情報が存在しません!! regionId: ${id}`,
@@ -172,7 +174,9 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         );
 
       // 検証
-      await expect(jest.spyOn(regionsService, 'findOne')).rejects.toThrow(
+      await expect(
+        jest.spyOn(regionsQueryService, 'getDetailByIdOrThrow'),
+      ).rejects.toThrow(
         new NotFoundException(
           `idに関連するエリア情報が存在しません!! regionId: ${id}`,
         ),
@@ -191,10 +195,10 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // region servie mock data 作成
       const serviceModkRegionData = createServiceMockData().find(
         (region) => region.code === code,
-      );
+      )!;
       jest
         .spyOn(regionsService, 'findByCodeOrFail')
-        .mockResolvedValue(serviceModkRegionData!);
+        .mockResolvedValue(serviceModkRegionData);
 
       // テスト対象controller呼び出し
       const result = await regionsController.findByCode(code);
@@ -782,7 +786,70 @@ function createServiceMockReadModels(): RegionListReadModel[] {
 }
 
 /**
+ * Region Query Service mock data (RegionDetailReadModel) 作成
+ *
+ * 補足:
+ * RegionDetailReadModelをリスト化して作成する必要はないが、RegionDetailReadModel(Mockデータ)の
+ * バリエーションを持たせるため、当該メソッドを作成している。
+ *
+ * @returns RegionDetailReadModelの一覧
+ */
+function createQueryServiceMockData(): RegionDetailReadModel[] {
+  // domain作成用のProps+idリスト
+  const readModels = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      prefectureCount: 1,
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    } satisfies RegionDetailReadModel,
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      prefectureCount: 4,
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    } satisfies RegionDetailReadModel,
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      prefectureCount: 5,
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    } satisfies RegionDetailReadModel,
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      prefectureCount: 1,
+      createdAt: new Date('2025-04-05T10:00:00.000Z'),
+      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+    } satisfies RegionDetailReadModel,
+  ] satisfies RegionDetailReadModel[];
+
+  return readModels;
+}
+
+/**
  * region service mock data 作成
+ * TODO: 上記のメソッドに集約されるため、いづれ削除する
+ *
  * @returns region service mock data
  */
 function createServiceMockData() {
