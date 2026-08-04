@@ -27,6 +27,21 @@ export class RegionsQueryService {
       orderBy: { code: 'asc' },
     });
 
+    // prisma → domain
+    // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
+    //   const domains: (Region & { id: string })[] = regions.map((region) => ({
+    //     id: region.id,
+    //     code: region.code,
+    //     name: region.name,
+    //     kanaName: region.kanaName,
+    //     status: region.status,
+    //     kanaEn: region.kanaEn,
+    //     createdAt: region.createdAt,
+    //     updatedAt: region.updatedAt,
+    //   }));
+    //   return domains;
+    // }
+
     // 20270801: prisma[] → Read Model[] 変換対応のため、以下、コメント
     // // prisma[] → dto[] の 変換ロジック
     // // ⭐️UIを意識して、データ変換などが必要になった際は以下のようなロジックがいい感じ

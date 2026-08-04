@@ -97,53 +97,53 @@ describe('■■■ Region test ■■■', () => {
   });
 
   //--------------------------------------
-  // findAll test
+  // findAll test → Query Serviceへ移動済み
   //--------------------------------------
-  describe('findAll', () => {
-    it('正常系: Regionドメイン配列(全項目)を返却する', async () => {
-      // prisma mock data 作成
-      const mockData = createPrismaMockData();
-      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockData);
+  // describe('findAll', () => {
+  //   it('正常系: Regionドメイン配列(全項目)を返却する', async () => {
+  //     // prisma mock data 作成
+  //     const mockData = createPrismaMockData();
+  //     jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockData);
 
-      // test対象service呼び出し
-      const results = await regionsService.findAll();
+  //     // test対象service呼び出し
+  //     const results = await regionsService.findAll();
 
-      // 検証: プロパティのみ検証
-      const expectedData = createExpectedData();
-      // 以下のexpect.objectContaining(expectedData)での比較だと_codeとcodeでの
-      // 比較をしてしまうのでNG
-      // expect(results).toEqual(expect.objectContaining(expectedData));
+  //     // 検証: プロパティのみ検証
+  //     const expectedData = createExpectedData();
+  //     // 以下のexpect.objectContaining(expectedData)での比較だと_codeとcodeでの
+  //     // 比較をしてしまうのでNG
+  //     // expect(results).toEqual(expect.objectContaining(expectedData));
 
-      // toMatchObjectでの比較はgetterをベースに比較してくれる
-      expect(results).toMatchObject(expectedData);
-    });
+  //     // toMatchObjectでの比較はgetterをベースに比較してくれる
+  //     expect(results).toMatchObject(expectedData);
+  //   });
 
-    it('正常系: Regionデータが０件の場合は空配列を返却する', async () => {
-      // prisma mock data 作成
-      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
-      // test対象service呼び出し
-      const results = await regionsService.findAll();
-      // 検証
-      expect(results).toEqual([]);
-    });
+  //   it('正常系: Regionデータが０件の場合は空配列を返却する', async () => {
+  //     // prisma mock data 作成
+  //     jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
+  //     // test対象service呼び出し
+  //     const results = await regionsService.findAll();
+  //     // 検証
+  //     expect(results).toEqual([]);
+  //   });
 
-    // エラーを隠蔽・変換せずに透過的に投げているか
-    it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
-      // PrismaClientKnownRequestError以外の一般エラーを作成
-      const mockGenericError = new Error('Database connection failed');
+  //   // エラーを隠蔽・変換せずに透過的に投げているか
+  //   it('異常系: エラーが発生した場合、元のエラーをそのままスローする(DB接続エラー)', async () => {
+  //     // PrismaClientKnownRequestError以外の一般エラーを作成
+  //     const mockGenericError = new Error('Database connection failed');
 
-      // モックの実装: create()が一般のエラーを投げるように設定
-      jest
-        .spyOn(prismaService.region, 'findMany')
-        .mockRejectedValue(mockGenericError);
+  //     // モックの実装: create()が一般のエラーを投げるように設定
+  //     jest
+  //       .spyOn(prismaService.region, 'findMany')
+  //       .mockRejectedValue(mockGenericError);
 
-      // 元のエラー（Generic Error）がそのままスローされることをテスト
-      await expect(regionsService.findAll()).rejects.toThrow(Error);
-      await expect(regionsService.findAll()).rejects.toThrow(
-        'Database connection failed',
-      );
-    });
-  });
+  //     // 元のエラー（Generic Error）がそのままスローされることをテスト
+  //     await expect(regionsService.findAll()).rejects.toThrow(Error);
+  //     await expect(regionsService.findAll()).rejects.toThrow(
+  //       'Database connection failed',
+  //     );
+  //   });
+  // });
 
   //--------------------------------------
   // findOne() test

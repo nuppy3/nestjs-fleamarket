@@ -8,7 +8,6 @@ import { Region } from '../domain/regions.model';
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import { CreateRegionDto } from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
-import { RegionMapper } from '../infrastructure/region.mapper';
 
 @Injectable()
 export class RegionsService {
@@ -19,48 +18,6 @@ export class RegionsService {
     @Inject(REGION_REPOSITORY_PORT)
     private readonly regionRepository: RegionRepositoryPort,
   ) {}
-
-  /**
-   * エリア情報取得（全て）:
-   * memo 当findAll()はどこからも呼ばれていない。Query ServiceにfindAll()を移動している。
-   * TODO：削除して、UTのテストコードをQuery Serviceを呼ぶように修正する。
-   */
-  async findAll(): Promise<(Region & { id: string })[]> {
-    // エリア情報取得
-    const regions = await this.prismaService.region.findMany({
-      include: { _count: { select: { prefectures: true } } },
-      orderBy: { code: 'asc' },
-    });
-
-    // prisma → domain
-    // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
-    //   const domains: (Region & { id: string })[] = regions.map((region) => ({
-    //     id: region.id,
-    //     code: region.code,
-    //     name: region.name,
-    //     kanaName: region.kanaName,
-    //     status: region.status,
-    //     kanaEn: region.kanaEn,
-    //     createdAt: region.createdAt,
-    //     updatedAt: region.updatedAt,
-    //   }));
-    //   return domains;
-    // }
-
-    const domains: (Region & { id: string })[] = regions.map(
-      (region) => RegionMapper.toDomain(region),
-      // id: region.id,
-      // code: region.code,
-      // name: region.name,
-      // kanaName: region.kanaName,
-      // status: region.status,
-      // kanaEn: region.kanaEn,
-      // createdAt: region.createdAt,
-      // updatedAt: region.updatedAt,
-      //
-    );
-    return domains;
-  }
 
   /**
    * ※未公開のメソッド。

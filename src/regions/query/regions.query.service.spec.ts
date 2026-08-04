@@ -197,7 +197,7 @@ describe('■■■ Region Query Service test ■■■', () => {
       const code = 'xx';
 
       // prisma mock data set : Regionが存在しない
-      mockPrismaService.region.findUnique.mockRejectedValue(null);
+      mockPrismaService.region.findUnique.mockResolvedValue(null);
 
       // Exception検証（①NotFoundExceptionの検証 ②メッセージの検証）のやり方より以下のように
       // 一発で検証するやり方がBP。
