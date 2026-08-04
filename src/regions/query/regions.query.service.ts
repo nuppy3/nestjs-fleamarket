@@ -84,11 +84,11 @@ export class RegionsQueryService {
    * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
    *
    * @param id - 取得対象のRegion ID
-   * @returns Regionドメインオブジェクト（id付き）
+   * @returns Region Detail Read Model(エリア詳細情報)
    * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
    */
   async getDetailByIdOrThrow(id: string): Promise<RegionDetailReadModel> {
-    // DBから更新対象のRegionを取得
+    // DBからRegionを取得
     const prismaRegion = await this.prismaService.region.findUnique({
       include: { _count: { select: { prefectures: true } } },
       where: { id },
@@ -98,6 +98,45 @@ export class RegionsQueryService {
     if (!prismaRegion) {
       throw new NotFoundException(
         `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+    }
+    // region(DB) → Read Model
+    const readModel = {
+      id: prismaRegion.id,
+      code: prismaRegion.code,
+      name: prismaRegion.name,
+      kanaName: prismaRegion.kanaName,
+      kanaEn: prismaRegion.kanaEn,
+      status: prismaRegion.status,
+      prefectureCount: prismaRegion._count.prefectures,
+      createdAt: prismaRegion.createdAt,
+      updatedAt: prismaRegion.updatedAt,
+    } satisfies RegionDetailReadModel;
+
+    return readModel;
+  }
+
+  /**
+   * getDetailByCodeOrThrow: 指定されたcodeのエリア情報詳細を取得します。
+   *                            存在しない場合、NotFoundExceptionをthrowします。
+   * 公開用のユースケースメソッド。
+   * 指定されたcodeのRegionが存在しない場合は `NotFoundException` をスローします。
+   *
+   * @param code - 取得対象のRegion code
+   * @returns Region Detail Read Model(エリア詳細情報)
+   * @throws {NotFoundException} 指定されたcodeのRegionが存在しない場合
+   */
+  async getDetailByCodeOrThrow(code: string): Promise<RegionDetailReadModel> {
+    // DBからRegionを取得
+    const prismaRegion = await this.prismaService.region.findUnique({
+      include: { _count: { select: { prefectures: true } } },
+      where: { code },
+    });
+
+    // エリア情報が無ければ
+    if (!prismaRegion) {
+      throw new NotFoundException(
+        `codeに関連するエリア情報が存在しません!! regionCode: ${code}`,
       );
     }
     // region(DB) → Read Model

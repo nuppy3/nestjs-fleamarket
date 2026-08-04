@@ -88,7 +88,7 @@ export class RegionsController {
   @Get('code/:code')
   async findByCode(@Param('code') code: string): Promise<RegionResponseDto> {
     // エリア情報取得
-    const region = await this.regionsService.findByCodeOrFail(code);
+    const region = await this.regionsQueryService.getDetailByCodeOrThrow(code);
     // domain → dto
     const dto = instanceToPlain(
       plainToInstance(RegionResponseDto, region, {
