@@ -129,13 +129,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       // 引数
       const id = 'xxxxxxx';
 
-      // mock data 作成: Regionが存在しない
-      const mockException = new NotFoundException(
-        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
-      );
-
-      // prisma mock data set
-      mockPrismaService.region.findUnique.mockRejectedValue(mockException);
+      // prisma mock data set : Regionが存在しない
+      mockPrismaService.region.findUnique.mockResolvedValue(null);
 
       // Exception検証（①NotFoundExceptionの検証 ②メッセージの検証）のやり方より以下のように
       // 一発で検証するやり方がBP。
@@ -201,13 +196,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       // 引数
       const code = 'xx';
 
-      // mock data 作成: Regionが存在しない
-      const mockException = new NotFoundException(
-        `codeに関連するエリア情報が存在しません!! regionCode: ${code}`,
-      );
-
-      // prisma mock data set
-      mockPrismaService.region.findUnique.mockRejectedValue(mockException);
+      // prisma mock data set : Regionが存在しない
+      mockPrismaService.region.findUnique.mockRejectedValue(null);
 
       // Exception検証（①NotFoundExceptionの検証 ②メッセージの検証）のやり方より以下のように
       // 一発で検証するやり方がBP。

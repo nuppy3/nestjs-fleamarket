@@ -33,6 +33,7 @@ const mockRegionsService = {
 const mockRegionsQueryService = {
   findAll: jest.fn(),
   getDetailByIdOrThrow: jest.fn(),
+  getDetailByCodeOrThrow: jest.fn(),
 };
 
 describe('■■■　Regions Controller TEST ■■■', () => {
@@ -185,26 +186,26 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   });
 
   //--------------------------------
-  // findByCodeOrFail()
+  // findByCode() TEST
   //--------------------------------
-  describe('findByCodeOrFail test', () => {
+  describe('findByCode test', () => {
     it('正常系: 指定したcodeを元に、エリア情報DTO（全項目）を返却する', async () => {
       // 引数
       const code = '01';
 
-      // region servie mock data 作成
-      const serviceModkRegionData = createServiceMockData().find(
+      // region query servie mock data 作成
+      const serviceModkRegionData = createQueryServiceMockData().find(
         (region) => region.code === code,
       )!;
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'getDetailByCodeOrThrow')
         .mockResolvedValue(serviceModkRegionData);
 
       // テスト対象controller呼び出し
       const result = await regionsController.findByCode(code);
 
       // 検証
-      const expected = createExpectedRegionDtos().find(
+      const expected = createExpectedRegionHavingPrefectureCountDtos().find(
         (region) => region.code === code,
       );
       expect(result).toEqual(expected);
@@ -214,9 +215,9 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // 引数
       const code = '00';
 
-      // region service mock data 作成(NotFoundException)
+      // region query service mock data 作成(NotFoundException)
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'getDetailByCodeOrThrow')
         .mockRejectedValue(
           new NotFoundException(
             `codeに関連するエリア情報が存在しません!! code: ${code}`,
@@ -224,9 +225,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         );
 
       // 検証
-      await expect(
-        jest.spyOn(regionsService, 'findByCodeOrFail'),
-      ).rejects.toThrow(
+      await expect(regionsController.findByCode(code)).rejects.toThrow(
         new NotFoundException(
           `codeに関連するエリア情報が存在しません!! code: ${code}`,
         ),
@@ -241,18 +240,18 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         { code: 'P1001', clientVersion: '5.0.0' },
       );
 
-      // region service mock data 作成(NotFoundException)
+      // region query service mock data 作成(NotFoundException)
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'getDetailByCodeOrThrow')
         .mockRejectedValue(connectionError);
+
+      const code = '01';
 
       // 検証: Controllerがエラーをそのまま伝播（reject）することを確認
       // 厳密にErrorの内容を検証するため、toThew()→toMatchObject()に変更
       // toMatchObject()は引数のオブジェクトの内容がtoThrowとは異なるので注意。
       // → toThew()での検証のままでもいい気もする。
-      await expect(
-        jest.spyOn(regionsService, 'findByCodeOrFail'),
-      ).rejects.toMatchObject({
+      await expect(regionsController.findByCode(code)).rejects.toMatchObject({
         name: 'PrismaClientKnownRequestError',
         code: 'P1001',
         message: "Can't reach database server",
