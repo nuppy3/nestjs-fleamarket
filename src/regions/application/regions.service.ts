@@ -63,9 +63,11 @@ export class RegionsService {
   }
 
   /**
+   * ※未公開のメソッド。
+   * 詳細情報の取得はQuery ServiceのgetDettailByIdOrThrow()を参照。
+   *
    * findOne: 指定されたIDのエリア情報(Domain(Entity))を取得します。
    *
-   * 未公開開のメソッド。
    * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
    *
    * @param id - 取得対象のRegion ID
@@ -97,8 +99,9 @@ export class RegionsService {
   }
 
   /**
+   * ※未公開のメソッド。
    * findByCodeOrFail(): 指定されたcodeに関連するエリア情報をDBから取得し、返却します。
-   * 指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
+   *                     指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
    *
    * @param code エリアコード
    * @returns エリア情報
