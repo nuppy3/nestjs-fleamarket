@@ -1,5 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { RegionRepositoryPort } from '../domain/region.repository.port';
+import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
+import { Region } from '../domain/regions.model';
 import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
 
@@ -13,7 +16,11 @@ import { RegionListReadModel } from './region-list.read-model';
  */
 @Injectable()
 export class RegionsQueryService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    @Inject(REGION_REPOSITORY_PORT)
+    private readonly regionRepository: RegionRepositoryPort,
+  ) {}
 
   /**
    * エリア情報リスト取得（全て）
@@ -90,6 +97,24 @@ export class RegionsQueryService {
     });
 
     return readModels;
+  }
+
+  /**
+   * ※未公開のメソッド。
+   * 詳細情報の取得はQuery ServiceのgetDettailByIdOrThrow()を参照。
+   *
+   * findOne: 指定されたIDのエリア情報(Domain(Entity))を取得します。
+   *
+   * 指定されたIDのRegionが存在しない場合は `NotFoundException` をスローします。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  async findOne(id: string): Promise<Region & { id: string }> {
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.regionRepository.findByIdOrFail(id);
   }
 
   /**
