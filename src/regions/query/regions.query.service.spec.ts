@@ -3,6 +3,15 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  REGION_REPOSITORY_PORT,
+  RegionRepositoryPort,
+} from '../domain/region.repository.port';
+import {
+  ReconstituteRegionProps,
+  Region,
+  RegionState,
+} from '../domain/regions.model';
 import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
 import { RegionsQueryService } from './regions.query.service';
@@ -18,9 +27,17 @@ const mockPrismaService = {
   },
 };
 
+// MockRepository定義
+const mockRegionRepository = {
+  findByIdOrFail: jest.fn(),
+  findByCodeOrFail: jest.fn(),
+  save: jest.fn(),
+} as jest.Mocked<RegionRepositoryPort>; // as jest.Mocked<>はなくてもいいが、型安全に
+
 describe('■■■ Region Query Service test ■■■', () => {
   // DIモジュール
   let regionsQueryService: RegionsQueryService;
+  let regionRepository: RegionRepositoryPort;
   let prismaService: PrismaService;
 
   // 前処理: テスト全体の前に1回だけ実行される
@@ -31,11 +48,17 @@ describe('■■■ Region Query Service test ■■■', () => {
       providers: [
         RegionsQueryService,
         { provide: PrismaService, useValue: mockPrismaService },
+        // Repositoryはinterfaceを実装しているのでtoken(=REGION_REPOSITORY_PORT)で指定
+        {
+          provide: REGION_REPOSITORY_PORT,
+          useValue: mockRegionRepository,
+        },
       ],
     }).compile();
 
     regionsQueryService = module.get<RegionsQueryService>(RegionsQueryService);
     prismaService = module.get<PrismaService>(PrismaService);
+    regionRepository = module.get<RegionRepositoryPort>(REGION_REPOSITORY_PORT);
   });
 
   // 前処理: 各テストケースの前に毎回実行
@@ -90,6 +113,105 @@ describe('■■■ Region Query Service test ■■■', () => {
 
       // Query Serviceがエラーをそのまま伝播（reject）することを確認
       await expect(regionsQueryService.findAll()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------------
+  // findOne() test
+  //--------------------------------------
+  describe('findOne Test', () => {
+    it('正常系： 指定idに関連するRegionドメイン(＋id)(全項目)を返却する', async () => {
+      // Repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockResolvedValue(regionWithId);
+
+      //  jest.spyOn は「本物のメソッドを監視・上書きしたいとき」に使うため、本来は以下のように
+      //  直接mockに対してmockresolvedValue()するのが主流のよう。
+      //  これからはspyOn()をやめてみよう。。
+      mockRegionRepository.findByIdOrFail.mockResolvedValue(regionWithId);
+
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+
+      // テスト対象 service 呼び出し
+      const result = await regionsQueryService.findOne(id);
+
+      // 検証: RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
+      // mockDataの型指定(Region & { id: string })は不要（というかRegionはプレーンオブジェクト
+      // ではないので型指定すると不一致エラーが出てしまうので、RegionStateというRegion domain 全属性を
+      // 使用している。
+      expect(result).toMatchObject({
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies RegionState & { id: string });
+
+      // 引数チェック
+      expect(
+        jest.spyOn(regionRepository, 'findByIdOrFail'),
+      ).toHaveBeenCalledWith(id);
+    });
+
+    it('異常系①： 指定idに関連するRegion情報が存在しないので、NotFoundExceptionがスローされる', async () => {
+      // serviceの引数作成
+      const id = 'xxxx';
+
+      // mock data 作成(Repository): Regionが存在しない
+      const mockException = new NotFoundException(
+        `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(mockException);
+
+      // 検証：NotFoundException
+      await expect(regionsQueryService.findOne(id)).rejects.toThrow(
+        new NotFoundException(
+          `idに関連するエリア情報が存在しません!! regionId: ${id}`,
+        ),
+      );
+    });
+
+    it('異常系②： Retion情報の更新時のエラー（DB接続エラー)', async () => {
+      // serviceの引数作成
+      const id = 'b96509f2-0ba4-447c-8a98-473aa26e457a';
+
+      // DB接続エラー
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+
+      // mock data set (Error)
+      jest
+        .spyOn(regionRepository, 'findByIdOrFail')
+        .mockRejectedValue(connectionError);
+
+      // 検証: エラーをそのまま伝搬することを確認
+      await expect(regionsQueryService.findOne(id)).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });

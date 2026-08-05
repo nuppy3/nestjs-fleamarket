@@ -84,7 +84,7 @@ describe('■■■ Region test ■■■', () => {
     }).compile();
 
     regionsService = module.get<RegionsService>(RegionsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    // prismaService = module.get<PrismaService>(PrismaService);
     regionRepository = module.get<RegionRepositoryPort>(REGION_REPOSITORY_PORT);
     regionsDomainService =
       module.get<RegionsDomainService>(RegionsDomainService);
