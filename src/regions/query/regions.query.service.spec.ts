@@ -218,6 +218,82 @@ describe('■■■ Region Query Service test ■■■', () => {
   });
 
   //--------------------------------------
+  // findByCodeOrFail() test
+  //--------------------------------------
+  describe('findByCodeOrFail', () => {
+    it('正常系： 指定codeのRegion domain(全項目)を返却する', async () => {
+      // serviceの引数
+      const code = '02';
+
+      // Repository mock data 作成
+      // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
+      const mockRegion = Region.reconstitute({
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies ReconstituteRegionProps) satisfies Region;
+      const regionWithId = Object.assign(mockRegion, {
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      });
+
+      // mock data set (Repository)
+      jest
+        .spyOn(regionRepository, 'findByCodeOrFail')
+        .mockResolvedValue(regionWithId);
+
+      // test対象service呼び出し
+      const result = await regionsQueryService.findByCodeOrFail(code);
+
+      // 検証:
+      // expect(result).toEqual(expected);
+      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
+      // RegionドメインのtoEqual()の検証はしない（domainはプレーンオブジェクトではないため）
+      // mockDataの型指定(Region & { id: string })は不要（というかRegionはプレーンオブジェクト
+      // ではないので型指定すると不一致エラーが出てしまうので、RegionStateというRegion domain 全属性を
+      // 使用している。
+      expect(result).toMatchObject({
+        id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+        name: '北海道',
+        code: '01',
+        kanaName: 'ほっかいどう',
+        status: 'published',
+        kanaEn: 'hokkaidou',
+        createdAt: new Date('2025-04-05T10:00:00.000Z'),
+        updatedAt: new Date('2025-04-05T12:30:00.000Z'),
+      } satisfies RegionState & { id: string });
+
+      // service→regionRepository.findByCodeOrFail()への引数の検証
+      expect(
+        jest.spyOn(regionRepository, 'findByCodeOrFail'),
+      ).toHaveBeenCalledWith(code);
+    });
+
+    it('異常系： codeに関連するエリア情報が存在しない場合、NotFoundExcepton(エラーの伝搬確認)', async () => {
+      // serviceの引数
+      const code = '99';
+
+      // repositoryにException(期待値)をセット
+      const mockException = new NotFoundException(
+        `codeに関連するエリア情報が存在しません!! code: ${code}`,
+      );
+      jest
+        .spyOn(regionRepository, 'findByCodeOrFail')
+        .mockRejectedValue(mockException);
+
+      // 検証
+      await expect(regionsQueryService.findByCodeOrFail(code)).rejects.toThrow(
+        new NotFoundException(
+          `codeに関連するエリア情報が存在しません!! code: ${code}`,
+        ),
+      );
+    });
+  });
+
+  //--------------------------------------
   // getDetailByIdOrThrow() test
   //--------------------------------------
   describe('getDetailByIdOrThrow', () => {

@@ -147,62 +147,6 @@ describe('■■■ Region test ■■■', () => {
   // });
 
   //--------------------------------------
-  // findByCodeOrFail() test
-  //--------------------------------------
-  describe('findByCodeOrFail', () => {
-    it('正常系： 指定codeのRegion domain(全項目)を返却する', async () => {
-      // serviceの引数
-      const code = '02';
-
-      // repository mock data 作成
-      const mockRepositoryData = createRepositoryMockData().find(
-        (region) => region.code === code,
-      );
-      jest
-        .spyOn(regionRepository, 'findByCodeOrFail')
-        .mockResolvedValue(mockRepositoryData!);
-
-      // test対象service呼び出し
-      const result = await regionsService.findByCodeOrFail(code);
-
-      // 期待値
-      const expected = createExpectedData().find(
-        (region) => region.code === code,
-      )!;
-
-      // 検証
-      // expect(result).toEqual(expected);
-      // 検証：プロパティをすべて持っているか、プロパティ値が正しいか
-      expect(result).toMatchObject(expected);
-
-      // service→regionRepository.findByCodeOrFail()への引数の検証
-      expect(
-        jest.spyOn(regionRepository, 'findByCodeOrFail'),
-      ).toHaveBeenCalledWith(code);
-    });
-
-    it('異常系： codeに関連するエリア情報が存在しない場合、NotFoundExcepton(エラーの伝搬確認)', async () => {
-      // serviceの引数
-      const code = '99';
-
-      // repositoryにException(期待値)をセット
-      const mockException = new NotFoundException(
-        `codeに関連するエリア情報が存在しません!! code: ${code}`,
-      );
-      jest
-        .spyOn(regionRepository, 'findByCodeOrFail')
-        .mockRejectedValue(mockException);
-
-      // 検証
-      await expect(regionsService.findByCodeOrFail(code)).rejects.toThrow(
-        new NotFoundException(
-          `codeに関連するエリア情報が存在しません!! code: ${code}`,
-        ),
-      );
-    });
-  });
-
-  //--------------------------------------
   // create test
   //--------------------------------------
   describe('create', () => {
