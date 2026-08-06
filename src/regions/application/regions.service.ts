@@ -20,51 +20,6 @@ export class RegionsService {
   ) {}
 
   /**
-   * findByIdOrFail: 指定されたIDのRegionをDBから取得します（内部用）
-   *                 永続化されたRegion Domainを返却します。
-   *
-   * Service層内の共通取得メソッド。
-   * Repositoryの `findByIdOrFail` をラップし、存在しない場合は `NotFoundException` を投げます。
-   * 更新・削除などのユースケースから内部的に使用されます。
-   *
-   * @param id - 取得対象のRegion ID
-   * @returns Regionドメインオブジェクト（id付き）
-   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
-   */
-  private async findByIdOrFail(id: string): Promise<Region & { id: string }> {
-    // DBから更新対象のRegionを取得(なければ404) ---
-    // Region取得(DB) → domain (reconstitute)
-    return await this.regionRepository.findByIdOrFail(id);
-  }
-
-  /**
-   * ※未公開のメソッド。
-   * findByCodeOrFail(): 指定されたcodeに関連するエリア情報をDBから取得し、返却します。
-   *                     指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
-   *
-   * @param code エリアコード
-   * @returns エリア情報
-   */
-  async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
-    // エリア情報取得 : 以下をRepositoryへ移管
-    // const prismaRegion = await this.prismaService.region.findUnique({
-    //   where: { code }, // カラム名とパラメータがイコールなら省略可能(code: code)
-    // });
-    // if (!prismaRegion) {
-    //   throw new NotFoundException(
-    //     `codeに関連するエリア情報が存在しません!! code: ${code}`,
-    //   );
-    // }
-    // // prisma → domain
-    // const domain = RegionMapper.toDomain(prismaRegion);
-    // return domain;
-
-    // DBから更新対象のRegionを取得(なければ404) ---
-    // Region取得(DB) → domain (reconstitute)
-    return await this.regionRepository.findByCodeOrFail(code);
-  }
-
-  /**
    * エリア情報作成
    *
    * @param createDto 作成対象のエリア情報
@@ -346,5 +301,23 @@ export class RegionsService {
     // return RegionMapper.toDomain(deleted);
     // 20260512: Repository内でtoDomain()を実施しているので、そのままreturn。
     return deleted;
+  }
+
+  /**
+   * findByIdOrFail: 指定されたIDのRegionをDBから取得します（内部用）
+   *                 永続化されたRegion Domainを返却します。
+   *
+   * Service層内の共通取得メソッド。
+   * Repositoryの `findByIdOrFail` をラップし、存在しない場合は `NotFoundException` を投げます。
+   * 更新・削除などのユースケースから内部的に使用されます。
+   *
+   * @param id - 取得対象のRegion ID
+   * @returns Regionドメインオブジェクト（id付き）
+   * @throws {NotFoundException} 指定されたIDのRegionが存在しない場合
+   */
+  private async findByIdOrFail(id: string): Promise<Region & { id: string }> {
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.regionRepository.findByIdOrFail(id);
   }
 }

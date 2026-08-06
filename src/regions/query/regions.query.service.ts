@@ -118,6 +118,33 @@ export class RegionsQueryService {
   }
 
   /**
+   * ※未公開のメソッド。
+   * findByCodeOrFail(): 指定されたcodeに関連するエリア情報をDBから取得し、返却します。
+   *                     指定されたcodeに関連する店舗情報が存在しない場合はNotFoundExceptionとします。
+   *
+   * @param code エリアコード
+   * @returns エリア情報
+   */
+  async findByCodeOrFail(code: string): Promise<Region & { id: string }> {
+    // エリア情報取得 : 以下をRepositoryへ移管
+    // const prismaRegion = await this.prismaService.region.findUnique({
+    //   where: { code }, // カラム名とパラメータがイコールなら省略可能(code: code)
+    // });
+    // if (!prismaRegion) {
+    //   throw new NotFoundException(
+    //     `codeに関連するエリア情報が存在しません!! code: ${code}`,
+    //   );
+    // }
+    // // prisma → domain
+    // const domain = RegionMapper.toDomain(prismaRegion);
+    // return domain;
+
+    // DBから更新対象のRegionを取得(なければ404) ---
+    // Region取得(DB) → domain (reconstitute)
+    return await this.regionRepository.findByCodeOrFail(code);
+  }
+
+  /**
    * getDetailByIdOrThrow: 指定されたIDのエリア情報詳細を取得します。
    *                            存在しない場合、NotFoundExceptionをthrowします。
    * 公開用のユースケースメソッド。
