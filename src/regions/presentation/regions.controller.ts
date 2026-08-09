@@ -16,7 +16,11 @@ import { Request as ExpressRequest } from 'express';
 import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { PublishRegionDto } from '../dto/publish-region.dto';
-import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
+import {
+  CreateRegionDto,
+  PaginatedRegionResponseDto,
+  RegionResponseDto,
+} from '../dto/region.dto';
 import { UnpublishRegionDto } from '../dto/unpublish-region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsQueryService } from '../query/regions.query.service';
@@ -33,17 +37,17 @@ export class RegionsController {
    * @returns エリア情報一覧
    */
   @Get()
-  async findAll(): Promise<RegionResponseDto[]> {
+  async findAll(): Promise<PaginatedRegionResponseDto> {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 
     // エリア情報[] 取得
     const readModels = await this.regionsQueryService.findAll();
 
-    // domain → dto
+    // read model → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(readModels[]→dto[])にも使えるよ!!
-    return instanceToPlain(
+    const data = instanceToPlain(
       plainToInstance(RegionResponseDto, readModels, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
@@ -52,6 +56,16 @@ export class RegionsController {
       // 値が undefined or null の場合、キーごと消える
       { exposeUnsetFields: false },
     ) as RegionResponseDto[];
+
+    // TODO: metaは暫定実装
+    return {
+      data: data,
+      meta: {
+        totalCount: 99,
+        page: 99,
+        size: 10,
+      },
+    } satisfies PaginatedRegionResponseDto;
   }
 
   /**

@@ -1,5 +1,7 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { PaginationMetaDto } from 'src/stores/dto/store.dto';
+import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
 import { Region, RegionStatus } from '../domain/regions.model';
 
@@ -82,6 +84,9 @@ export type RegionResponseShape = Pick<
  * エリア情報レスポンスDTO
  * RegionドメインのサブセットDTO
  *
+ * 特記事項：StoreResponseDto implements StoreResponseShapeは「最低限これらは持ってるよ」
+ * という約束でしかないらしい。。→ それ以上のプロパティ（testとか、hogeとか）を書いても型エラーにならない（仕様）
+ *
  * @Expose() をつけると、plainToInstance の変換対象になります。
  * 返却項目を明示（@Expose）
  * 不要な項目を除外（@Exclude）
@@ -140,4 +145,55 @@ export class RegionResponseDto implements RegionResponseShape {
   //   this.status = status;
   //   this.kanaEn = kanaEn;
   // }
+}
+
+/**
+ * ページネーション情報DTO(metaデータ)
+ */
+export class PagenationMetaDto {
+  // 総件数
+  totalCount: number;
+  // ページ
+  page: number;
+  // 1ページあたりの件数
+  size: number;
+
+  constructor(totalCount: number, page: number, size: number) {
+    this.totalCount = totalCount;
+    this.page = page;
+    this.size = size;
+  }
+}
+
+/**
+ * ページネーション化されたRegionレスポンスDTO
+ *
+ * @Type: plain object → クラスインスタンスへの変換を正確に行うための型ヒント。
+ *        ネストしたオブジェクトの変換に必須。
+ *        ネストしたDTO（data が StoreResponseDto[] の場合など）で変換を正しくしたいとき。
+ *
+ * なぜ必要か？
+ * plainToInstance や ValidationPipe（transform: true時）が動くときに、ネスト部分を
+ * 正しくクラスに変換するため
+ * 例：{ data: [{ id: "1", name: "店A" }, ...] } → data[0] が
+ * StoreResponseDto インスタンスになる
+ * これがないと、getter（statusLabel, holidaysLabel）が呼ばれなかったり、ネストした
+ * バリデーションが効かなかったりする
+ *
+ * → が、不要な気がする。。
+ * 実際はRegionResponseDtoをplainToInstanceして、PaginatedRegionResponseDtoのdataに
+ * セットしており、PaginatedRegionResponseDtoを直接plainToInstanceしているわけではないため。
+ *
+ */
+export class PaginatedRegionResponseDto implements PaginatedResult<RegionResponseDto> {
+  @Type(() => RegionResponseDto)
+  data: RegionResponseDto[];
+
+  @Type(() => PaginationMetaDto)
+  meta: PagenationMetaDto;
+
+  constructor(data: RegionResponseDto[], meta: PagenationMetaDto) {
+    this.data = data;
+    this.meta = meta;
+  }
 }

@@ -21,6 +21,6 @@ import { RegionsQueryService } from './query/regions.query.service';
       useClass: RegionRepository,
     },
   ],
-  exports: [RegionsService],
+  exports: [RegionsService, RegionsQueryService],
 })
 export class RegionsModule {}

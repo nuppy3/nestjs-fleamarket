@@ -8,6 +8,7 @@ import { Prisma } from 'generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
+import { RegionsQueryService } from '../regions/query/regions.query.service';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
@@ -24,6 +25,7 @@ export class PrefecturesService {
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     private readonly regionsService: RegionsService,
+    private readonly regionsQueryService: RegionsQueryService,
   ) {}
 
   /**
@@ -214,7 +216,7 @@ export class PrefecturesService {
       // });
 
       // regionCodeに紐づくエリア情報取得
-      region = await this.regionsService.findByCodeOrFail(regionCode);
+      region = await this.regionsQueryService.findByCodeOrFail(regionCode);
     }
 
     // domain → prismaインプットパラメータ
@@ -411,7 +413,7 @@ export class PrefecturesService {
       //   where: { code: updatePrefectureDto.regionCode },
       // });
       // regionCodeに紐づくエリア情報取得
-      prismaRegion = await this.regionsService.findByCodeOrFail(
+      prismaRegion = await this.regionsQueryService.findByCodeOrFail(
         updatePrefectureDto.regionCode,
       );
 
