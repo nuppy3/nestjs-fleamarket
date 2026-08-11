@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
@@ -27,12 +28,28 @@ export class RegionsQueryService {
    *
    * @returns エリア情報一覧
    */
-  async findAll(): Promise<RegionListReadModel[]> {
-    // エリア情報取得
-    const regions = await this.prismaService.region.findMany({
-      include: { _count: { select: { prefectures: true } } },
-      orderBy: { code: 'asc' },
-    });
+  async findAll(): Promise<PaginatedResult<RegionListReadModel>> {
+    // prisma経由でRegion情報配列と件数を取得
+    // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
+    // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
+    // 分割代入で一発取得するとシンプル
+    const [prismaRegions, count] = await Promise.all([
+      // エリア情報取得
+      this.prismaService.region.findMany({
+        include: { _count: { select: { prefectures: true } } },
+        orderBy: { code: 'asc' },
+      }),
+      this.prismaService.region.count(),
+    ]);
+
+    // // エリア情報取得
+    // const regions = await this.prismaService.region.findMany({
+    //   include: { _count: { select: { prefectures: true } } },
+    //   orderBy: { code: 'asc' },
+    // });
+
+    // // エリア情報の件数
+    // const count = await this.prismaService.region.count();
 
     // prisma → domain
     // .map()は、regionsが空配列の場合も正常に動作し空配列を返却する仕様
@@ -79,7 +96,7 @@ export class RegionsQueryService {
     // return dtos;
 
     // prisma[] → Read Model[]の変換
-    const readModels = regions.map((prismaRegion) => {
+    const readModels = prismaRegions.map((prismaRegion) => {
       // データ変換
       const readModel = {
         id: prismaRegion.id,
@@ -96,7 +113,17 @@ export class RegionsQueryService {
       return readModel;
     });
 
-    return readModels;
+    // ReadModelをページネーション化
+    const paginated = {
+      data: readModels,
+      meta: {
+        totalCount: count,
+        page: 1,
+        size: 20,
+      },
+    } satisfies PaginatedResult<RegionListReadModel>;
+
+    return paginated;
   }
 
   /**

@@ -41,14 +41,14 @@ export class RegionsController {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 
-    // エリア情報[] 取得
-    const readModels = await this.regionsQueryService.findAll();
+    // エリア情報[] 取得 (ページネーション化されたRegion情報)
+    const paginated = await this.regionsQueryService.findAll();
 
     // read model → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     // plainToInstanceは以下のように配列(readModels[]→dto[])にも使えるよ!!
     const data = instanceToPlain(
-      plainToInstance(RegionResponseDto, readModels, {
+      plainToInstance(RegionResponseDto, paginated.data, {
         // @Expose() がないプロパティは全部消える
         // 値が undefined or null の場合、キーごと消える
         excludeExtraneousValues: true,
@@ -57,15 +57,18 @@ export class RegionsController {
       { exposeUnsetFields: false },
     ) as RegionResponseDto[];
 
-    // TODO: metaは暫定実装
-    return {
-      data: data,
-      meta: {
-        totalCount: 99,
-        page: 99,
-        size: 10,
-      },
-    } satisfies PaginatedRegionResponseDto;
+    // 以下でも問題無いが、new PaginatedRegionResponseDto()でコンストラクタを使用する。
+    //  return {
+    //     data: data,
+    //     meta: {
+    //       totalCount: paginated.meta.totalCount,
+    //       page: paginated.meta.page,
+    //       size: paginated.meta.size,
+    //     },
+    //   } satisfies PaginatedRegionResponseDto;
+
+    // PaginatedRegionResponseDtoに変換
+    return new PaginatedRegionResponseDto(data, paginated.meta);
   }
 
   /**
