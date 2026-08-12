@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
+import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { RegionAlreadyPublishedException } from '../domain/errors/regions.exceptions';
@@ -11,7 +12,11 @@ import {
   RegionStatus,
 } from '../domain/regions.model';
 import { PublishRegionDto } from '../dto/publish-region.dto';
-import { CreateRegionDto, RegionResponseDto } from '../dto/region.dto';
+import {
+  CreateRegionDto,
+  PaginatedRegionResponseDto,
+  RegionResponseDto,
+} from '../dto/region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionDetailReadModel } from '../query/region-detail.read-model';
 import { RegionListReadModel } from '../query/region-list.read-model';
@@ -82,24 +87,38 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
       // query service mock data 作成
-      const mockDatas = createServiceMockReadModels();
+      const mockDatas = createServiceMockPaginatedResult();
       jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
 
       // テスト対象Controller呼び出し
       const result = await regionsController.findAll();
 
       // 検証
-      const dtos = createExpectedRegionHavingPrefectureCountDtos();
-      expect(result).toEqual(dtos);
+      const dto = createExpectedPaginatedRegionDto();
+      expect(result).toEqual(dto);
     });
 
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
-      // mock data 作成(空配列)
-      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue([]);
+      // mock data 作成 (空配列/0件)
+      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue({
+        data: [],
+        meta: {
+          totalCount: 0,
+          page: 1,
+          size: 20,
+        },
+      } satisfies PaginatedResult<RegionListReadModel>);
       // test対象Controller呼び出し
       const result = await regionsController.findAll();
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
-      expect(result).toEqual([]);
+      expect(result).toEqual({
+        data: [],
+        meta: {
+          totalCount: 0,
+          page: 1,
+          size: 20,
+        },
+      } satisfies PaginatedRegionResponseDto);
     });
 
     //-------------------------------
@@ -736,11 +755,11 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 });
 
 /**
- * region query service mock data (dto[]) 作成
+ * region query service mock data (ページネーションされたRegionListReadModel[]) 作成
  *
- * @returns region service mock data (dto[])
+ * @returns region service mock data
  */
-function createServiceMockReadModels(): RegionListReadModel[] {
+function createServiceMockPaginatedResult(): PaginatedResult<RegionListReadModel> {
   // dtoリスト
   const readModels = [
     {
@@ -781,7 +800,17 @@ function createServiceMockReadModels(): RegionListReadModel[] {
     } satisfies RegionListReadModel,
   ] satisfies RegionListReadModel[];
 
-  return readModels;
+  // ページネーション化
+  const paginated = {
+    data: readModels,
+    meta: {
+      totalCount: 4,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedResult<RegionListReadModel>;
+
+  return paginated;
 }
 
 /**
@@ -902,6 +931,67 @@ function createServiceMockData() {
   });
 
   return domainWithIds;
+}
+
+/**
+ * 期待値：Paginated Region DTO 作成 (prefectureCountあり)
+ *
+ * @returns Paginated Region DTO (prefectureCountあり)
+ */
+function createExpectedPaginatedRegionDto(): PaginatedRegionResponseDto {
+  const dtos: RegionResponseDto[] = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+      kanaName: 'ほっかいどう',
+      status: 'published',
+      kanaEn: 'hokkaidou',
+      statusLabel: '掲載中',
+      prefectureCount: 1,
+    } satisfies RegionResponseDto,
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+      kanaName: 'とうほく',
+      status: 'published',
+      kanaEn: 'tohoku',
+      statusLabel: '掲載中',
+      prefectureCount: 2,
+    } satisfies RegionResponseDto,
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+      kanaName: 'かんとう',
+      status: 'editing',
+      kanaEn: 'kanto',
+      statusLabel: '編集中',
+      prefectureCount: 3,
+    } satisfies RegionResponseDto,
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+      kanaName: '沖縄',
+      status: RegionStatus.SUSPENDED,
+      kanaEn: 'okinawa',
+      statusLabel: '停止',
+      prefectureCount: 4,
+    } satisfies RegionResponseDto,
+  ];
+
+  const paginated = {
+    data: dtos,
+    meta: {
+      totalCount: 4,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedRegionResponseDto;
+
+  return paginated;
 }
 
 /**
