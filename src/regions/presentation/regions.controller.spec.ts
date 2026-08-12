@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
-import { RequestUser } from 'src/types/requestUser';
+import { RequestUser } from '../../types/requestUser';
 import { RegionsService } from '../application/regions.service';
 import { RegionAlreadyPublishedException } from '../domain/errors/regions.exceptions';
 import {

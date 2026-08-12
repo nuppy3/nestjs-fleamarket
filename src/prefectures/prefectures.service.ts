@@ -6,7 +6,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
-import { RegionsService } from '../regions/application/regions.service';
 import { Region } from '../regions/domain/regions.model';
 import { RegionsQueryService } from '../regions/query/regions.query.service';
 import { PaginatedResult } from './../common/interfaces/paginated-result.interface';
@@ -24,7 +23,7 @@ export class PrefecturesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-    private readonly regionsService: RegionsService,
+    // private readonly regionsService: RegionsService,
     private readonly regionsQueryService: RegionsQueryService,
   ) {}
 

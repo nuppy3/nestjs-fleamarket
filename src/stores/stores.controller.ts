@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import type { Request as ExpressRequest } from 'express';
 
-import { RequestUser } from 'src/types/requestUser';
+import { RequestUser } from '../types/requestUser';
 import { PublishStoreDto } from './dto/publish-store.dto';
 import {
   CreateStoreDto,

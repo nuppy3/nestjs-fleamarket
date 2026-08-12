@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
+import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   REGION_REPOSITORY_PORT,
@@ -20,6 +21,7 @@ import { RegionsQueryService } from './regions.query.service';
 const mockPrismaService = {
   region: {
     findMany: jest.fn(),
+    count: jest.fn(),
     // create: jest.fn(),
     findUnique: jest.fn(),
     // update: jest.fn(),
@@ -71,17 +73,24 @@ describe('■■■ Region Query Service test ■■■', () => {
   //--------------------------------------
   // findAll() test
   //--------------------------------------
+  // modkData:
+  // ①Prisma findMany
+  // ②Prisma count
   describe('findAll', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
-      // prisma mock data 作成
+      // prisma mock data 作成: findMany
       const mockDatas = createPrismaMockData();
       jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockDatas);
+
+      // prisma mock data 作成: count
+      const count = 5;
+      jest.spyOn(prismaService.region, 'count').mockResolvedValue(count);
 
       // テスト対象Service呼び出し
       const result = await regionsQueryService.findAll();
 
       // 検証
-      const dtos = createExpectedReadModels();
+      const dtos = createExpectedPaginatedResult();
       expect(result).toEqual(dtos);
 
       // prisma引数検証 → 引数なしなので不要
@@ -93,13 +102,48 @@ describe('■■■ Region Query Service test ■■■', () => {
       // );
     });
 
+    it('Promise.all が正しく並列で呼ばれていることを確認', async () => {
+      // mock data 作成 （なんでもいい)
+      jest
+        .spyOn(prismaService.region, 'findMany')
+        .mockResolvedValue(createPrismaMockData());
+      jest.spyOn(prismaService.region, 'count').mockResolvedValue(5);
+
+      // テスト対象のservice呼び出し（結果を取得しない)
+      await regionsQueryService.findAll();
+
+      // Promise.allが呼ばれた証拠として、両方が呼ばれていることを確認
+      expect(
+        jest.spyOn(prismaService.region, 'findMany'),
+      ).toHaveBeenCalledTimes(1);
+      expect(jest.spyOn(prismaService.region, 'count')).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
       // mock data 作成(空配列)
       jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
+      // 0件
+      jest.spyOn(prismaService.region, 'count').mockResolvedValue(0);
+
       // test対象Controller呼び出し
       const result = await regionsQueryService.findAll();
-      // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
-      expect(result).toEqual([]);
+
+      // 期待値: PaginatedResult (空配列と0件)
+      const paginatedExpect = {
+        // 空配列
+        data: [],
+        meta: {
+          // 0件
+          totalCount: 0,
+          page: 1,
+          size: 20,
+        },
+      } satisfies PaginatedResult<RegionListReadModel>;
+
+      // 検証：
+      expect(result).toEqual(paginatedExpect);
     });
 
     it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
@@ -501,11 +545,11 @@ function createPrismaMockData(): (PrismaRegion & {
 }
 
 /**
- * 期待値：Region List Read Model [] 作成 ※findAll()用
+ * 期待値：Region List Read Model (PaginatedResult) [] 作成 ※findAll()用
  *
  * @returns Region List Read Model []
  */
-function createExpectedReadModels(): RegionListReadModel[] {
+function createExpectedPaginatedResult(): PaginatedResult<RegionListReadModel> {
   const readModels: RegionListReadModel[] = [
     {
       id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
@@ -554,5 +598,15 @@ function createExpectedReadModels(): RegionListReadModel[] {
     } satisfies RegionListReadModel,
   ];
 
-  return readModels;
+  // ページネーション化
+  const paginated = {
+    data: readModels,
+    meta: {
+      totalCount: 5,
+      page: 1,
+      size: 20,
+    },
+  } satisfies PaginatedResult<RegionListReadModel>;
+
+  return paginated;
 }

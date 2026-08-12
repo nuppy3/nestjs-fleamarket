@@ -1,8 +1,8 @@
 import { Expose, Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { PaginationMetaDto } from 'src/stores/dto/store.dto';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
+import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
 
 /**

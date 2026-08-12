@@ -7,12 +7,12 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prefecture as PrismaPrefecture } from '../../generated/prisma';
 import { PAGINATION } from '../common/constants/pagination.constants';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
-import { RegionsService } from '../regions/application/regions.service';
 import {
   ReconstituteRegionProps,
   Region,
   RegionStatus,
 } from '../regions/domain/regions.model';
+import { RegionsQueryService } from '../regions/query/regions.query.service';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreatePrefectureDto } from './dto/prefecture.dto';
 import { UpdatePrefectureDto } from './dto/update-prefecture.dto';
@@ -34,16 +34,17 @@ const mockPrismaService = {
 };
 
 /**
- * RegionsServicd mock
+ * RegionsQueryServicd mock
  */
-const mockRegionsService = {
+const mockRegionsQueryService = {
   findByCodeOrFail: jest.fn(),
 };
 
 describe('□□□ Prefecture Test □□□', () => {
   // DIモジュール
   let prefectureService: PrefecturesService;
-  let regionsService: RegionsService;
+  // let regionsService: RegionsService;
+  let regionsQueryService: RegionsQueryService;
   let prismaService: PrismaService;
   // 実際のprefectures.service.tsでは、ConfigServiceは個別(prefectures.module.ts)で
   // importsしていない。app.module.tsにてグローバルでDI定義している。が、UTで必要なので。
@@ -88,7 +89,7 @@ describe('□□□ Prefecture Test □□□', () => {
         ConfigService,
         // ここにも明示的に記述(PrismaServiceをmodkPrismaServiceに切り替え）
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: RegionsService, useValue: mockRegionsService },
+        { provide: RegionsQueryService, useValue: mockRegionsQueryService },
       ],
     })
       // もし RegionsModule 内部の Service が「本物の PrismaService」を見に行ってしまう場合のみ追加
@@ -97,7 +98,7 @@ describe('□□□ Prefecture Test □□□', () => {
       .compile();
 
     prefectureService = module.get<PrefecturesService>(PrefecturesService);
-    regionsService = module.get<RegionsService>(RegionsService);
+    regionsQueryService = module.get<RegionsQueryService>(RegionsQueryService);
     prismaService = module.get<PrismaService>(PrismaService);
     configService = module.get<ConfigService>(ConfigService);
 
@@ -736,7 +737,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // region service mock data セット
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // (regionsService.findByCodeOrFail as jest.Mock).mockResolvedValue(
@@ -834,7 +835,7 @@ describe('□□□ Prefecture Test □□□', () => {
         id: '174d2683-7012-462c-b7d0-7e452ba0f1ab',
       });
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // prisma modk data 作成 : Prefecture情報
@@ -1269,7 +1270,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // region service mock data セット
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // ③ prisma mock data 作成 (prefecture.update)
@@ -1381,7 +1382,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // region service mock data セット
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // ③ prisma mock data 作成 (prefecture.update)
@@ -1495,7 +1496,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // region service mock data セット
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // ③ prisma mock data 作成 (prefecture.update)
@@ -1718,7 +1719,7 @@ describe('□□□ Prefecture Test □□□', () => {
 
       // region service mock data セット
       jest
-        .spyOn(regionsService, 'findByCodeOrFail')
+        .spyOn(regionsQueryService, 'findByCodeOrFail')
         .mockResolvedValue(regionWithId);
 
       // PrismaClientKnownRequestError以外の一般エラーを作成
