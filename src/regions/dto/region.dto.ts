@@ -6,6 +6,11 @@ import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
 
 /**
+ * エリア情報検索フィルターDTO
+ */
+export class FindAllRegionsQueryDto {}
+
+/**
  * CreateRegionDto
  *
  * 【特記事項】tsconfig.jsonに「"strictPropertyInitialization": true,」を指定すると
