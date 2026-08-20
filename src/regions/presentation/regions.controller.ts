@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { RegionsService } from '../application/regions.service';
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import {
   CreateRegionDto,
+  FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
   RegionResponseDto,
 } from '../dto/region.dto';
@@ -34,10 +36,14 @@ export class RegionsController {
 
   /**
    * エリア情報リスト取得： エリア情報の一覧を取得します。
+   *
+   * @param query エリア情報検索クエリDTO(フィルター項目/ソート順など)
    * @returns エリア情報一覧
    */
   @Get()
-  async findAll(): Promise<PaginatedRegionResponseDto> {
+  async findAll(
+    @Query() query: FindAllRegionsQueryDto,
+  ): Promise<PaginatedRegionResponseDto> {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 

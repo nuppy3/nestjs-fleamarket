@@ -12,7 +12,7 @@ import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
 
 /**
- * エリア情報検索フィルターDTO
+ * エリア情報検索クエリDTO(フィルター/ソート順などのクエリパラメータDTO)
  */
 export class FindAllRegionsQueryDto {
   // エリアコード
