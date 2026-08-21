@@ -1,9 +1,26 @@
 import { Expose, Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
 import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
+
+/**
+ * エリア情報検索クエリDTO(フィルター/ソート順などのクエリパラメータDTO)
+ */
+export class FindAllRegionsQueryDto {
+  // エリアコード
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)
+  @IsString() // 任意項目だが入力された際のValidation
+  @MaxLength(2) // 任意項目だが入力された際のValidation
+  code?: string;
+}
 
 /**
  * CreateRegionDto
