@@ -3,14 +3,14 @@
  *
  * @example
  * ```ts
- * // ステータスが編集中のエリアんみ取得
+ * // ステータスが編集中のエリアのみ取得
  * await this.regionsQueryService.findAll({ status: 'editing' });
  *
- * // 全店舗取得（フィルタなし）
+ * // 全エリア取得（フィルタなし）
  * await this.regionsQueryService.findAll();
  * ```
  */
 export type RegionFilter = {
   // 本来、codeでフィルタは不要（findByCode()を使うべき）
-  code: string;
+  code?: string;
 };
