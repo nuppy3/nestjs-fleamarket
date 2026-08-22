@@ -3,7 +3,6 @@
 // type・interface・enum・union などをまとめる。
 //------------------------------------------
 
-
 /**
  * 店舗情報 （Domainモデル)
  *
@@ -176,7 +175,7 @@ export function getWeekdayLabel(weekday: Weekday): string {
 }
 
 /**
- * 店舗一覧取得（findAll）で使用するフィルタ条件
+ * 店舗一覧取得（findAll service）で使用するフィルタ条件
  *
  * @example
  * ```ts
