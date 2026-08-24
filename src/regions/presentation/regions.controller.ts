@@ -26,6 +26,7 @@ import {
 import { UnpublishRegionDto } from '../dto/unpublish-region.dto';
 import { UpdateRegionDto } from '../dto/update-region.dto';
 import { RegionsQueryService } from '../query/regions.query.service';
+import { RegionFilter } from './../query/region.filter';
 
 @Controller('regions')
 export class RegionsController {
@@ -47,8 +48,11 @@ export class RegionsController {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 
+    // QueryDTO → filter 変換(validationチェック済みのため、そのまま渡す)
+    const filters: RegionFilter = query;
+
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
-    const paginated = await this.regionsQueryService.findAll();
+    const paginated = await this.regionsQueryService.findAll(filters);
 
     // read model → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
