@@ -48,8 +48,10 @@ export class RegionsController {
     // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
     // const domains = await this.regionsService.findAll();
 
-    // QueryDTO → filter 変換(validationチェック済みのため、そのまま渡す)
-    const filters: RegionFilter = query;
+    // QueryDTO → filter 変換
+    const filters = {
+      code: query.code ?? undefined,
+    } satisfies RegionFilter;
 
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
     const paginated = await this.regionsQueryService.findAll(filters);
