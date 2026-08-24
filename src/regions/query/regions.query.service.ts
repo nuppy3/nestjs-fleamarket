@@ -6,6 +6,7 @@ import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
 import { Region } from '../domain/regions.model';
 import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
+import { RegionFilter } from './region.filter';
 
 /**
  * RegionsQueryServiceService: 参照・表示用のQuery Service
@@ -24,11 +25,31 @@ export class RegionsQueryService {
   ) {}
 
   /**
-   * エリア情報リスト取得（全て）
+   * findAll(): エリア情報リスト取得（全て)し、返却します。
    *
+   * @param filters - 検索条件（すべて省略可能）
+   *                  - `status`: ステータス（例: 'editing'）を指定すると、そのステータスに関連するエリアのみを返します
+   *                  - 指定がない場合は全エリアを対象とします
+   * @example
+   * ```ts
+   * // ステータスが編集中のエリアのみ取得
+   * await this.regionsQueryService.findAll({ status: 'editing' });
+   *
+   * // 全エリア取得（フィルタなし）
+   * await this.regionsQueryService.findAll();
+   * ```
    * @returns エリア情報一覧
    */
-  async findAll(): Promise<PaginatedResult<RegionListReadModel>> {
+  async findAll(
+    // filtersが存在しない(filters === undefined のとき)場合は{}で初期化
+    // memo: filtersがnullの際は{}で初期化されない。が、nullを渡そうとしても
+    // 「型 'null' の引数を型 'StoreFilter | undefined' のパラメーターに割り当てることはできません。」
+    // で、tslint？が弾いてくれる。
+    // また、リクエストパラメータで?name=nullというパラメータがリクエストされたとしても、
+    // controllerはname='null'という文字列で受け取るためValidationにてnumberじゃないよと
+    // エラーになるため、serviceにnullが渡ってくることはない。
+    filters: RegionFilter = {},
+  ): Promise<PaginatedResult<RegionListReadModel>> {
     // prisma経由でRegion情報配列と件数を取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
@@ -37,6 +58,7 @@ export class RegionsQueryService {
       // エリア情報取得
       this.prismaService.region.findMany({
         include: { _count: { select: { prefectures: true } } },
+        where: { code: filters.code },
         orderBy: { code: 'asc' },
       }),
       this.prismaService.region.count(),
