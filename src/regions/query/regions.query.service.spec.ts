@@ -15,6 +15,7 @@ import {
 } from '../domain/regions.model';
 import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
+import { RegionFilter } from './region.filter';
 import { RegionsQueryService } from './regions.query.service';
 
 // MockService定義
@@ -77,7 +78,7 @@ describe('■■■ Region Query Service test ■■■', () => {
   // ①Prisma findMany
   // ②Prisma count
   describe('findAll', () => {
-    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+    it('正常系：ReadMdel配列(全項目)が返却されること(dtoは全て@Expose()がセットされている) - (filter無し)', async () => {
       // prisma mock data 作成: findMany
       const mockDatas = createPrismaMockData();
       jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockDatas);
@@ -87,7 +88,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       jest.spyOn(prismaService.region, 'count').mockResolvedValue(count);
 
       // テスト対象Service呼び出し
-      const result = await regionsQueryService.findAll();
+      const filters = {} satisfies RegionFilter;
+      const result = await regionsQueryService.findAll(filters);
 
       // 検証
       const dtos = createExpectedPaginatedResult();
@@ -110,7 +112,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       jest.spyOn(prismaService.region, 'count').mockResolvedValue(5);
 
       // テスト対象のservice呼び出し（結果を取得しない)
-      await regionsQueryService.findAll();
+      const filters = {} satisfies RegionFilter;
+      await regionsQueryService.findAll(filters);
 
       // Promise.allが呼ばれた証拠として、両方が呼ばれていることを確認
       expect(
@@ -121,6 +124,61 @@ describe('■■■ Region Query Service test ■■■', () => {
       );
     });
 
+    /**
+     * findAllの絞り込み(filter)テストは、toEqual()の検証ではなく、toHaveBeenCalledWithを
+     * 用いて、Prismaが期待通りの引数で呼び出されているかをメインに検証する。
+     *
+     * Prismaはmockしているので、返却値はmockでセットされるため、レスポンス(Prisma/service)を
+     * toEqual()にて検証しても意味がない。
+     *
+     * ＜テスト観点＞
+     * serviceクラスの引数(filters)によって、どのようにPrismaのwhere句などの条件が
+     * 変更されるか期待値との検証を行う。
+     * 従って、mockResolvedValue()でセットするPrismaのmock dataは、何でもいい。
+     *
+     * toHaveBeenCalledWith()に渡された引数と期待値が合うか。
+     *  重要ポイント：PrismaService.region.findMany()はMock化するが、findMany()は「誰が、
+     *  どんな引数で呼んだか」を記録してくれているので、モックでも「実際に渡された引数」で「実際の
+     *  PrismaService.findManyの引数(型、値)」で渡されているかチェックするという強力なツール!!
+     *
+     *  例：  expect(prismaService.fegion, 'findMany').toHaveBeenCalledWith({
+     *         where: {
+     *          status: StoreStatus.PUBLISHED,
+     *          // 他のプロパティが undefined であることも含めてチェックされる ← 何気にこれ重要!!
+     *         },
+     *       });
+     */
+    describe('findAllの絞り込み(filter)テスト', () => {
+      it('正常系: codeを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
+        // 引数
+        const filters = { code: '01' } satisfies RegionFilter;
+
+        // mock data 作成 （mockデータなので、実際に絞り込まれている必要はない）
+        // const prismaRegion = createPrismaMockData().find(
+        //   (region) => region.code === filters.code,
+        // );
+
+        // mock data set (spyOnを使わないパターン)
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+        mockPrismaService.region.count.mockResolvedValue(5);
+
+        // test対象 service 呼び出し(結果を取得しない)
+        await regionsQueryService.findAll(filters);
+
+        // 検証： prisma の where句
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: { code: '01' },
+          orderBy: { code: 'asc' },
+        });
+        expect(mockPrismaService.region.count).toHaveBeenCalledWith({
+          where: { code: '01' },
+        });
+      });
+    });
+
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
       // mock data 作成(空配列)
       jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
@@ -128,7 +186,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       jest.spyOn(prismaService.region, 'count').mockResolvedValue(0);
 
       // test対象Controller呼び出し
-      const result = await regionsQueryService.findAll();
+      const filters = {} satisfies RegionFilter;
+      const result = await regionsQueryService.findAll(filters);
 
       // 期待値: PaginatedResult (空配列と0件)
       const paginatedExpect = {

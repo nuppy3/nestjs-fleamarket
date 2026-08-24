@@ -200,7 +200,7 @@ describe('StoresService Test', () => {
         jest.spyOn(prismaService.store, 'count').mockResolvedValue(3);
 
         // test対象呼び出し：結果は取得しない(「const result = 」は不要)
-        // 引数: statusを指定
+        // 引数: prefectureCodeを指定
         await storesService.findAll(filters);
 
         // 結果検証

@@ -61,7 +61,9 @@ export class RegionsQueryService {
         where: { code: filters.code },
         orderBy: { code: 'asc' },
       }),
-      this.prismaService.region.count(),
+      this.prismaService.region.count({
+        where: { code: filters.code },
+      }),
     ]);
 
     // // エリア情報取得
