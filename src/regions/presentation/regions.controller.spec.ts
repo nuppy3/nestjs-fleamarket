@@ -14,6 +14,7 @@ import {
 import { PublishRegionDto } from '../dto/publish-region.dto';
 import {
   CreateRegionDto,
+  FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
   RegionResponseDto,
 } from '../dto/region.dto';
@@ -85,13 +86,17 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   // findAll()
   //--------------------------------
   describe('findAll', () => {
-    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている', async () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている) - RequestParameter無し', async () => {
       // query service mock data 作成
       const mockDatas = createServiceMockPaginatedResult();
       jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
 
-      // テスト対象Controller呼び出し
-      const result = await regionsController.findAll();
+      // テスト対象Controller呼び出し(queryなし)
+      const query = {
+        // code: '01',
+      } satisfies FindAllRegionsQueryDto;
+
+      const result = await regionsController.findAll(query);
 
       // 検証
       const dto = createExpectedPaginatedRegionDto();
@@ -108,8 +113,11 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           size: 20,
         },
       } satisfies PaginatedResult<RegionListReadModel>);
+
       // test対象Controller呼び出し
-      const result = await regionsController.findAll();
+      const query = { code: 'xx' } satisfies FindAllRegionsQueryDto;
+      const result = await regionsController.findAll(query);
+
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
       expect(result).toEqual({
         data: [],
@@ -119,6 +127,40 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           size: 20,
         },
       } satisfies PaginatedRegionResponseDto);
+    });
+
+    describe('findAllの絞り込み(filter)テスト', () => {
+      it('正常系(1): codeを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // テスト対象 contrller 呼び出し
+        const query = { code: '10' } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          code: '10',
+        });
+      });
+
+      it('正常系(2): xxxを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        // mockRegionsQueryService.findAll.mockResolvedValue(
+        //   createServiceMockPaginatedResult(),
+        // );
+        // テスト対象 contrller 呼び出し
+        // const query = { code: '10' } satisfies FindAllRegionsQueryDto;
+        // await regionsController.findAll(query);
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        // expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        //   code: '10',
+        // });
+      });
     });
 
     //-------------------------------
@@ -148,7 +190,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
-      await expect(regionsController.findAll()).rejects.toThrow(
+      const query = { code: '10' } satisfies FindAllRegionsQueryDto;
+      await expect(regionsController.findAll(query)).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
