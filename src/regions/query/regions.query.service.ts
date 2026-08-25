@@ -58,11 +58,12 @@ export class RegionsQueryService {
       // エリア情報取得
       this.prismaService.region.findMany({
         include: { _count: { select: { prefectures: true } } },
-        where: { code: filters.code },
+        // Prismaで部分一致（SQLの LIKE '%値%'）をしたい場合は、contains を使う
+        where: { code: filters.code, name: { contains: filters.name } },
         orderBy: { code: 'asc' },
       }),
       this.prismaService.region.count({
-        where: { code: filters.code },
+        where: { code: filters.code, name: { contains: filters.name } },
       }),
     ]);
 
