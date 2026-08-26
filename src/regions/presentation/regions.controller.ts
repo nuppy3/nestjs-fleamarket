@@ -51,6 +51,7 @@ export class RegionsController {
     // QueryDTO → filter 変換
     const filters = {
       code: query.code ?? undefined,
+      name: query.name ?? undefined,
     } satisfies RegionFilter;
 
     // エリア情報[] 取得 (ページネーション化されたRegion情報)

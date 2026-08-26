@@ -11,6 +11,10 @@
  * ```
  */
 export type RegionFilter = {
+  // エリアコード
   // 本来、codeでフィルタは不要（findByCode()を使うべき）
   code?: string;
+
+  // エリア名
+  name?: string;
 };

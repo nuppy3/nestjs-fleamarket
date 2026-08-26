@@ -599,7 +599,7 @@ export class StoresService {
   }
 
   /**
-   * findAllのWhere句を作成します。（共通部分）
+   * findMany,countのWhere句を作成します。（共通部分）
    *
    * where → 基本はオブジェクト（AND条件）: Prisma.StoreWhereInput
    * 複数条件をORで結合したいときだけ : Prisma.StoreWhereInput[]
