@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from 'generated/prisma';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
@@ -50,6 +51,9 @@ export class RegionsQueryService {
     // エラーになるため、serviceにnullが渡ってくることはない。
     filters: RegionFilter = {},
   ): Promise<PaginatedResult<RegionListReadModel>> {
+    // where句作成
+    const commonWhere = this.buildWhere(filters);
+
     // prisma経由でRegion情報配列と件数を取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
@@ -59,11 +63,13 @@ export class RegionsQueryService {
       this.prismaService.region.findMany({
         include: { _count: { select: { prefectures: true } } },
         // Prismaで部分一致（SQLの LIKE '%値%'）をしたい場合は、contains を使う
-        where: { code: filters.code, name: { contains: filters.name } },
+        // where: { code: filters.code, name: { contains: filters.name } },
+        where: commonWhere,
         orderBy: { code: 'asc' },
       }),
       this.prismaService.region.count({
-        where: { code: filters.code, name: { contains: filters.name } },
+        // where: { code: filters.code, name: { contains: filters.name } },
+        where: commonWhere,
       }),
     ]);
 
@@ -272,5 +278,56 @@ export class RegionsQueryService {
     } satisfies RegionDetailReadModel;
 
     return readModel;
+  }
+
+  /**
+   * findMany,countのWhere句を作成します。（共通部分）
+   *
+   * where: 基本はオブジェクト（AND条件）： Prisma.RegionWhereInput
+   *        複数条件をORで結合したい時： Prisma.RegionWhereInput[] (配列)
+   *        { OR: [...] } や配列をORキーに入れる
+   *
+   * @param filters 検索条件
+   * @returns where句（共通部分)
+   */
+  private buildWhere(filters: RegionFilter): Prisma.RegionWhereInput {
+    // where句はOrder byのように配列ではなく、オブジェクトで作成することが多い。
+    // where句は基本的にはAND条件になるので。ORの条件がある場合は、配列にする。
+    // const where: Prisma.RegionWhereInput[] = [];
+    const where = {
+      // ---------------------------------------------------------------------
+      // Prisma仕様：値が undefined のプロパティは、クエリ（Where句）から自動的に除外されるという
+      // 非常に便利な性質があります。
+      // filters.code がundefinedの場合、Prismaはその検索条件を無視してくれる！
+
+      // (スプレッド構文)...( 条件A && {条件Aが満たされたら展開してほしいコード}) で、
+      // この条件が満たされたら、このオブジェクトを展開して追加してね
+      // codeがtruthy(null/undefined/''/数値の0/false 以外)の場合
+
+      // Prismaのwhere句の実装では以下の三項演算子ではなくスプレッド構文が有益！！
+      // ...(filters.code && { code: filters.code }),
+      //
+      //  where: filters.code
+      //   ? { regon: { code: filters.code } }
+      //   : {},
+      // ---------------------------------------------------------------------
+
+      // 以下のcodeなどと同様に...(filters.code && {をカマしても同様のクエリが作成されるが
+      // codeのケースのように単純な条件の場合は以下でもいい
+      // code: filters.code,
+      // → 念の為、こっちを採用
+      ...(filters.code && { code: filters.code }),
+
+      // 📖メモ：
+      // ...(filters.name && { をカマさず、上記のcodeと同様に「name: { contains: filters.name }」
+      // と実装してしまうと、注意が必要 → もし filters.name が undefined だった場合、
+      // Prismaは { name: { contains: undefined } } と解釈しようとして、エラーを投げるか
+      // 意図しない挙動になるバージョンがあります
+
+      // Prismaで部分一致（SQLの LIKE '%値%'）をしたい場合は、contains を使う
+      ...(filters.name && { name: { contains: filters.name } }),
+    } satisfies Prisma.RegionWhereInput;
+
+    return where;
   }
 }
