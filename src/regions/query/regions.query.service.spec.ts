@@ -149,7 +149,7 @@ describe('■■■ Region Query Service test ■■■', () => {
      *       });
      */
     describe('findAllの絞り込み(filter)テスト', () => {
-      it('正常系: codeを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
+      it('正常系(1): codeを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
         // 引数
         const filters = { code: '01' } satisfies RegionFilter;
 
@@ -175,6 +175,59 @@ describe('■■■ Region Query Service test ■■■', () => {
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
           where: { code: '01' },
+        });
+      });
+
+      it('正常系(2): nameを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
+        // 引数
+        const filters = { name: '関東' } satisfies RegionFilter;
+
+        // mock data set （mockデータなので、実際に絞り込まれている必要はない）
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+        mockPrismaService.region.count.mockResolvedValue(5);
+
+        // test対象 service 呼び出し(結果を取得しない)
+        await regionsQueryService.findAll(filters);
+
+        // 検証： prisma の where句
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: { name: { contains: '関東' } },
+          orderBy: { code: 'asc' },
+        });
+        expect(mockPrismaService.region.count).toHaveBeenCalledWith({
+          where: { name: { contains: '関東' } },
+        });
+      });
+    });
+
+    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
+      it('(1)+(2)が指定された場合、正しくwhereコードのwhere句が組み立てられること', async () => {
+        // 引数
+        const filters = {
+          code: '01',
+          name: '北海道',
+        } satisfies RegionFilter;
+
+        // prisma modk data (なんでもいい)
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+
+        // seavice 呼び出し
+        await regionsQueryService.findAll(filters);
+
+        // prisma(findManay) の パラメータ(where) 検証
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: { code: filters.code, name: { contains: filters.name } },
+          orderBy: { code: 'asc' },
+        });
+        // prisma(findManay) の パラメータ(count) 検証
+        expect(mockPrismaService.region.count).toHaveBeenCalledWith({
+          where: { code: filters.code, name: { contains: filters.name } },
         });
       });
     });
