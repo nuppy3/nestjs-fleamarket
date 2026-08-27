@@ -147,7 +147,23 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         });
       });
 
-      it('正常系(2): xxxを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+      it('正常系(2): nameを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+        // テスト対象 contrller 呼び出し
+        const query = { name: '関東' } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          name: '関東',
+        });
+      });
+
+      // 絞り込みテストのテンプレート
+      it('正常系(n): xxxを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
         // mockRegionsQueryService.findAll.mockResolvedValue(
@@ -160,6 +176,32 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         // expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
         //   code: '10',
         // });
+      });
+    });
+
+    // queryの変換処理はcontrolerで実施していないし、
+    // controllerで複合ケースの試験は不要な気もするが一応
+    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
+      it('(1)+(2)が指定がしていされた場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // 引数
+        const reqDto = {
+          code: '01',
+          name: '北海道',
+        } satisfies FindAllRegionsQueryDto;
+
+        // query service mock data (なんでもいい)
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // controller 呼び出し
+        await regionsController.findAll(reqDto);
+
+        // query service への引数検証
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          code: '01',
+          name: '北海道',
+        });
       });
     });
 
