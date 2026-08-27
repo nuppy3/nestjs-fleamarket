@@ -225,6 +225,10 @@ describe('■■■ Region Query Service test ■■■', () => {
           where: { code: filters.code, name: { contains: filters.name } },
           orderBy: { code: 'asc' },
         });
+        // prisma(findManay) の パラメータ(count) 検証
+        expect(mockPrismaService.region.count).toHaveBeenCalledWith({
+          where: { code: filters.code, name: { contains: filters.name } },
+        });
       });
     });
 
