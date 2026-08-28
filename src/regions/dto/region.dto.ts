@@ -26,6 +26,13 @@ export class FindAllRegionsQueryDto {
   @IsString() // 任意項目だが入力された際のValidation
   @MaxLength(40) // 任意項目だが入力された際のValidation
   name?: string;
+
+  // ステータス
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
+  @IsEnum(RegionStatus, {
+    message: `RegionStatus must be one of: ${RegionStatus.EDITING}, ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
+  })
+  status?: RegionStatus;
 }
 
 /**

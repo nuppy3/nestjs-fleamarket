@@ -1,3 +1,5 @@
+import { RegionStatus } from '../domain/regions.model';
+
 /**
  * エリア一覧取得（findAll service)で使用するフィルタ条件
  *
@@ -17,4 +19,7 @@ export type RegionFilter = {
 
   // エリア名
   name?: string;
+
+  // ステータス
+  status?: RegionStatus;
 };
