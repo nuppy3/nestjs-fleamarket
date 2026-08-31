@@ -326,6 +326,7 @@ export class RegionsQueryService {
 
       // Prismaで部分一致（SQLの LIKE '%値%'）をしたい場合は、contains を使う
       ...(filters.name && { name: { contains: filters.name } }),
+      ...(filters.status && { status: filters.status }),
     } satisfies Prisma.RegionWhereInput;
 
     return where;

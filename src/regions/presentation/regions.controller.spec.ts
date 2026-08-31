@@ -162,31 +162,35 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         });
       });
 
-      // 絞り込みテストのテンプレート
-      it('正常系(n): xxxを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+      it('正常系(3): statusを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        // mockRegionsQueryService.findAll.mockResolvedValue(
-        //   createServiceMockPaginatedResult(),
-        // );
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
         // テスト対象 contrller 呼び出し
-        // const query = { code: '10' } satisfies FindAllRegionsQueryDto;
-        // await regionsController.findAll(query);
+        const query = {
+          status: 'editing',
+        } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        // expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
-        //   code: '10',
-        // });
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          status: 'editing',
+        });
       });
     });
 
     // queryの変換処理はcontrolerで実施していないし、
     // controllerで複合ケースの試験は不要な気もするが一応
     describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)が指定がしていされた場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+      it('(1)+(2)+(3)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // 引数
         const reqDto = {
           code: '01',
           name: '北海道',
+          status: 'editing',
         } satisfies FindAllRegionsQueryDto;
 
         // query service mock data (なんでもいい)
@@ -201,6 +205,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
           code: '01',
           name: '北海道',
+          status: 'editing',
         });
       });
     });
