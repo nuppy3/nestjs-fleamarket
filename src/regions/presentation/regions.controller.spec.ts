@@ -180,6 +180,32 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           status: 'editing',
         });
       });
+
+      it('正常系(4): pageを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        const query = { page: 2 } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          page: 2,
+        });
+      });
+
+      it('正常系(5): sizeを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        const query = { size: 5 } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          size: 5,
+        });
+      });
     });
 
     // queryの変換処理はcontrolerで実施していないし、
@@ -206,6 +232,34 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           code: '01',
           name: '北海道',
           status: 'editing',
+        });
+      });
+
+      it('絞り込み(code/name/status)とpage/sizeが同時に指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // 引数
+        const reqDto = {
+          code: '01',
+          name: '北海道',
+          status: 'editing',
+          page: 2,
+          size: 5,
+        } satisfies FindAllRegionsQueryDto;
+
+        // query service mock data (なんでもいい)
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // controller 呼び出し
+        await regionsController.findAll(reqDto);
+
+        // query service への引数検証
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          code: '01',
+          name: '北海道',
+          status: 'editing',
+          page: 2,
+          size: 5,
         });
       });
     });
