@@ -1,5 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
+import { PAGINATION } from '../../common/constants/pagination.constants';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
@@ -20,6 +22,7 @@ import { RegionFilter } from './region.filter';
 @Injectable()
 export class RegionsQueryService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     @Inject(REGION_REPOSITORY_PORT)
     private readonly regionRepository: RegionRepositoryPort,
@@ -54,6 +57,26 @@ export class RegionsQueryService {
     // where句作成
     const commonWhere = this.buildWhere(filters);
 
+    // ページネーション計算
+    // size: default: 20, 1〜2000の範囲内(マイナスはNG)
+    const defaultSize =
+      this.configService.get<number>('REGION_DEFAULT_PAGE_SIZE') ?? 20;
+    const size = Math.min(
+      PAGINATION.MAX_PAGE_SIZE,
+      Math.max(PAGINATION.MIN_PAGE_SIZE, filters.size ?? defaultSize),
+    );
+
+    // page: default:1 1〜10000の範囲(マイナスはNG)
+    const defaultPage =
+      this.configService.get<number>('REGION_DEFAULT_PAGE') ?? 1;
+    const page = Math.min(
+      PAGINATION.MAX_PAGE,
+      Math.max(PAGINATION.MIN_PAGE, filters.page ?? defaultPage),
+    );
+
+    // skip = offset(最初のXX件を飛ばす)
+    const skip = (page - 1) * size;
+
     // prisma経由でRegion情報配列と件数を取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
@@ -66,6 +89,10 @@ export class RegionsQueryService {
         // where: { code: filters.code, name: { contains: filters.name } },
         where: commonWhere,
         orderBy: { code: 'asc' },
+        // limit
+        take: size,
+        // Offset (最初のXX件を飛ばす)
+        skip: skip,
       }),
       this.prismaService.region.count({
         // where: { code: filters.code, name: { contains: filters.name } },
@@ -149,8 +176,8 @@ export class RegionsQueryService {
       data: readModels,
       meta: {
         totalCount: count,
-        page: 1,
-        size: 20,
+        page,
+        size,
       },
     } satisfies PaginatedResult<RegionListReadModel>;
 

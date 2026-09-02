@@ -3,7 +3,7 @@ import { PrismaService } from './../prisma/prisma.service';
 // import { Store } from './entities/store.entity';
 import { NotFoundException } from '@nestjs/common';
 // PrismaのスキーマはXXXXPrismaという名前にリネーム
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
   Prefecture as PrefecturePrisma,
   Store as StorePrisma,
@@ -68,9 +68,12 @@ describe('StoresService Test', () => {
     // 最後の.compile()を忘れずに
     const module = await Test.createTestingModule({
       // DI対象サービス
-      imports: [RegionsModule],
+      // RegionsModule内部のRegionsQueryServiceがConfigServiceを要求するため、
+      // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
+      // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
+      // RegionsModule内部にもConfigServiceが行き渡る)
+      imports: [RegionsModule, ConfigModule.forRoot({ isGlobal: true })],
       providers: [
-        ConfigService,
         StoresService,
         // PrismaServiceはmock(mockPrismaService)に切り替える
         { provide: PrismaService, useValue: mockPrismaService },
