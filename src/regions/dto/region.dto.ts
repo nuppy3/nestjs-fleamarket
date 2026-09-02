@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
-import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
 
 /**
@@ -180,7 +179,7 @@ export class RegionResponseDto implements RegionResponseShape {
 /**
  * ページネーション情報DTO(metaデータ)
  */
-export class PagenationMetaDto {
+export class RegionPaginationMetaDto {
   // 総件数
   totalCount: number;
   // ページ
@@ -219,10 +218,10 @@ export class PaginatedRegionResponseDto implements PaginatedResult<RegionRespons
   @Type(() => RegionResponseDto)
   data: RegionResponseDto[];
 
-  @Type(() => PaginationMetaDto)
-  meta: PagenationMetaDto;
+  @Type(() => RegionPaginationMetaDto)
+  meta: RegionPaginationMetaDto;
 
-  constructor(data: RegionResponseDto[], meta: PagenationMetaDto) {
+  constructor(data: RegionResponseDto[], meta: RegionPaginationMetaDto) {
     this.data = data;
     this.meta = meta;
   }
