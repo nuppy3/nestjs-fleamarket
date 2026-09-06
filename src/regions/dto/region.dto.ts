@@ -1,14 +1,17 @@
 import { Expose, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
+import { PAGINATION } from '../../common/constants/pagination.constants';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
-import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
 
 /**
@@ -33,6 +36,22 @@ export class FindAllRegionsQueryDto {
     message: `RegionStatus must be one of: ${RegionStatus.EDITING}, ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
   })
   status?: RegionStatus;
+
+  // 1ページあたりの件数
+  @IsOptional()
+  @IsInt() // 整数のみ許容: 一方IsNumberは少数を許容してしまう
+  @Min(1)
+  @Max(PAGINATION.MAX_PAGE_SIZE)
+  @Type(() => Number) // string → number 変換
+  size?: number;
+
+  // ページ番号
+  @IsOptional()
+  @IsInt() // 整数のみ許容: 一方IsNumberは少数を許容してしまう
+  @Min(1)
+  @Max(PAGINATION.MAX_PAGE)
+  @Type(() => Number) // string → number 変換
+  page?: number;
 }
 
 /**
@@ -180,7 +199,7 @@ export class RegionResponseDto implements RegionResponseShape {
 /**
  * ページネーション情報DTO(metaデータ)
  */
-export class PagenationMetaDto {
+export class RegionPaginationMetaDto {
   // 総件数
   totalCount: number;
   // ページ
@@ -219,10 +238,10 @@ export class PaginatedRegionResponseDto implements PaginatedResult<RegionRespons
   @Type(() => RegionResponseDto)
   data: RegionResponseDto[];
 
-  @Type(() => PaginationMetaDto)
-  meta: PagenationMetaDto;
+  @Type(() => RegionPaginationMetaDto)
+  meta: RegionPaginationMetaDto;
 
-  constructor(data: RegionResponseDto[], meta: PagenationMetaDto) {
+  constructor(data: RegionResponseDto[], meta: RegionPaginationMetaDto) {
     this.data = data;
     this.meta = meta;
   }
