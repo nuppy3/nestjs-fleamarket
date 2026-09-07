@@ -53,6 +53,8 @@ export class RegionsController {
       code: query.code ?? undefined,
       name: query.name ?? undefined,
       status: query.status ?? undefined,
+      page: query.page ?? undefined,
+      size: query.size ?? undefined,
     } satisfies RegionFilter;
 
     // エリア情報[] 取得 (ページネーション化されたRegion情報)

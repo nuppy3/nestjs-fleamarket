@@ -37,7 +37,7 @@ export class FindAllRegionsQueryDto {
   })
   status?: RegionStatus;
 
-  // ページネーション
+  // ページ(ページネーション)
   @IsOptional()
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
   @Min(1) // 0以上
