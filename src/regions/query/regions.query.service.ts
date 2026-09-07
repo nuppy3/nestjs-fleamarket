@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -20,6 +21,7 @@ import { RegionFilter } from './region.filter';
 @Injectable()
 export class RegionsQueryService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
     @Inject(REGION_REPOSITORY_PORT)
     private readonly regionRepository: RegionRepositoryPort,
@@ -54,6 +56,15 @@ export class RegionsQueryService {
     // where句作成
     const commonWhere = this.buildWhere(filters);
 
+    // take句作成(ページサイズ): 0〜100
+    // デフォルト値設定（sizeが指定されていない場合、環境変数REGION_DEFAULT_PAGE_SIZEを参照し、未設定の場合は20件）
+    const defaultSize =
+      filters.size ??
+      this.configService.get<number>('REGION_DEFAULT_PAGE_SIZE') ??
+      20;
+    // 1〜100の範囲に制限
+    const size = Math.min(Math.max(defaultSize, 1), 100);
+
     // prisma経由でRegion情報配列と件数を取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
@@ -65,6 +76,10 @@ export class RegionsQueryService {
         // Prismaで部分一致（SQLの LIKE '%値%'）をしたい場合は、contains を使う
         // where: { code: filters.code, name: { contains: filters.name } },
         where: commonWhere,
+        // サイズ
+        take: size,
+        // offset(最初のXX件を飛ばす)
+        skip: 0,
         orderBy: { code: 'asc' },
       }),
       this.prismaService.region.count({
@@ -150,7 +165,7 @@ export class RegionsQueryService {
       meta: {
         totalCount: count,
         page: 1,
-        size: 20,
+        size: size,
       },
     } satisfies PaginatedResult<RegionListReadModel>;
 
