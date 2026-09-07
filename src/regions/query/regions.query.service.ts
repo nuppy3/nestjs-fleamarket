@@ -65,6 +65,16 @@ export class RegionsQueryService {
     // 1〜100の範囲に制限
     const size = Math.min(Math.max(defaultSize, 1), 100);
 
+    // skip句作成(offset)
+    // page指定が無ければデフォルト設定(1〜10000)
+    let defaultPage =
+      filters.page ??
+      this.configService.get<number>('REGION_DEFAULT_PAGE') ??
+      1;
+    defaultPage = Math.min(Math.max(defaultPage, 1), 10000);
+    // offset計算: (page-1)*size
+    const skip = (defaultPage - 1) * size;
+
     // prisma経由でRegion情報配列と件数を取得
     // 「Promise.all」を使って複数の非同期処理(findMany()とcount())を並列実行
     // Promise.allは結果を[findMany()の結果, count()の結果]というタプル型(配列)で返すので
@@ -79,7 +89,7 @@ export class RegionsQueryService {
         // サイズ
         take: size,
         // offset(最初のXX件を飛ばす)
-        skip: 0,
+        skip: skip,
         orderBy: { code: 'asc' },
       }),
       this.prismaService.region.count({
@@ -164,7 +174,7 @@ export class RegionsQueryService {
       data: readModels,
       meta: {
         totalCount: count,
-        page: 1,
+        page: defaultPage,
         size: size,
       },
     } satisfies PaginatedResult<RegionListReadModel>;
