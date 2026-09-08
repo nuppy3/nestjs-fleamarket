@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
@@ -48,6 +49,20 @@ describe('■■■ Region Query Service test ■■■', () => {
     console.log('beforeAll: モジュールのセットアップ（DIなど）');
 
     const module = await Test.createTestingModule({
+      // ⭐️ConfigServiceについて
+      // 本番では app.module.ts の ConfigModule.forRoot({ isGlobal: true }) によって
+      // 解決されます。しかし、Test.createTestingModule() は AppModule を自動的には
+      // 読み込まないため、グローバル設定もテストには引き継がれません。
+      // RegionsModule内部のRegionsQueryServiceがConfigServiceを要求するため、
+      // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
+      // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
+      // RegionsModule内部にもConfigServiceが行き渡る)
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env',
+        }),
+      ],
       providers: [
         RegionsQueryService,
         { provide: PrismaService, useValue: mockPrismaService },

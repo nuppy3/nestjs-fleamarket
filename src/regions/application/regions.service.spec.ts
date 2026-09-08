@@ -1,7 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   RegionAlreadyEditedException,
@@ -71,6 +71,20 @@ describe('■■■ Region test ■■■', () => {
     // })
 
     const module = await Test.createTestingModule({
+      // ⭐️ConfigServiceについて
+      // 本番では app.module.ts の ConfigModule.forRoot({ isGlobal: true }) によって
+      // 解決されます。しかし、Test.createTestingModule() は AppModule を自動的には
+      // 読み込まないため、グローバル設定もテストには引き継がれません。
+      // RegionsModule内部のRegionsQueryServiceがConfigServiceを要求するため、
+      // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
+      // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
+      // RegionsModule内部にもConfigServiceが行き渡る)
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env',
+        }),
+      ],
       providers: [
         RegionsService,
         { provide: PrismaService, useValue: mockPrismaService },
@@ -1278,149 +1292,6 @@ describe('■■■ Region test ■■■', () => {
     });
   });
 });
-
-/**
- * Prisma Mock Data作成
- * @returns Prisma Mock Data
- */
-function createPrismaMockData(): PrismaRegion[] {
-  const mockData: PrismaRegion[] = [
-    {
-      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-      name: '北海道',
-      code: '01',
-      kanaName: 'ほっかいどう',
-      status: 'published',
-      kanaEn: 'hokkaidou',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
-    {
-      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-      name: '東北',
-      code: '02',
-      kanaName: 'とうほく',
-      status: 'published',
-      kanaEn: 'tohoku',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
-    {
-      id: '0324dc98-89a2-4db1-9431-b20feff57700',
-      name: '関東',
-      code: '03',
-      kanaName: 'kanto',
-      status: 'published',
-      kanaEn: 'kantou',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
-    {
-      id: '0424dc98-89a2-4db1-9431-b20feff57700',
-      name: '東海',
-      code: '04',
-      kanaName: 'とうかい',
-      status: 'published',
-      kanaEn: 'tokai',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
-    {
-      id: '0524dc98-89a2-4db1-9431-b20feff57700',
-      name: '北陸',
-      code: '05',
-      kanaName: 'ほくりく',
-      status: 'published',
-      kanaEn: 'hokuriku',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    },
-  ];
-  return mockData;
-}
-
-/**
- * repository Mock Data作成
- * @returns repository Mock Data (region domain + id の配列)
- */
-function createRepositoryMockData(): (Region & { id: string })[] {
-  const regions: Region[] = [
-    Region.reconstitute({
-      // id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
-      name: '北海道',
-      code: '01',
-      kanaName: 'ほっかいどう',
-      status: 'published',
-      kanaEn: 'hokkaidou',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    } satisfies ReconstituteRegionProps),
-    Region.reconstitute({
-      // id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
-      name: '東北',
-      code: '02',
-      kanaName: 'とうほく',
-      status: 'published',
-      kanaEn: 'tohoku',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    } satisfies ReconstituteRegionProps),
-    Region.reconstitute({
-      // id: '0324dc98-89a2-4db1-9431-b20feff57700',
-      name: '関東',
-      code: '03',
-      kanaName: 'kanto',
-      status: 'published',
-      kanaEn: 'kantou',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    } satisfies ReconstituteRegionProps),
-    Region.reconstitute({
-      // id: '0424dc98-89a2-4db1-9431-b20feff57700',
-      name: '東海',
-      code: '04',
-      kanaName: 'とうかい',
-      status: 'published',
-      kanaEn: 'tokai',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    } satisfies ReconstituteRegionProps),
-    Region.reconstitute({
-      // id: '0524dc98-89a2-4db1-9431-b20feff57700',
-      name: '北陸',
-      code: '05',
-      kanaName: 'ほくりく',
-      status: 'published',
-      kanaEn: 'hokuriku',
-      createdAt: new Date('2025-04-05T10:00:00.000Z'),
-      updatedAt: new Date('2025-04-05T12:30:00.000Z'),
-      // userId: '633931d5-2b25-45f1-8006-c137af49e53d',
-    } satisfies ReconstituteRegionProps),
-  ];
-
-  const ids = [
-    'b96509f2-0ba4-447c-8a98-473aa26e457a',
-    'ad24dc98-89a2-4db1-9431-b20feff57700',
-    '0324dc98-89a2-4db1-9431-b20feff57700',
-    '0424dc98-89a2-4db1-9431-b20feff57700',
-    '0524dc98-89a2-4db1-9431-b20feff57700',
-  ];
-
-  const mockDatas: (Region & { id: string })[] = regions.map((region, index) =>
-    Object.assign(region, { id: ids[index] }),
-  );
-
-  return mockDatas;
-}
 
 /**
  * 期待値作成
