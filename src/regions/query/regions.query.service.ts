@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from 'generated/prisma';
+import { PAGINATION } from '../../common/constants/pagination.constants';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
@@ -56,14 +57,19 @@ export class RegionsQueryService {
     // where句作成
     const commonWhere = this.buildWhere(filters);
 
-    // take句作成(ページサイズ): 0〜100
+    // take句作成(ページサイズ): 1〜2000
     // デフォルト値設定（sizeが指定されていない場合、環境変数REGION_DEFAULT_PAGE_SIZEを参照し、未設定の場合は20件）
     const defaultSize =
       filters.size ??
       this.configService.get<number>('REGION_DEFAULT_PAGE_SIZE') ??
       20;
-    // 1〜100の範囲に制限
-    const size = Math.min(Math.max(defaultSize, 1), 100);
+    // 1〜2000の範囲に制限
+    // momo: なぜ、「.env」にPAGE_SIZEを定義しているのに(すればいいのに)、PAGINATION.MIN_PAGE_SIZE
+    //       のように定数を別で定義しているかはpagination.constants.tsクラスのコメントを参照
+    const size = Math.min(
+      Math.max(defaultSize, PAGINATION.MIN_PAGE_SIZE),
+      PAGINATION.MAX_PAGE_SIZE,
+    );
 
     // skip句作成(offset)
     // page指定が無ければデフォルト設定(1〜10000)
@@ -71,7 +77,10 @@ export class RegionsQueryService {
       filters.page ??
       this.configService.get<number>('REGION_DEFAULT_PAGE') ??
       1;
-    defaultPage = Math.min(Math.max(defaultPage, 1), 10000);
+    defaultPage = Math.min(
+      Math.max(defaultPage, PAGINATION.MIN_PAGE),
+      PAGINATION.MAX_PAGE,
+    );
     // offset計算: (page-1)*size
     const skip = (defaultPage - 1) * size;
 
