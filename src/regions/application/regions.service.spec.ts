@@ -1,5 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+// import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -79,12 +79,15 @@ describe('■■■ Region test ■■■', () => {
       // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
       // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
       // RegionsModule内部にもConfigServiceが行き渡る)
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: '.env',
-        }),
-      ],
+      //
+      // → が、このテストモジュールのprovidersにはRegionsQueryServiceが含まれておらず、
+      // RegionsService自体もConfigServiceに依存していないため、ConfigModuleは不要のためコメント。
+      // imports: [
+      //   ConfigModule.forRoot({
+      //     isGlobal: true,
+      //     envFilePath: '.env',
+      //   }),
+      // ],
       providers: [
         RegionsService,
         { provide: PrismaService, useValue: mockPrismaService },

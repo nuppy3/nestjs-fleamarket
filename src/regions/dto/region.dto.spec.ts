@@ -177,24 +177,24 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
     // it.each([{}])('', async ({}) => {});
     it.each([
       {
-        testCase: '@IsInt: sizeが少数あり(Intじゃない)',
+        testCase: '@IsInt: pageが少数あり(Intじゃない)',
         note: 'isInt エラーが発生すること',
         filters: { page: '0.22' },
         expectedParam: 'isInt',
       },
       {
-        testCase: '@Min(1): sizeが０以下',
+        testCase: '@Min(1): pageが０以下',
         note: 'min エラーが発生すること',
         filters: { page: '0' },
         expectedParam: 'min',
       },
       {
-        testCase: '@Max(10000): sizeが10000以上',
+        testCase: '@Max(10000): pageが10000超(上限値+1)',
         note: 'max エラーが発生すること',
         filters: { page: '10001' },
         expectedParam: 'max',
       },
-    ])('$tastCase', async ({ filters, expectedParam }) => {
+    ])('$testCase', async ({ filters, expectedParam }) => {
       // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
       // const obj = {
       //   page: '0.22', // string
@@ -214,25 +214,6 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
       expect(errors[0].property).toBe(property);
       // constraintsオブジェクトにisString,maxLengthというキーが存在すること
       expect(errors[0].constraints).toHaveProperty(expectedParam);
-    });
-
-    it('異常系：pageのエラーチェック(@IsInt,@Min,@Max)', async () => {
-      // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
-      const obj = {
-        page: '0.22', // string
-        // size: '20', // string
-      };
-      const dto = plainToInstance(FindAllRegionsQueryDto, obj);
-
-      // validation実行
-      const errors = await validate(dto);
-
-      // 検証： ValidationErrorの内容を検証する
-      expect(errors).toHaveLength(1);
-      expect(errors[0].property).toBe('page');
-      // constraintsオブジェクトにisString,maxLengthというキーが存在すること
-      expect(errors[0].constraints).toHaveProperty('min');
-      expect(errors[0].constraints).toHaveProperty('isInt');
     });
   });
 
