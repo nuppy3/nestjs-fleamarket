@@ -196,11 +196,7 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
       },
     ])('$testCase', async ({ filters, expectedParam }) => {
       // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
-      // const obj = {
-      //   page: '0.22', // string
-      // };
       const dto = plainToInstance(FindAllRegionsQueryDto, filters);
-
       // validation実行
       const errors = await validate(dto);
 
@@ -217,20 +213,58 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
     });
   });
 
-  it('異常系：sizeのエラーチェック(@IsInt,@Min,@Max)', async () => {
-    // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
-    const obj = {
-      size: 0,
-    };
-    const dto = plainToInstance(FindAllRegionsQueryDto, obj);
+  describe('sizeのエラーチェック(@IsInt,@Min,@Max)', () => {
+    // it.each([{}])('', async ({}) => {});
+    it.each([
+      {
+        testCase: '@IsInt: sizeが少数あり(Intじゃない)',
+        note: 'isInt エラーが発生すること',
+        filters: { size: '0.22' },
+        expectedParam: 'isInt',
+      },
+      {
+        testCase: '@Min(1): sizeが０以下',
+        note: 'min エラーが発生すること',
+        filters: { size: '0' },
+        expectedParam: 'min',
+      },
+      {
+        testCase: '@Max(2000): sizeが2000超(上限値+1)',
+        note: 'max エラーが発生すること',
+        filters: { size: '2001' },
+        expectedParam: 'max',
+      },
+    ])('$testCase', async ({ filters, expectedParam }) => {
+      // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
+      const dto = plainToInstance(FindAllRegionsQueryDto, filters);
+      // validation実行
+      const errors = await validate(dto);
 
-    // validation実行
-    const errors = await validate(dto);
+      // key名取得
+      const [property] = Object.keys(filters);
 
-    // 検証： ValidationErrorの内容を検証する
-    expect(errors).toHaveLength(1);
-    expect(errors[0].property).toBe('size');
-    // constraintsオブジェクトにisString,maxLengthというキーが存在すること
-    expect(errors[0].constraints).toHaveProperty('min');
+      // 検証： ValidationErrorの内容を検証する
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe(property);
+      // constraintsオブジェクトにisString,maxLengthというキーが存在すること
+      expect(errors[0].constraints).toHaveProperty(expectedParam);
+    });
+
+    // it('異常系：sizeのエラーチェック(@IsInt,@Min,@Max)', async () => {
+    //   // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
+    //   const obj = {
+    //     size: 0,
+    //   };
+    //   const dto = plainToInstance(FindAllRegionsQueryDto, obj);
+
+    //   // validation実行
+    //   const errors = await validate(dto);
+
+    //   // 検証： ValidationErrorの内容を検証する
+    //   expect(errors).toHaveLength(1);
+    //   expect(errors[0].property).toBe('size');
+    //   // constraintsオブジェクトにisString,maxLengthというキーが存在すること
+    //   expect(errors[0].constraints).toHaveProperty('min');
+    // });
   });
 });
