@@ -249,22 +249,5 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
       // constraintsオブジェクトにisString,maxLengthというキーが存在すること
       expect(errors[0].constraints).toHaveProperty(expectedParam);
     });
-
-    // it('異常系：sizeのエラーチェック(@IsInt,@Min,@Max)', async () => {
-    //   // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
-    //   const obj = {
-    //     size: 0,
-    //   };
-    //   const dto = plainToInstance(FindAllRegionsQueryDto, obj);
-
-    //   // validation実行
-    //   const errors = await validate(dto);
-
-    //   // 検証： ValidationErrorの内容を検証する
-    //   expect(errors).toHaveLength(1);
-    //   expect(errors[0].property).toBe('size');
-    //   // constraintsオブジェクトにisString,maxLengthというキーが存在すること
-    //   expect(errors[0].constraints).toHaveProperty('min');
-    // });
   });
 });
