@@ -22,4 +22,10 @@ export type RegionFilter = {
 
   // ステータス
   status?: RegionStatus;
+
+  // ページ(ページネーション)
+  page?: number;
+
+  // 1ページあたりの件数
+  size?: number;
 };

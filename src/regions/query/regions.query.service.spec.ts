@@ -1,7 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Region as PrismaRegion } from '../../../generated/prisma';
+import { PAGINATION } from '../../common/constants/pagination.constants';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -48,6 +50,20 @@ describe('■■■ Region Query Service test ■■■', () => {
     console.log('beforeAll: モジュールのセットアップ（DIなど）');
 
     const module = await Test.createTestingModule({
+      // ⭐️ConfigServiceについて
+      // 本番では app.module.ts の ConfigModule.forRoot({ isGlobal: true }) によって
+      // 解決されます。しかし、Test.createTestingModule() は AppModule を自動的には
+      // 読み込まないため、グローバル設定もテストには引き継がれません。
+      // RegionsModule内部のRegionsQueryServiceがConfigServiceを要求するため、
+      // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
+      // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
+      // RegionsModule内部にもConfigServiceが行き渡る)
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env',
+        }),
+      ],
       providers: [
         RegionsQueryService,
         { provide: PrismaService, useValue: mockPrismaService },
@@ -171,6 +187,8 @@ describe('■■■ Region Query Service test ■■■', () => {
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
           include: { _count: { select: { prefectures: true } } },
           where: { code: '01' },
+          take: 20,
+          skip: 0,
           orderBy: { code: 'asc' },
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
@@ -195,6 +213,8 @@ describe('■■■ Region Query Service test ■■■', () => {
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
           include: { _count: { select: { prefectures: true } } },
           where: { name: { contains: '関東' } },
+          take: 20,
+          skip: 0,
           orderBy: { code: 'asc' },
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
@@ -219,6 +239,8 @@ describe('■■■ Region Query Service test ■■■', () => {
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
           include: { _count: { select: { prefectures: true } } },
           where: { status: 'editing' },
+          take: 20,
+          skip: 0,
           orderBy: { code: 'asc' },
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
@@ -227,13 +249,216 @@ describe('■■■ Region Query Service test ■■■', () => {
       });
     });
 
-    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)+(3)が指定された場合、正しくwhereコードのwhere句が組み立てられること', async () => {
+    /**
+     * ■ it.each（テーブル、データ駆動テスト）
+     * 境界値テストはテストパターンが似通っているので、it.each を使ってデータ駆動で実装し
+     * テストコードの冗長化を防止
+     *
+     *  it.each(table)(testCase, fn, timeout)
+     * ・table: テストケースの配列。配列の要素はオブジェクトで、テストケース名、引数、期待値などを持たせる。
+     *    例： {
+     *          testCase: 'size未指定',
+     *          note: 'デフォルト値がセットされること(他のケースで実施されるが一応)',
+     *          filters: { size: undefined } satisfies RegionFilter,
+     *          expectedParam: 20,
+     *        }
+     * ・it.each([])の[]内にデータ駆動のテストケースをケース分作成
+     * ・('$xxxx の場合', async () => {})にprismaのwhere句などの期待値を一つ作成
+     *
+     * プレースホルダーの使い方
+     * %s
+     *  文字列（String）
+     * %i
+     *  整数（Integer）
+     * %d
+     *  数値（Decimal）
+     * %p
+     *  任意の値（pretty-print）
+     * %#
+     *  テスト番号（0から）
+     */
+    describe('findAllのページネーションテスト', () => {
+      // ・未指定
+      // ・サイズがマイナス値
+      // ・サイズが0
+      // ・サイズが1(下限値)
+      // ・サイズが正常値：20
+      // ・サイズが最大値(100)
+      // ・サイズが最大値を超える(101)
+      describe('sizeの境界値テスト', () => {
+        // memo: it.each([...])はbeforeEachより前(テストスイート組み立てフェーズ)に評価されるため、
+        // it.each内でconfigServiceなど、DIされたモジュールを呼び出すとundefinedになる。
+        // なので期待値の.envファイル読み込みは行わず、直書きする(prefectures.service.spec.tsに準拠)。
+        it.each([
+          {
+            testCase: 'size未指定',
+            note: 'デフォルト値がセットされること(他のケースで実施されるが一応)',
+            filters: { size: undefined } satisfies RegionFilter,
+            expectedParam: 20,
+          },
+          {
+            testCase: 'sizeがマイナス値',
+            note: 'MIN_PAGE_SIZEがセットされること',
+            filters: { size: -1 } satisfies RegionFilter,
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'sizeが0',
+            note: 'MIN_PAGE_SIZEがセットされること',
+            filters: { size: 0 } satisfies RegionFilter,
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'サイズが1(下限値)',
+            note: '下限値:PAGINATION.MIN_PAGE_SIZEがセットされること',
+            filters: { size: 1 } satisfies RegionFilter,
+            expectedParam: PAGINATION.MIN_PAGE_SIZE,
+          },
+          {
+            testCase: 'サイズが正常値：20',
+            note: '正常値:20がセットされること',
+            filters: { size: 20 } satisfies RegionFilter,
+            expectedParam: 20,
+          },
+          {
+            testCase: 'サイズが最大値(2000)',
+            note: '最大値:RAGINATION.MAX_PAGE_SIZEがセットされること',
+            filters: { size: 2000 } satisfies RegionFilter,
+            expectedParam: PAGINATION.MAX_PAGE_SIZE,
+          },
+          {
+            testCase: 'サイズが最大値を超える(2001)',
+            note: '最大値:RAGINATION.MAX_PAGE_SIZEがセットされること',
+            filters: { size: 2001 } satisfies RegionFilter,
+            expectedParam: PAGINATION.MAX_PAGE_SIZE,
+          },
+        ])('$testCase', async ({ filters, expectedParam }) => {
+          // mock data set (なんでもいい)
+          mockPrismaService.region.findMany.mockResolvedValue(
+            createPrismaMockData(),
+          );
+          mockPrismaService.region.count.mockResolvedValue(5);
+
+          // test対象 service 呼び出し
+          await regionsQueryService.findAll(filters);
+
+          // 検証： prisma の take句
+          expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+            include: { _count: { select: { prefectures: true } } },
+            where: {},
+            take: expectedParam,
+            skip: 0,
+            orderBy: { code: 'asc' },
+          });
+        });
+      });
+      describe('pageの境界値テスト: skipの算出ロジックテスト', () => {
+        // ・未指定
+        // ・マイナス値
+        // ・0
+        // ・1(下限値)
+        // ・正常値：2
+        // ・最大値(10000)
+        // ・ 最大値を超える(10001)
+        it.each([
+          {
+            testCase: 'page未指定',
+            note: 'デフォルト値がセットされること(他のケースで実施されるが一応)',
+            filters: { page: undefined } satisfies RegionFilter,
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageがマイナス値',
+            note: 'skip句に0がセットされること',
+            filters: { page: -1 } satisfies RegionFilter,
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが0',
+            note: 'skip句に0がセットされること',
+            filters: { page: 0 } satisfies RegionFilter,
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが1(下限値)',
+            note: 'skip句に0がセットされること',
+            filters: { page: 1 } satisfies RegionFilter,
+            expectedParam: 0,
+          },
+          {
+            testCase: 'pageが正常値：2',
+            note: 'skip句に20がセットされること',
+            filters: { page: 2 } satisfies RegionFilter,
+            expectedParam: 20,
+          },
+          {
+            testCase: 'pageが最大値(10000)',
+            note: 'skip句に199980がセットされること',
+            filters: { page: 10000 } satisfies RegionFilter,
+            expectedParam: 199980,
+          },
+          {
+            testCase: 'pageが最大値を超える(10001)',
+            note: 'skip句に199980がセットされること',
+            filters: { page: 10001 } satisfies RegionFilter,
+            expectedParam: 199980,
+          },
+        ])('$testCase', async ({ filters, expectedParam }) => {
+          // mock data set (なんでもいい)
+          mockPrismaService.region.findMany.mockResolvedValue(
+            createPrismaMockData(),
+          );
+          mockPrismaService.region.count.mockResolvedValue(5);
+
+          // test対象 service 呼び出し
+          await regionsQueryService.findAll(filters);
+
+          // 検証: skip句の算出ロジック
+          expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+            include: { _count: { select: { prefectures: true } } },
+            where: {},
+            take: 20,
+            skip: expectedParam,
+            orderBy: { code: 'asc' },
+          });
+        });
+      });
+      it('正常系: sizeとpageの両方を指定した場合、正しくskipとtakeが算出されること', async () => {
+        // mock data set (なんでもいい)
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+        mockPrismaService.region.count.mockResolvedValue(5);
+
+        // テスト対象service呼び出し
+        const filters = {
+          size: 10,
+          page: 3,
+        } satisfies RegionFilter;
+        await regionsQueryService.findAll(filters);
+
+        // 検証: Prisma の take/skip句の算出
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: {},
+          // サイズ
+          take: 10,
+          // offset(最初のXX件を飛ばす)
+          skip: 20,
+          orderBy: { code: 'asc' },
+        });
+      });
+    });
+
+    describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
+      it('filterが全て指定された場合、正しくwhere句、skip、takeなどが組み立てられること', async () => {
         // 引数
         const filters = {
           code: '01',
           name: '北海道',
           status: 'editing',
+          size: 10,
+          page: 2,
         } satisfies RegionFilter;
 
         // prisma modk data (なんでもいい)
@@ -252,6 +477,8 @@ describe('■■■ Region Query Service test ■■■', () => {
             name: { contains: filters.name },
             status: filters.status,
           },
+          take: 10,
+          skip: 10,
           orderBy: { code: 'asc' },
         });
         // prisma(findManay) の パラメータ(count) 検証

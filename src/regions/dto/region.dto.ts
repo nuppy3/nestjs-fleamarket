@@ -1,10 +1,13 @@
 import { Expose, Type } from 'class-transformer';
 import {
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
@@ -33,6 +36,29 @@ export class FindAllRegionsQueryDto {
     message: `RegionStatus must be one of: ${RegionStatus.EDITING}, ${RegionStatus.PUBLISHED}, ${RegionStatus.SUSPENDED}`,
   })
   status?: RegionStatus;
+
+  // ページ(ページネーション)
+  @IsOptional()
+  @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
+  @Min(1) // 1以上
+  // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
+  @Max(10000)
+  // string → number 変換
+  // main.tsにてグローバルでValidationPipe({transform: true})としてtransformを有効化
+  // していれば、@IsNumber()がついていれば、個別でNumber変換(@Type()での型変換)は不要。
+  // であるが、main.tsはtransform: tureがなかったので、個別で@Typeにて変換。
+  // → 個別でやることが多いらしい。
+  @Type(() => Number)
+  page?: number;
+
+  // 1ページあたりの件数
+  @IsOptional()
+  @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
+  @Min(1) // 1以上
+  @Max(2000) // numberの場合はMax()を使う
+  // string → number 変換
+  @Type(() => Number)
+  size?: number;
 }
 
 /**

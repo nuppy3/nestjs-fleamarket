@@ -101,6 +101,15 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // 検証
       const dto = createExpectedPaginatedRegionDto();
       expect(result).toEqual(dto);
+
+      // regiosQueryServie()の引数検証
+      expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        code: undefined,
+        name: undefined,
+        status: undefined,
+        page: undefined,
+        size: undefined,
+      });
     });
 
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
@@ -180,17 +189,53 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           status: 'editing',
         });
       });
+
+      it('正常系(4): pageを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // テスト対象 contrller 呼び出し
+        const query = { page: 2 } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          page: 2,
+        });
+      });
+
+      it('正常系(5): sizeを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // テスト対象 contrller 呼び出し
+        const query = { size: 30 } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          size: 30,
+        });
+      });
     });
 
     // queryの変換処理はcontrolerで実施していないし、
     // controllerで複合ケースの試験は不要な気もするが一応
-    describe('findAllの絞り込み(filter) 複合条件のテスト', () => {
-      it('(1)+(2)+(3)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+    describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
+      it('(1)+(2)+(3)+(4)+(5)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // 引数
         const reqDto = {
           code: '01',
           name: '北海道',
           status: 'editing',
+          page: 5,
+          size: 20,
         } satisfies FindAllRegionsQueryDto;
 
         // query service mock data (なんでもいい)
@@ -206,6 +251,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           code: '01',
           name: '北海道',
           status: 'editing',
+          page: 5,
+          size: 20,
         });
       });
     });
