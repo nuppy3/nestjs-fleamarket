@@ -40,7 +40,7 @@ export class FindAllRegionsQueryDto {
   // ページ(ページネーション)
   @IsOptional()
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
-  @Min(1) // 0以上
+  @Min(1) // 1以上
   // @MaxLength()は文字列にのみ有効なので、numberの場合はMax()を使う
   @Max(10000)
   // string → number 変換
@@ -54,7 +54,7 @@ export class FindAllRegionsQueryDto {
   // 1ページあたりの件数
   @IsOptional()
   @IsInt() // 整数のみ許容：一方IsNumberは少数OKになってしまう
-  @Min(1) // 0以上
+  @Min(1) // 1以上
   @Max(2000) // numberの場合はMax()を使う
   // string → number 変換
   @Type(() => Number)
