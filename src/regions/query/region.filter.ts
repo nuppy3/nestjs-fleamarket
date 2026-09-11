@@ -30,6 +30,14 @@ export type RegionFilter = {
   size?: number;
 };
 
+// ソートフィールド
+export const SortBy = {
+  CODE: 'code',
+  NAME: 'name',
+} as const;
+// SortOrder（モダンenum=union）の型定義
+export type SortBy = (typeof SortBy)[keyof typeof SortBy];
+
 // ソートオーダー(昇順/降順)
 export const SortOrder = {
   ASC: 'asc', // 昇順
