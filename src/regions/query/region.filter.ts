@@ -28,6 +28,12 @@ export type RegionFilter = {
 
   // 1ページあたりの件数
   size?: number;
+
+  // ソートフィールド
+  sortBy?: SortBy;
+
+  // ソートオーダー
+  sortOrder?: SortOrder;
 };
 
 // ソートフィールド

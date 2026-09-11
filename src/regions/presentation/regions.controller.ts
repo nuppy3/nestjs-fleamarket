@@ -49,12 +49,29 @@ export class RegionsController {
     // const domains = await this.regionsService.findAll();
 
     // QueryDTO → filter 変換
+    // ⭐️memo:
+    // HTTPSのリクエストパラメーターについてnullって送れるの？unndefindって送れるの？
+    // という疑問が、定期的に降りてくる。。。ので腰を据えて調べてみた。
+    // 上記の疑問に関連し、以下のようにnull or undefinedの場合にundefinedに変換するロジックを
+    // 多用しているが(要は初期化)、これって意味あるのか？という疑問もある。
+    // 結論：
+    // ・nullはほぼ不可能。JavaScriptのnullという値を、HTTPのクエリパラメータとして
+    // そのまま送る手段が、そもそも存在しない
+    //  → POST/PUTのJSON Body経由であれば可能。将来@Body()を使うようならnullは意識しておく
+    // がGETの場合はnullはこない。なので、以下の変換はほぼ無意味。。
+    // ・undefinedは可能
+    // ?size= → query.size は '' (空文字列)
+    // ?size=null → query.size は 'null'
+    // (sizeを付けない) → query.size は undefined
+    //
     const filters = {
       code: query.code ?? undefined,
       name: query.name ?? undefined,
       status: query.status ?? undefined,
       page: query.page ?? undefined,
       size: query.size ?? undefined,
+      sortOrder: query.sortOrder ?? undefined,
+      sortBy: query.sortBy ?? undefined,
     } satisfies RegionFilter;
 
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
