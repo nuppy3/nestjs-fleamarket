@@ -29,3 +29,11 @@ export type RegionFilter = {
   // 1ページあたりの件数
   size?: number;
 };
+
+// ソートオーダー(昇順/降順)
+export const SortOrder = {
+  ASC: 'asc', // 昇順
+  DESC: 'desc', // 降順
+} as const;
+// SortOrder（モダンenum=union）の型定義
+export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder];
