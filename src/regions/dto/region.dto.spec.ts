@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { RegionStatus } from '../domain/regions.model';
+import { SortBy, SortOrder } from '../query/region.filter';
 import { FindAllRegionsQueryDto } from './region.dto';
 
 /**
@@ -9,7 +10,7 @@ import { FindAllRegionsQueryDto } from './region.dto';
  */
 describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
   describe('validationテスト(正常系)', () => {
-    it('正常系: code/name/status/page/size(正常値)が指定された場合、validationエラーが発生しないこと', async () => {
+    it('正常系: code/name/status/page/size/sortBy/sortOrder(正常値)が指定された場合、validationエラーが発生しないこと', async () => {
       // const dto = {
       //   code: '01',
       //   name: '北海道',
@@ -39,8 +40,11 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
         status: RegionStatus.PUBLISHED,
         page: '1', // string (最小)
         size: '1', // string (最小)
+        sortBy: SortBy.NAME,
+        sortOrder: SortOrder.DESC,
       };
 
+      // FindAllRegionsQueryDtoを作成(+ @Type(() => Number) の変換処理も実施)
       const dto = plainToInstance(FindAllRegionsQueryDto, obj);
 
       // validation実行
@@ -54,11 +58,13 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
         status: RegionStatus.PUBLISHED,
         page: 1, // string → number (最小)
         size: 1, // string → number (最小)
+        sortBy: SortBy.NAME,
+        sortOrder: SortOrder.DESC,
       });
     });
   });
 
-  describe('validationテスト(正常系)', () => {
+  describe('validationテスト(正常系)の境界値テスト', () => {
     // 正常系の境界値ケース（異常系は後続で実施） ※page/sizeはそれぞれ分けるべきだが、ちょっと面倒だった。。
     it('正常系: page/size(正常値)の境界値', async () => {
       // 正式版: クエリパラメーターは実際には常にstringで渡ってくる
@@ -153,24 +159,58 @@ describe('■■■ FindAllRegionsQueryDto TEST ■■■', () => {
       // expect(errors[0].constraints).toHaveProperty('isString'); // 省略
       expect(errors[0].constraints).toHaveProperty('maxLength');
     });
-  });
 
-  it('異常系：statusのエラーチェック(@IsEnum) 不正なenum値の場合、エラー', async () => {
-    // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
-    const obj = {
-      status: '不正なステータス',
-      // page: '1', // string
-      // size: '20', // string
-    };
-    const dto = plainToInstance(FindAllRegionsQueryDto, obj);
+    it('異常系：statusのエラーチェック(@IsEnum) 不正なenum値の場合、エラー', async () => {
+      // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
+      const obj = {
+        status: '不正なステータス',
+        // page: '1', // string
+        // size: '20', // string
+      };
+      const dto = plainToInstance(FindAllRegionsQueryDto, obj);
 
-    // validation実行
-    const errors = await validate(dto);
+      // validation実行
+      const errors = await validate(dto);
 
-    // 検証： ValidationErrorの内容を検証する
-    expect(errors).toHaveLength(1);
-    expect(errors[0].property).toBe('status');
-    expect(errors[0].constraints).toHaveProperty('isEnum');
+      // 検証： ValidationErrorの内容を検証する
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('status');
+      expect(errors[0].constraints).toHaveProperty('isEnum');
+    });
+
+    it('異常系：sortByのエラーチェック(@IsEnum) 不正なenum値の場合、エラー', async () => {
+      // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
+      const obj = {
+        sortBy: 'hogehoge',
+        // sortOrder: SortOrder.DESC,
+      };
+      const dto = plainToInstance(FindAllRegionsQueryDto, obj);
+
+      // validation実行
+      const errors = await validate(dto);
+
+      // 検証： ValidationErrorの内容を検証する
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('sortBy');
+      expect(errors[0].constraints).toHaveProperty('isEnum');
+    });
+
+    it('異常系：sortOrderのエラーチェック(@IsEnum) 不正なenum値の場合、エラー', async () => {
+      // テスト対象DTO作成: クエリパラメーターは実際には常にstringで渡ってくる
+      const obj = {
+        // sortBy: SortBy.NAME,
+        sortOrder: 'hogehoge',
+      };
+      const dto = plainToInstance(FindAllRegionsQueryDto, obj);
+
+      // validation実行
+      const errors = await validate(dto);
+
+      // 検証： ValidationErrorの内容を検証する
+      expect(errors).toHaveLength(1);
+      expect(errors[0].property).toBe('sortOrder');
+      expect(errors[0].constraints).toHaveProperty('isEnum');
+    });
   });
 
   describe('pageのエラーチェック', () => {
