@@ -109,6 +109,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         status: undefined,
         page: undefined,
         size: undefined,
+        sortOrder: undefined,
+        sortBy: undefined,
       });
     });
 
@@ -223,12 +225,46 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           size: 30,
         });
       });
+
+      it('正常系(6): sortByを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // テスト対象 contrller 呼び出し
+        const query = { sortBy: 'name' } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          sortBy: 'name',
+        });
+      });
+
+      it('正常系(7): sortOrderを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+        // mock data 作成(jest.spyOnを使用しないパターン)
+        // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
+        mockRegionsQueryService.findAll.mockResolvedValue(
+          createServiceMockPaginatedResult(),
+        );
+
+        // テスト対象 contrller 呼び出し
+        const query = { sortOrder: 'desc' } satisfies FindAllRegionsQueryDto;
+        await regionsController.findAll(query);
+
+        // 引数検証: Serviceを期待通りの引数で呼んでいるか
+        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+          sortOrder: 'desc',
+        });
+      });
     });
 
     // queryの変換処理はcontrolerで実施していないし、
     // controllerで複合ケースの試験は不要な気もするが一応
     describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
-      it('(1)+(2)+(3)+(4)+(5)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
+      it('(1)+(2)+(3)+(4)+(5)+(6)+(7)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // 引数
         const reqDto = {
           code: '01',
@@ -236,6 +272,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           status: 'editing',
           page: 5,
           size: 20,
+          sortBy: 'name',
+          sortOrder: 'desc',
         } satisfies FindAllRegionsQueryDto;
 
         // query service mock data (なんでもいい)
@@ -253,6 +291,8 @@ describe('■■■　Regions Controller TEST ■■■', () => {
           status: 'editing',
           page: 5,
           size: 20,
+          sortBy: 'name',
+          sortOrder: 'desc',
         });
       });
     });
