@@ -111,13 +111,16 @@ describe('■■■ Region Query Service test ■■■', () => {
       const dtos = createExpectedPaginatedResult();
       expect(result).toEqual(dtos);
 
-      // prisma引数検証 → 引数なしなので不要
-      // expect(jest.spyOn(prismaService.region, 'findMany')).toHaveBeenCalledWith(
-      //   {
-      //     include: { _count: { select: { prefectures: true } } },
-      //     orderBy: { code: 'asc' },
-      //   },
-      // );
+      // prisma引数検証
+      // prisma(findManay) の パラメータ(where/take/skip/orderBn) 検証
+      expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+        include: { _count: { select: { prefectures: true } } },
+        where: {},
+        take: 20,
+        skip: 0,
+        // 配列：Prisma.RegionOrderByWithRelationInput[]
+        orderBy: [{ code: 'asc' }],
+      });
     });
 
     it('Promise.all が正しく並列で呼ばれていることを確認', async () => {
@@ -164,7 +167,7 @@ describe('■■■ Region Query Service test ■■■', () => {
      *         },
      *       });
      */
-    describe('findAllの絞り込み(filter)テスト', () => {
+    describe('findAllの絞り込み(filter) Where句 テスト', () => {
       it('正常系(1): codeを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
         // 引数
         const filters = { code: '01' } satisfies RegionFilter;
@@ -189,7 +192,8 @@ describe('■■■ Region Query Service test ■■■', () => {
           where: { code: '01' },
           take: 20,
           skip: 0,
-          orderBy: { code: 'asc' },
+          // 配列
+          orderBy: [{ code: 'asc' }],
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
           where: { code: '01' },
@@ -215,7 +219,8 @@ describe('■■■ Region Query Service test ■■■', () => {
           where: { name: { contains: '関東' } },
           take: 20,
           skip: 0,
-          orderBy: { code: 'asc' },
+          // 配列
+          orderBy: [{ code: 'asc' }],
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
           where: { name: { contains: '関東' } },
@@ -241,7 +246,8 @@ describe('■■■ Region Query Service test ■■■', () => {
           where: { status: 'editing' },
           take: 20,
           skip: 0,
-          orderBy: { code: 'asc' },
+          // 配列
+          orderBy: [{ code: 'asc' }],
         });
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({
           where: { status: 'editing' },
@@ -278,6 +284,7 @@ describe('■■■ Region Query Service test ■■■', () => {
      *  テスト番号（0から）
      */
     describe('findAllのページネーションテスト', () => {
+      // ■ sizeの境界値テスト
       // ・未指定
       // ・サイズがマイナス値
       // ・サイズが0
@@ -348,11 +355,14 @@ describe('■■■ Region Query Service test ■■■', () => {
             where: {},
             take: expectedParam,
             skip: 0,
-            orderBy: { code: 'asc' },
+            // 配列
+            orderBy: [{ code: 'asc' }],
           });
         });
       });
+
       describe('pageの境界値テスト: skipの算出ロジックテスト', () => {
+        // ■ pageの境界値テスト
         // ・未指定
         // ・マイナス値
         // ・0
@@ -419,10 +429,12 @@ describe('■■■ Region Query Service test ■■■', () => {
             where: {},
             take: 20,
             skip: expectedParam,
-            orderBy: { code: 'asc' },
+            // 配列
+            orderBy: [{ code: 'asc' }],
           });
         });
       });
+
       it('正常系: sizeとpageの両方を指定した場合、正しくskipとtakeが算出されること', async () => {
         // mock data set (なんでもいい)
         mockPrismaService.region.findMany.mockResolvedValue(
@@ -445,13 +457,68 @@ describe('■■■ Region Query Service test ■■■', () => {
           take: 10,
           // offset(最初のXX件を飛ばす)
           skip: 20,
-          orderBy: { code: 'asc' },
+          // 配列
+          orderBy: [{ code: 'asc' }],
+        });
+      });
+    });
+
+    describe('findAllのorderBy句テスト', () => {
+      it('正常系: sortBy sortOrderを指定した場合、orderBy句が正しくセットされる', async () => {
+        // 引数
+        const filters = {
+          sortBy: 'name',
+          sortOrder: 'desc',
+        } satisfies RegionFilter;
+
+        // mock data （なんでもいい）
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+        mockPrismaService.region.count.mockResolvedValue(5);
+
+        // test対象service呼び出し
+        await regionsQueryService.findAll(filters);
+
+        // 検証：orderBy句
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: {},
+          take: 20,
+          skip: 0,
+          orderBy: [{ name: 'desc' }],
+        });
+      });
+
+      it('正常系: sortBy sortOrderが未指定の場合、デフォルトソート（code = asc）がセットされる', async () => {
+        // 引数
+        const filters = {
+          sortBy: undefined,
+          sortOrder: undefined,
+        } satisfies RegionFilter;
+
+        // mock data （なんでもいい）
+        mockPrismaService.region.findMany.mockResolvedValue(
+          createPrismaMockData(),
+        );
+        mockPrismaService.region.count.mockResolvedValue(5);
+
+        // test対象service呼び出し
+        await regionsQueryService.findAll(filters);
+
+        // 検証：orderBy句
+        expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+          include: { _count: { select: { prefectures: true } } },
+          where: {},
+          take: 20,
+          skip: 0,
+          orderBy: [{ code: 'asc' }],
         });
       });
     });
 
     describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
-      it('filterが全て指定された場合、正しくwhere句、skip、takeなどが組み立てられること', async () => {
+      it('filterが全て指定された場合、正しくwhere句、skip、take、orderBy などが組み立てられること', async () => {
         // 引数
         const filters = {
           code: '01',
@@ -459,6 +526,8 @@ describe('■■■ Region Query Service test ■■■', () => {
           status: 'editing',
           size: 10,
           page: 2,
+          sortBy: 'name',
+          sortOrder: 'desc',
         } satisfies RegionFilter;
 
         // prisma modk data (なんでもいい)
@@ -469,7 +538,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         // seavice 呼び出し
         await regionsQueryService.findAll(filters);
 
-        // prisma(findManay) の パラメータ(where) 検証
+        // prisma(findManay) の パラメータ(where/take/skip/orderBn) 検証
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
           include: { _count: { select: { prefectures: true } } },
           where: {
@@ -479,7 +548,8 @@ describe('■■■ Region Query Service test ■■■', () => {
           },
           take: 10,
           skip: 10,
-          orderBy: { code: 'asc' },
+          // 配列：Prisma.RegionOrderByWithRelationInput[]
+          orderBy: [{ name: 'desc' }],
         });
         // prisma(findManay) の パラメータ(count) 検証
         expect(mockPrismaService.region.count).toHaveBeenCalledWith({

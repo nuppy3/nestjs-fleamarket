@@ -9,7 +9,7 @@ import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
 import { Region } from '../domain/regions.model';
 import { RegionDetailReadModel } from './region-detail.read-model';
 import { RegionListReadModel } from './region-list.read-model';
-import { RegionFilter } from './region.filter';
+import { RegionFilter, SortBy, SortOrder } from './region.filter';
 
 /**
  * RegionsQueryServiceService: 参照・表示用のQuery Service
@@ -56,6 +56,8 @@ export class RegionsQueryService {
   ): Promise<PaginatedResult<RegionListReadModel>> {
     // where句作成
     const commonWhere = this.buildWhere(filters);
+    // OrderBy句作成
+    const orderBy = this.buildOrderBy(filters);
 
     // take句作成(ページサイズ): 1〜2000
     // デフォルト値設定（sizeが指定されていない場合、環境変数REGION_DEFAULT_PAGE_SIZEを参照し、未設定の場合は20件）
@@ -99,7 +101,8 @@ export class RegionsQueryService {
         take: size,
         // offset(最初のXX件を飛ばす)
         skip: skip,
-        orderBy: { code: 'asc' },
+        // orderBy: { code: 'asc' },
+        orderBy: orderBy,
       }),
       this.prismaService.region.count({
         // where: { code: filters.code, name: { contains: filters.name } },
@@ -364,5 +367,41 @@ export class RegionsQueryService {
     } satisfies Prisma.RegionWhereInput;
 
     return where;
+  }
+
+  /**
+   * findMany,countのorderBy句を作成します。
+   *
+   * default:
+   *  codeのASC(昇順)
+   *
+   * findMany()のorderBy句は
+   *  型：
+   *    Prisma.RegionOrderByWithRelationInputと
+   *    Prisma.RegionOrderByWithRelationInput[] の両方を許容しているので[]配列版で生成。
+   *
+   * @param filters 検索条件
+   * @returns orderBy句
+   */
+  private buildOrderBy(
+    filters: RegionFilter,
+  ): Prisma.RegionOrderByWithRelationInput[] {
+    // OrderBy句作成： デフォルト code: asc
+    const sortField = filters.sortBy ?? SortBy.CODE;
+    const sortOrder = filters.sortOrder ?? SortOrder.ASC;
+
+    // Order By 条件の構築
+    // RegionOrderByWithRelationInput: Prismaが自動生成する型で、「Regionモデルを
+    // ソート（orderBy）するときに使える条件の型」
+    const orderBy = [
+      {
+        // memo: [sortField]の[]はcomputed property names（算出プロパティ名） という構文
+        // []で囲わず {sortField: sortOrder} と記述すると文字通り、'sortField'として扱われ
+        // てしまう。→ [] で囲むことで、「中身をキー名として評価してね」という意味になります。
+        [sortField]: sortOrder,
+      },
+    ] satisfies Prisma.RegionOrderByWithRelationInput[];
+
+    return orderBy;
   }
 }

@@ -13,6 +13,7 @@ import { PaginatedResult } from '../../common/interfaces/paginated-result.interf
 import { PrefectureStatus } from '../../prefectures/prefectures.model';
 import { PaginationMetaDto } from '../../stores/dto/store.dto';
 import { Region, RegionStatus } from '../domain/regions.model';
+import { SortBy, SortOrder } from '../query/region.filter';
 
 /**
  * エリア情報検索クエリDTO(フィルター/ソート順などのクエリパラメータDTO)
@@ -59,6 +60,20 @@ export class FindAllRegionsQueryDto {
   // string → number 変換
   @Type(() => Number)
   size?: number;
+
+  // ソートフィールド
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
+  @IsEnum(SortBy, {
+    message: `sortBy must be one of: ${SortBy.CODE}, ${SortBy.NAME}`,
+  })
+  sortBy?: SortBy;
+
+  // ソートオーダー
+  @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
+  @IsEnum(SortOrder, {
+    message: `sortOrder must be one of: ${SortOrder.ASC}, ${SortOrder.DESC}`,
+  })
+  sortOrder?: SortOrder;
 }
 
 /**
