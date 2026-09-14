@@ -64,14 +64,14 @@ export class FindAllRegionsQueryDto {
   // ソートフィールド
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
   @IsEnum(SortBy, {
-    message: `sortBy must be one of: ${SortBy.CODE}, ${SortBy.NAME}}`,
+    message: `sortBy must be one of: ${SortBy.CODE}, ${SortBy.NAME}`,
   })
   sortBy?: SortBy;
 
   // ソートオーダー
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsEnumを無視)
   @IsEnum(SortOrder, {
-    message: `sortOrder must be one of: ${SortOrder.ASC}, ${SortOrder.DESC}}`,
+    message: `sortOrder must be one of: ${SortOrder.ASC}, ${SortOrder.DESC}`,
   })
   sortOrder?: SortOrder;
 }
