@@ -7,8 +7,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
 import { Region } from '../domain/regions.model';
-import { RegionDetailReadModel } from './region-detail.read-model';
-import { RegionListReadModel } from './region-list.read-model';
+import { RegionDetailReadModel } from './read-model/region-detail.read-model';
+import { RegionListReadModel } from './read-model/region-list.read-model';
 import { RegionFilter, SortBy, SortOrder } from './region.filter';
 
 /**
