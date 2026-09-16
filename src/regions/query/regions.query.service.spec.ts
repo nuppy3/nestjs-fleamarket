@@ -15,8 +15,8 @@ import {
   Region,
   RegionState,
 } from '../domain/regions.model';
-import { RegionDetailReadModel } from './region-detail.read-model';
-import { RegionListReadModel } from './region-list.read-model';
+import { RegionDetailReadModel } from './read-model/region-detail.read-model';
+import { RegionListReadModel } from './read-model/region-list.read-model';
 import { RegionFilter } from './region.filter';
 import { RegionsQueryService } from './regions.query.service';
 
