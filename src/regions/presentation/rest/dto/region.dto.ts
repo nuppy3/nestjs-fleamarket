@@ -9,11 +9,11 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
-import { PrefectureStatus } from '../../prefectures/prefectures.model';
-import { PaginationMetaDto } from '../../stores/dto/store.dto';
-import { Region, RegionStatus } from '../domain/regions.model';
-import { SortBy, SortOrder } from '../query/region.filter';
+import { PaginatedResult } from '../../../../common/interfaces/paginated-result.interface';
+import { PrefectureStatus } from '../../../../prefectures/prefectures.model';
+import { PaginationMetaDto } from '../../../../stores/dto/store.dto';
+import { Region, RegionStatus } from '../../../domain/regions.model';
+import { SortBy, SortOrder } from '../../../query/region.filter';
 
 /**
  * エリア情報検索クエリDTO(フィルター/ソート順などのクエリパラメータDTO)
