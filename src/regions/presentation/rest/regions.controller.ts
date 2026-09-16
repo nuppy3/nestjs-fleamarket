@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from '../../../types/requestUser';
-import { PublishRegionDto } from '../..//dto/publish-region.dto';
+import { PublishRegionDto } from '../../dto/publish-region.dto';
 import { RegionsService } from '../../application/regions.service';
 import {
   CreateRegionDto,
