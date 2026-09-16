@@ -11,18 +11,18 @@ import {
   Region,
   RegionStatus,
 } from '../../domain/regions.model';
-import { PublishRegionDto } from '../../dto/publish-region.dto';
+import { RegionDetailReadModel } from '../../query/region-detail.read-model';
+import { RegionListReadModel } from '../../query/region-list.read-model';
+import { RegionsQueryService } from '../../query/regions.query.service';
+import { PublishRegionDto } from './dto/publish-region.dto';
 import {
   CreateRegionDto,
   FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
   RegionResponseDto,
-} from '../../dto/region.dto';
-import { UnpublishRegionDto } from '../../dto/unpublish-region.dto';
-import { UpdateRegionDto } from '../../dto/update-region.dto';
-import { RegionDetailReadModel } from '../../query/region-detail.read-model';
-import { RegionListReadModel } from '../../query/region-list.read-model';
-import { RegionsQueryService } from '../../query/regions.query.service';
+} from './dto/region.dto';
+import { UnpublishRegionDto } from './dto/unpublish-region.dto';
+import { UpdateRegionDto } from './dto/update-region.dto';
 import { RegionsController } from './regions.controller';
 
 const mockRegionsService = {
