@@ -6,7 +6,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { RegionStatus } from '../domain/regions.model';
+import { RegionStatus } from '../../../domain/regions.model';
 import { CreateRegionDto } from './region.dto';
 
 /**

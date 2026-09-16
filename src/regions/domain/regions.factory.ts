@@ -1,4 +1,4 @@
-import { CreateRegionDto } from '../dto/region.dto';
+import { CreateRegionDto } from '../presentation/rest/dto/region.dto';
 import { Region } from './regions.model';
 
 /**

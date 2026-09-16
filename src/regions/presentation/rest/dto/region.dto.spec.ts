@@ -1,7 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { RegionStatus } from '../domain/regions.model';
-import { SortBy, SortOrder } from '../query/region.filter';
+import { RegionStatus } from '../../../domain/regions.model';
+import { SortBy, SortOrder } from '../../../query/region.filter';
 import { FindAllRegionsQueryDto } from './region.dto';
 
 /**

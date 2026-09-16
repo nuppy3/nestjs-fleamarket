@@ -15,18 +15,18 @@ import { AuthGuard } from '@nestjs/passport';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { Request as ExpressRequest } from 'express';
 import { RequestUser } from '../../../types/requestUser';
-import { PublishRegionDto } from '../../dto/publish-region.dto';
 import { RegionsService } from '../../application/regions.service';
+import { RegionsQueryService } from '../../query/regions.query.service';
+import { RegionFilter } from './../../query/region.filter';
+import { PublishRegionDto } from './dto/publish-region.dto';
 import {
   CreateRegionDto,
   FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
   RegionResponseDto,
-} from '../../dto/region.dto';
-import { UnpublishRegionDto } from '../../dto/unpublish-region.dto';
-import { UpdateRegionDto } from '../../dto/update-region.dto';
-import { RegionsQueryService } from '../../query/regions.query.service';
-import { RegionFilter } from './../../query/region.filter';
+} from './dto/region.dto';
+import { UnpublishRegionDto } from './dto/unpublish-region.dto';
+import { UpdateRegionDto } from './dto/update-region.dto';
 
 @Controller('regions')
 export class RegionsController {
