@@ -163,6 +163,8 @@ export class RegionsController {
     @Body() createRegionDto: CreateRegionDto,
     @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<RegionResponseDto> {
+    // DTO → command 変換
+
     // エリア情報登録（永続化）
     const domain = await this.regionsService.create(
       createRegionDto,

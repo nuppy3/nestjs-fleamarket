@@ -19,7 +19,7 @@ export interface RegionState {
 
 /**
  * 【新規作成用】
- * Region domain作成時に必要はプロパティを型として定義
+ * Region domain作成時に必要なプロパティを型として定義
  * 外部から入力される項目のみ（statusや日付は内部で生成するため除外）
  */
 export type CreateRegionProps = Omit<
@@ -29,13 +29,15 @@ export type CreateRegionProps = Omit<
 
 /**
  * 【更新用】
- * Region domain更新時に必要はプロパティを型として定義
+ * Region domain更新時に必要なプロパティを型として定義
  * 日付以外は更新対象
  *
  * 型はRegionStateをベースとした任意項目：
  *  ・Partial<Omit<RegionState, '' | '' | ''>>
  */
-export type UpdateRegionProps = Partial<Omit<RegionState, 'createdAt'>>;
+export type UpdateRegionProps = Partial<
+  Omit<RegionState, 'updatedAt' | 'createdAt'>
+>;
 
 /**
  * 【再構成用】
