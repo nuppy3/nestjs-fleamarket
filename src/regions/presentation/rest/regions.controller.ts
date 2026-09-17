@@ -17,6 +17,7 @@ import { Request as ExpressRequest } from 'express';
 import { RequestUser } from '../../../types/requestUser';
 import { RegionsService } from '../../application/regions.service';
 import { RegionsQueryService } from '../../query/regions.query.service';
+import { CreateRegionCommand } from './../../application/commands/create-region.command';
 import { RegionFilter } from './../../query/region.filter';
 import { PublishRegionDto } from './dto/publish-region.dto';
 import {
@@ -164,12 +165,15 @@ export class RegionsController {
     @Request() req: ExpressRequest & { user: RequestUser },
   ): Promise<RegionResponseDto> {
     // DTO → command 変換
+    const command = {
+      code: createRegionDto.code,
+      name: createRegionDto.name,
+      kanaName: createRegionDto.kanaName,
+      kanaEn: createRegionDto.kanaEn,
+    } satisfies CreateRegionCommand;
 
     // エリア情報登録（永続化）
-    const domain = await this.regionsService.create(
-      createRegionDto,
-      req.user.id,
-    );
+    const domain = await this.regionsService.create(command, req.user.id);
 
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
     return instanceToPlain(

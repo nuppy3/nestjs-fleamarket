@@ -6,8 +6,8 @@ import { RegionsDomainService } from '../domain/regions.domain.service';
 import { RegionFactory } from '../domain/regions.factory';
 import { Region } from '../domain/regions.model';
 import { PublishRegionDto } from '../presentation/rest/dto/publish-region.dto';
-import { CreateRegionDto } from '../presentation/rest/dto/region.dto';
 import { UpdateRegionDto } from '../presentation/rest/dto/update-region.dto';
+import { CreateRegionCommand } from './commands/create-region.command';
 
 @Injectable()
 export class RegionsService {
@@ -22,19 +22,21 @@ export class RegionsService {
   /**
    * エリア情報作成
    *
-   * @param createDto 作成対象のエリア情報
+   * @param command 作成対象のエリア情報(command情報)
    * @param userId ユーザーID
    * @returns 作成されたエリア情報
    */
   async create(
-    createDto: CreateRegionDto,
+    command: CreateRegionCommand,
     userId: string,
   ): Promise<Region & { id: string }> {
     // dto → domain
     // domain詰め替えはスキップしてもいいが(dtoから直接CreateInputを作成してもいいが)、念の為。
     // RegionFactoryを作成したので、以下のdto展開は不要
     // const { code, name, kanaName, status, kanaEn } = createDto;
-    const domain = RegionFactory.fromCreateDto(createDto);
+
+    // command → domain
+    const domain = RegionFactory.fromCreateDto(command);
     // TODO: 暫定ロジック: save()の引数が Region & {id:string} なので暫定で''をセット
     const domainWithId = Object.assign(domain, { id: '' });
 
