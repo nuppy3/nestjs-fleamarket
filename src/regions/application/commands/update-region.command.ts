@@ -1,4 +1,4 @@
-import { RegionState } from 'src/regions/domain/regions.model';
+import { RegionState } from '../../../regions/domain/regions.model';
 
 /**
  * 【更新用】
