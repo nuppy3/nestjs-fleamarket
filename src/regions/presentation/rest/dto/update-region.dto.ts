@@ -17,6 +17,12 @@ import { CreateRegionDto } from './region.dto';
  *
  * DTO の必須プロパティには ! をつける。（例: name!: string;）
  * DTO の任意プロパティには ? をつける。（例: kanaName?: string;）
+ *
+ * memo: PartialTypeはユーティリティ関数で、既存のDTOクラスを継承しつつ、全プロパティを
+ *       自動的にoptional(?付き)に変換してくれます。バリデーションデコレーター(@IsStringなど)
+ *       ただし実際にはname/code/kanaName/status/kanaEnをUpdateRegionDto内で再度
+ *       手書きしていて、PartialType(CreateRegionDto)からの継承と二重になっている状態です
+ *       (コメントにある通り、NestJS CLIのinit時の自動生成をそのまま活かした名残)。
  */
 export class UpdateRegionDto extends PartialType(CreateRegionDto) {
   @IsOptional() // 任意項目デコレーター(渡された値がnullの場合は、以降のIsString、MaxLengthなどを無視する)

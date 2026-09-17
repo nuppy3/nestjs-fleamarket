@@ -1,19 +1,20 @@
-import { CreateRegionDto } from '../presentation/rest/dto/region.dto';
-import { Region } from './regions.model';
+import { CreateRegionProps, Region } from './regions.model';
 
 /**
  * RegionドメインのFactory
- * dto → domain
+ *
+ * // dto → domain （DDDの依存方向を考慮しdto → domainを以下に修正
+ * props → domain
  */
 export class RegionFactory {
-  static fromCreateDto(dto: CreateRegionDto) {
+  static from(props: CreateRegionProps) {
     // Region作成
     return Region.createNew({
-      code: dto.code,
-      name: dto.name,
-      kanaName: dto.kanaName,
-      // status: dto.status,
-      kanaEn: dto.kanaEn,
-    });
+      code: props.code,
+      name: props.name,
+      kanaName: props.kanaName,
+      // status: props.status,
+      kanaEn: props.kanaEn,
+    } satisfies CreateRegionProps);
   }
 }
