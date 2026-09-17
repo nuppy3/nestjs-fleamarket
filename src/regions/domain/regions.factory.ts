@@ -7,7 +7,7 @@ import { CreateRegionProps, Region } from './regions.model';
  * props → domain
  */
 export class RegionFactory {
-  static fromCreateDto(props: CreateRegionProps) {
+  static from(props: CreateRegionProps) {
     // Region作成
     return Region.createNew({
       code: props.code,

@@ -4,10 +4,10 @@ import type { RegionRepositoryPort } from '../domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
 import { RegionsDomainService } from '../domain/regions.domain.service';
 import { RegionFactory } from '../domain/regions.factory';
-import { Region } from '../domain/regions.model';
+import { Region, UpdateRegionProps } from '../domain/regions.model';
 import { PublishRegionDto } from '../presentation/rest/dto/publish-region.dto';
-import { UpdateRegionDto } from '../presentation/rest/dto/update-region.dto';
 import { CreateRegionCommand } from './commands/create-region.command';
+import { UpdateRegionCommand } from './commands/update-region.command';
 
 @Injectable()
 export class RegionsService {
@@ -36,7 +36,7 @@ export class RegionsService {
     // const { code, name, kanaName, status, kanaEn } = createDto;
 
     // command → domain
-    const domain = RegionFactory.fromCreateDto(command);
+    const domain = RegionFactory.from(command);
     // TODO: 暫定ロジック: save()の引数が Region & {id:string} なので暫定で''をセット
     const domainWithId = Object.assign(domain, { id: '' });
 
@@ -86,19 +86,25 @@ export class RegionsService {
    * update(): エリア情報更新
    *
    * @param id エリア情報のID（更新対象のkey）
-   * @param updateRegionDto 更新対象のエリア情報
+   * @param command 更新対象のエリア情報(command)
    * @param userId ユーザーID
    * @returns
    */
   async update(
     id: string,
-    updateRegionDto: UpdateRegionDto,
+    command: UpdateRegionCommand,
     userId: string,
   ): Promise<Region & { id: string }> {
-    // dto取得
-    // Tweet：分割代入で展開してみてるけど、regionWithId.update()に渡す際に?? udefined変換
-    //        しちゃってるので、恩恵がない。。
-    const { name, code, kanaName, status, kanaEn } = updateRegionDto;
+    // commnd → Domain 更新対象のプロパティ
+    // Tweet：分割代入で展開してみてるけど、直接渡してもいいかも
+    const { name, code, kanaName, status, kanaEn } = command;
+    const updateProps = {
+      name,
+      code,
+      kanaName,
+      status,
+      kanaEn,
+    } satisfies UpdateRegionProps;
 
     // DBから更新対象のRegionを取得(なければ404) ---
     // ドメインの整合性を守るため、更新前に現在の状態を取得し、ドメインルールによる検証を行う。
@@ -110,13 +116,14 @@ export class RegionsService {
     const regionWithId = await this.findByIdOrFail(id);
 
     // domain更新(dtoの項目で更新): ドメインルール（例：特定のステータスなら名前は変えられない等）をチェック
-    regionWithId.update({
-      name: name ?? undefined,
-      code: code ?? undefined,
-      kanaName: kanaName ?? undefined,
-      status: status ?? undefined,
-      kanaEn: kanaEn ?? undefined,
-    } satisfies UpdateRegionDto);
+    // regionWithId.update({
+    //   name: name ?? undefined,
+    //   code: code ?? undefined,
+    //   kanaName: kanaName ?? undefined,
+    //   status: status ?? undefined,
+    //   kanaEn: kanaEn ?? undefined,
+    // } satisfies UpdateRegionDto);
+    regionWithId.update(updateProps);
 
     // 永続化（DB更新) → domain(toDomain)
     const saved = await this.regionRepository.save(regionWithId, userId);
