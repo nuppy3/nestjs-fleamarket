@@ -20,6 +20,11 @@ import { RegionListReadModel } from './read-model/region-list.read-model';
 import { RegionFilter } from './region.filter';
 import { RegionsQueryService } from './regions.query.service';
 
+// MockConfigSerivce定義 → 本物のconfigServiceを使うのでコメント
+// const mockConfigSerivce = {
+//   get: jest.fn(),
+// };
+
 // MockService定義
 const mockPrismaService = {
   region: {
@@ -43,6 +48,8 @@ describe('■■■ Region Query Service test ■■■', () => {
   // DIモジュール
   let regionsQueryService: RegionsQueryService;
   let regionRepository: RegionRepositoryPort;
+  // configServiceは本物を使う
+  // let configService: ConfigService;
   let prismaService: PrismaService;
 
   // 前処理: テスト全体の前に1回だけ実行される
@@ -58,6 +65,7 @@ describe('■■■ Region Query Service test ■■■', () => {
       // app.module.tsと同様にConfigModule.forRoot({ isGlobal: true })を含める
       // (isGlobalはコンパイルされたモジュールツリー全体に効くため、ネストされた
       // RegionsModule内部にもConfigServiceが行き渡る)
+      // 20260918: mock化するため以下をコメント → と思ったけど、やっぱコメントやめる
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
@@ -66,6 +74,8 @@ describe('■■■ Region Query Service test ■■■', () => {
       ],
       providers: [
         RegionsQueryService,
+        // configServiceは本物を使う
+        // { provide: ConfigService, useValue: mockConfigSerivce },
         { provide: PrismaService, useValue: mockPrismaService },
         // Repositoryはinterfaceを実装しているのでtoken(=REGION_REPOSITORY_PORT)で指定
         {
@@ -75,7 +85,24 @@ describe('■■■ Region Query Service test ■■■', () => {
       ],
     }).compile();
 
+    // ⭐️memo: mockPrismaServiceなどで、findManyなどを jest.fn() している時点で、prismaService
+    //         のfindMany()はmock化されており、mockPrismaServiceを呼び出すだけで、モック
+    //         を扱うことができるので、実は、以下のような定義は不要。実際、以下のprismaService(頭にmockがつかない)
+    //         は、実態としては、mockPrismaSerivceのインスタンスが入っているので同じモノ。
+    //         なので、定義が重複している。
+    //         ただ、mockが頭につかない以下のprismaServiceを使ってmockResolvedValue()などを
+    //         したい場合、jest.spyOn()でprismaServiceを呼び出す必要がある。ここが変なところ。
+    //         → 理由はTypeScriptの型の推論のせい。
+    //          prismaServiceはmodule.get<PrismaService>(PrismaService)で取得しているため、
+    //          変数の型は本物のPrismaService(Prisma Clientが生成する型)になってしまう。。
+    //          { provide: PrismaService, useValue: mockPrismaService },してたとしっても。。
+    //          TypeScriptが本物のprismaServiceの型と認識してしまってるので、spyOnなしで呼ぶと
+    //          コンパイルエラーというか警告が出るということらしい。
+    //          そして、mockPrismaService()、jest.spyOn(prismaService.region...)の両方を
+    //          使っても問題ないらしい。
     regionsQueryService = module.get<RegionsQueryService>(RegionsQueryService);
+    // configServiceは本物を使う
+    // configService = module.get<ConfigService>(ConfigService);
     prismaService = module.get<PrismaService>(PrismaService);
     regionRepository = module.get<RegionRepositoryPort>(REGION_REPOSITORY_PORT);
   });
@@ -85,6 +112,13 @@ describe('■■■ Region Query Service test ■■■', () => {
     console.log('beforeEach: モックをリセット');
     // jest.clearAllMocks();
     jest.resetAllMocks();
+    // Configのデフォルト値設定（undefined)
+    // ⭐️memo: configSerivceは同期関数(Promiseを返さない)のため、mockReturnValue()で
+    //         返却値をセットする。prismaSerivceなどの非同期関数は(Promiseを返す)、
+    //         mockResolvedValue()にて返却値を返す必要がある。mockResolvedValueでは
+    //         返却値をPromiseで返すように実装されている。
+    // 結局、configServiceは本物を使う
+    // mockConfigSerivce.get.mockReturnValue(undefined);
   });
 
   //--------------------------------------
