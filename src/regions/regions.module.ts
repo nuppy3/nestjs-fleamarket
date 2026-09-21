@@ -7,6 +7,7 @@ import { RegionsService } from './application/regions.service';
 import { REGION_REPOSITORY_PORT } from './domain/region.repository.port';
 import { RegionsDomainService } from './domain/regions.domain.service';
 import { RegionRepository } from './infrastructure/region.repository';
+import { RegionsResolver } from './presentation/graphql/regions.resolver';
 import { RegionsQueryService } from './query/regions.query.service';
 
 @Module({
@@ -20,6 +21,7 @@ import { RegionsQueryService } from './query/regions.query.service';
       provide: REGION_REPOSITORY_PORT,
       useClass: RegionRepository,
     },
+    RegionsResolver,
   ],
   exports: [RegionsService, RegionsQueryService],
 })
