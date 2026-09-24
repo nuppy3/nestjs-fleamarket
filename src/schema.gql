@@ -1,0 +1,30 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Query {
+  regions: [RegionObjectType!]!
+}
+
+type RegionObjectType {
+  code: String!
+  id: String!
+
+  """カナ英語"""
+  kanaEn: String!
+  kanaName: String!
+  name: String!
+
+  """紐づく都道府県の件数"""
+  prefectureCount: Int
+  status: RegionStatus!
+
+  """ステータスの日本語ラベル(掲載中/編集中/停止)"""
+  statusLabel: String!
+}
+
+enum RegionStatus {
+  EDITING
+  PUBLISHED
+  SUSPENDED
+}
