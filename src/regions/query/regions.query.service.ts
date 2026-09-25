@@ -55,9 +55,9 @@ export class RegionsQueryService {
     filters: RegionFilter = {},
   ): Promise<PaginatedResult<RegionListReadModel>> {
     // where句作成
-    const commonWhere = this.buildWhere(filters);
+    const commonWhere = this.toWhere(filters);
     // OrderBy句作成
-    const orderBy = this.buildOrderBy(filters);
+    const orderBy = this.toOrderBy(filters);
 
     // take句作成(ページサイズ): 1〜2000
     // デフォルト値設定（sizeが指定されていない場合、環境変数REGION_DEFAULT_PAGE_SIZEを参照し、未設定の場合は20件）
@@ -327,7 +327,7 @@ export class RegionsQueryService {
    * @param filters 検索条件
    * @returns where句（共通部分)
    */
-  private buildWhere(filters: RegionFilter): Prisma.RegionWhereInput {
+  private toWhere(filters: RegionFilter): Prisma.RegionWhereInput {
     // where句はOrder byのように配列ではなく、オブジェクトで作成することが多い。
     // where句は基本的にはAND条件になるので。ORの条件がある場合は、配列にする。
     // const where: Prisma.RegionWhereInput[] = [];
@@ -383,7 +383,7 @@ export class RegionsQueryService {
    * @param filters 検索条件
    * @returns orderBy句
    */
-  private buildOrderBy(
+  private toOrderBy(
     filters: RegionFilter,
   ): Prisma.RegionOrderByWithRelationInput[] {
     // OrderBy句作成： デフォルト code: asc

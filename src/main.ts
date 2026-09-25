@@ -40,6 +40,9 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 4000);
   console.log(`🚀 Application is running on: http://localhost:4000`);
   console.log(`📘 Swagger UI available at: http://localhost:4000/api-docs`);
+
+  // http://localhost:4000/graphql
+  console.log(`📘 GraphQL UI Starts at: http://localhost:4000/graphql`);
 }
 
 bootstrap();
