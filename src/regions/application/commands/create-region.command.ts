@@ -11,6 +11,9 @@ import { RegionState } from '../../../regions/domain/regions.model';
  *
  * ⭐️依存方向的には Application → Domain の依存は許されるので、当該Comanndは作成せずにDomain
  * のCreateRegionPropsを使ってもいいが、厳密なDDDを体感するために当該typeを定義している。
+ * 注意：RegionStateをベースに型を定義しているが、RegionStateにpublishedAtやdeleteAtなど
+ *      が追加されたら影響が出てしまうので、少し冗長的だがプロパティはOmitするより明示的に記述する
+ *      方が安全といえる。
  */
 export type CreateRegionCommand = Omit<
   RegionState,

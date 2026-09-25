@@ -145,6 +145,9 @@ export const RegionResponseKeys = [
   'status',
 ] satisfies (keyof Region)[];
 
+/**
+ * RegionResponseの輪郭(Region domainをベースに)
+ */
 export type RegionResponseShape = Pick<
   Region,
   (typeof RegionResponseKeys)[number]
