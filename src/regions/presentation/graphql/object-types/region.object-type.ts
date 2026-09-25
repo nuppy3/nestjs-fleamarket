@@ -19,6 +19,9 @@ export const RegionObjectTypeKeys = [
   'status',
 ] satisfies (keyof Region)[];
 
+/**
+ * RegionObjectTypeの輪郭(Region domainをベースに)
+ */
 export type RegionObjectTypeShape = Pick<
   Region,
   (typeof RegionObjectTypeKeys)[number]
@@ -62,3 +65,17 @@ export class RegionObjectType implements RegionObjectTypeShape {
   @Field(() => Int, { nullable: true, description: '紐づく都道府県の件数' })
   prefectureCount?: number;
 }
+
+/**
+ * @ResolveField()側が個別に供給するフィールド名の一覧(Queryメソッドの戻り値には含まれない)
+ * 新しく@ResolveField()専用フィールドを追加する時は、ここに '|' で追記していく
+ */
+export type RegionObjectTypeResolverFields = 'statusLabel'; // union で繋げる。（'xxxx' | 'yyyyy' | 'zzzzz')
+
+/**
+ * Queryメソッドが実際に返す形(@ResolveField()専用フィールドを除いたもの)
+ */
+export type RegionQueryReturnType = Omit<
+  RegionObjectType,
+  RegionObjectTypeResolverFields
+>;
