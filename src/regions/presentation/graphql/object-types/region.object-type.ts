@@ -1,3 +1,7 @@
+/* istanbul ignore file */
+// ↑ GraphQLのField型指定(() => Stringなど)は、GraphQLModule起動時にしか
+//   呼ばれないため、通常のunit testではカバーできない。regions.module.tsと同じ理由で除外。
+
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Region, RegionStatus } from '../../../../regions/domain/regions.model';
 

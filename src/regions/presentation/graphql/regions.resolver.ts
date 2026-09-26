@@ -1,5 +1,5 @@
 import { Query, Resolver } from '@nestjs/graphql';
-import { RegionsQueryService } from 'src/regions/query/regions.query.service';
+import { RegionsQueryService } from '../../../regions/query/regions.query.service';
 import {
   RegionObjectType,
   RegionQueryReturnType,
@@ -45,7 +45,7 @@ export class RegionsResolver {
           id: readModel.id,
           code: readModel.code,
           name: readModel.name,
-          kanaName: readModel.kanaEn,
+          kanaName: readModel.kanaName,
           kanaEn: readModel.kanaEn,
           status: readModel.status,
           prefectureCount: readModel.prefectureCount ?? undefined,
