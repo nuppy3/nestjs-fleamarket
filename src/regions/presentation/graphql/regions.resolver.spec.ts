@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PaginatedResult } from '../../../common/interfaces/paginated-result.interface';
 import { RegionStatus } from '../../../regions/domain/regions.model';
 import { RegionListReadModel } from '../../../regions/query/read-model/region-list.read-model';
@@ -62,7 +63,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
   // regions()
   //--------------------------------
   describe('regions', () => {
-    it('正常系：RegionQueryReturnType配列(全項目)が返却される', async () => {
+    it('正常系：ObjectType配列(全項目)が返却される', async () => {
       // mock data セット
       mockRegionsQueryService.findAll.mockResolvedValue(
         createQueryServiceMockPaginatedResult(),
@@ -113,6 +114,55 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
 
       // 検証
       expect(result).toEqual(expected);
+    });
+
+    it('正常系：取得データ0件、ObjectType[]の空配列が返却される', async () => {
+      // mock data セット
+      mockRegionsQueryService.findAll.mockResolvedValue({
+        data: [],
+        meta: {
+          totalCount: 0,
+          page: 1,
+          size: 20,
+        },
+      } satisfies PaginatedResult<RegionListReadModel>);
+
+      // test 対象 Resolve 呼び出し
+      const result = await regionsResolver.regions();
+
+      // 検証
+      expect(result).toEqual([]);
+    });
+
+    //-------------------------------
+    // カバレッジ100%対応：
+    // async findAll(): Promise<PrefectureResponseDto[]> {
+    // の、<PrefectureResponseDto[]> {  が黄色くハイライトされてしまう問題。
+    // このメソッドが「正常系（成功時）」しかテストされていため発生。
+    //
+    // async 関数は内部で Promise を返す ため、Jest（istanbul）のカバレッジでは以下の2つの「分岐」を
+    // 考慮します：
+    // resolved（成功） した場合のパス（正常に値が返る）
+    // rejected（エラー） した場合のパス（throw または Promise.reject）
+    // rejected（エラー）のケースが存在しないため発生。
+    //
+    // カバレッジを通すだけであれば適当なErrorを作成してテストを通すこともできるが、実際に発生しうる
+    // PrismaのError（DB接続エラー）をモックして実装してみた。
+    //
+    // 20251224: 上記を実施するのは正しいらしいが、完全に黄色のハイライトは消えなかった。。
+    //-------------------------------
+    it('異常系： DB接続エラー', async () => {
+      // Errorをmock化してquery serviceにセット
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      mockRegionsQueryService.findAll.mockRejectedValue(connectionError);
+
+      // Resolverがエラーをそのまま伝播（reject）することを確認
+      await expect(regionsResolver.regions()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
     });
   });
 });
