@@ -48,7 +48,7 @@ export class RegionsResolver {
           kanaName: readModel.kanaName,
           kanaEn: readModel.kanaEn,
           status: readModel.status,
-          prefectureCount: readModel.prefectureCount ?? undefined,
+          prefectureCount: readModel.prefectureCount,
           // statusLabelは@ResolverFieldなので除外
         }) satisfies Omit<RegionObjectType, 'statusLabel'>,
     );

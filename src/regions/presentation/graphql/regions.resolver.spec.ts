@@ -114,6 +114,59 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
       // 検証
       expect(result).toEqual(expected);
     });
+
+    it('正常系：RegionQueryReturnType配列(任意項目はundefind)が返却される', async () => {
+      // mock data セット
+      mockRegionsQueryService.findAll.mockResolvedValue(
+        createQueryServiceMockPaginatedResult(),
+      );
+
+      // test 対象 Resolve 呼び出し
+      const result = await regionsResolver.regions();
+
+      // 期待値：RegionQueryReturnType[]
+      const expected = [
+        {
+          id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+          name: '北海道',
+          code: '01',
+          kanaName: 'ほっかいどう',
+          status: 'published',
+          kanaEn: 'hokkaidou',
+          prefectureCount: 1,
+        } satisfies RegionQueryReturnType,
+        {
+          id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+          name: '東北',
+          code: '02',
+          kanaName: 'とうほく',
+          status: 'published',
+          kanaEn: 'tohoku',
+          prefectureCount: 2,
+        } satisfies RegionQueryReturnType,
+        {
+          id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+          name: '関東',
+          code: '03',
+          kanaName: 'かんとう',
+          status: 'editing',
+          kanaEn: 'kanto',
+          prefectureCount: 3,
+        } satisfies RegionQueryReturnType,
+        {
+          id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+          name: '沖縄',
+          code: '10',
+          kanaName: '沖縄',
+          status: RegionStatus.SUSPENDED,
+          kanaEn: 'okinawa',
+          prefectureCount: 4,
+        } satisfies RegionQueryReturnType,
+      ];
+
+      // 検証
+      expect(result).toEqual(expected);
+    });
   });
 });
 
