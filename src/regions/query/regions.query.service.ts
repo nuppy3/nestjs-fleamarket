@@ -30,6 +30,7 @@ export class RegionsQueryService {
 
   /**
    * findAll(): エリア情報リスト取得（全て)し、返却します。
+   *            エリア情報リストはページネーション化して返却します。
    *
    * @param filters - 検索条件（すべて省略可能）
    *                  - `status`: ステータス（例: 'editing'）を指定すると、そのステータスに関連するエリアのみを返します
@@ -42,9 +43,9 @@ export class RegionsQueryService {
    * // 全エリア取得（フィルタなし）
    * await this.regionsQueryService.findAll();
    * ```
-   * @returns エリア情報一覧
+   * @returns エリア情報一覧(ページネーション化された)
    */
-  async findAll(
+  async findAllPaginated(
     // filtersが存在しない(filters === undefined のとき)場合は{}で初期化
     // memo: filtersがnullの際は{}で初期化されない。が、nullを渡そうとしても
     // 「型 'null' の引数を型 'StoreFilter | undefined' のパラメーターに割り当てることはできません。」

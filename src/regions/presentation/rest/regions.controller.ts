@@ -77,7 +77,7 @@ export class RegionsController {
     } satisfies RegionFilter;
 
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
-    const paginated = await this.regionsQueryService.findAll(filters);
+    const paginated = await this.regionsQueryService.findAllPaginated(filters);
 
     // read model → dto
     // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
