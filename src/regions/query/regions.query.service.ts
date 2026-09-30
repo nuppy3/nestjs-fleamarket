@@ -29,7 +29,7 @@ export class RegionsQueryService {
   ) {}
 
   /**
-   * findAll(): エリア情報リスト取得（全て)し、返却します。
+   * findAllPaginated(): エリア情報リスト取得（全て)し、返却します。
    *            エリア情報リストはページネーション化して返却します。
    *
    * @param filters - 検索条件（すべて省略可能）
@@ -38,10 +38,10 @@ export class RegionsQueryService {
    * @example
    * ```ts
    * // ステータスが編集中のエリアのみ取得
-   * await this.regionsQueryService.findAll({ status: 'editing' });
+   * await this.regionsQueryService.findAllPaginated({ status: 'editing' });
    *
    * // 全エリア取得（フィルタなし）
-   * await this.regionsQueryService.findAll();
+   * await this.regionsQueryService.findAllPaginated();
    * ```
    * @returns エリア情報一覧(ページネーション化された)
    */
