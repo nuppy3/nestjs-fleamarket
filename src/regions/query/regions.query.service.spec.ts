@@ -139,7 +139,7 @@ describe('■■■ Region Query Service test ■■■', () => {
 
       // テスト対象Service呼び出し
       const filters = {} satisfies RegionFilter;
-      const result = await regionsQueryService.findAll(filters);
+      const result = await regionsQueryService.findAllPaginated(filters);
 
       // 検証
       const dtos = createExpectedPaginatedResult();
@@ -166,7 +166,7 @@ describe('■■■ Region Query Service test ■■■', () => {
 
       // テスト対象のservice呼び出し（結果を取得しない)
       const filters = {} satisfies RegionFilter;
-      await regionsQueryService.findAll(filters);
+      await regionsQueryService.findAllPaginated(filters);
 
       // Promise.allが呼ばれた証拠として、両方が呼ばれていることを確認
       expect(
@@ -218,7 +218,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         mockPrismaService.region.count.mockResolvedValue(5);
 
         // test対象 service 呼び出し(結果を取得しない)
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証： prisma の where句
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -245,7 +245,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         mockPrismaService.region.count.mockResolvedValue(5);
 
         // test対象 service 呼び出し(結果を取得しない)
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証： prisma の where句
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -272,7 +272,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         mockPrismaService.region.count.mockResolvedValue(5);
 
         // test対象 service 呼び出し(結果を取得しない)
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証： prisma の where句
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -381,7 +381,7 @@ describe('■■■ Region Query Service test ■■■', () => {
           mockPrismaService.region.count.mockResolvedValue(5);
 
           // test対象 service 呼び出し
-          await regionsQueryService.findAll(filters);
+          await regionsQueryService.findAllPaginated(filters);
 
           // 検証： prisma の take句
           expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -455,7 +455,7 @@ describe('■■■ Region Query Service test ■■■', () => {
           mockPrismaService.region.count.mockResolvedValue(5);
 
           // test対象 service 呼び出し
-          await regionsQueryService.findAll(filters);
+          await regionsQueryService.findAllPaginated(filters);
 
           // 検証: skip句の算出ロジック
           expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -481,7 +481,7 @@ describe('■■■ Region Query Service test ■■■', () => {
           size: 10,
           page: 3,
         } satisfies RegionFilter;
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証: Prisma の take/skip句の算出
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -512,7 +512,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         mockPrismaService.region.count.mockResolvedValue(5);
 
         // test対象service呼び出し
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証：orderBy句
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -538,7 +538,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         mockPrismaService.region.count.mockResolvedValue(5);
 
         // test対象service呼び出し
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // 検証：orderBy句
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -570,7 +570,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         );
 
         // seavice 呼び出し
-        await regionsQueryService.findAll(filters);
+        await regionsQueryService.findAllPaginated(filters);
 
         // prisma(findManay) の パラメータ(where/take/skip/orderBn) 検証
         expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
@@ -604,7 +604,7 @@ describe('■■■ Region Query Service test ■■■', () => {
 
       // test対象Controller呼び出し
       const filters = {} satisfies RegionFilter;
-      const result = await regionsQueryService.findAll(filters);
+      const result = await regionsQueryService.findAllPaginated(filters);
 
       // 期待値: PaginatedResult (空配列と0件)
       const paginatedExpect = {
@@ -632,7 +632,7 @@ describe('■■■ Region Query Service test ■■■', () => {
         .mockRejectedValue(connectionError);
 
       // Query Serviceがエラーをそのまま伝播（reject）することを確認
-      await expect(regionsQueryService.findAll()).rejects.toThrow(
+      await expect(regionsQueryService.findAllPaginated()).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
