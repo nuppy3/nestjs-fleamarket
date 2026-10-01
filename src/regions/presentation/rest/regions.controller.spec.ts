@@ -37,7 +37,7 @@ const mockRegionsService = {
 };
 
 const mockRegionsQueryService = {
-  findAll: jest.fn(),
+  findAllPaginated: jest.fn(),
   getDetailByIdOrThrow: jest.fn(),
   getDetailByCodeOrThrow: jest.fn(),
 };
@@ -83,27 +83,29 @@ describe('■■■　Regions Controller TEST ■■■', () => {
   });
 
   //--------------------------------
-  // findAll()
+  // findAllPaginated()
   //--------------------------------
-  describe('findAll', () => {
+  describe('findAllPaginated', () => {
     it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている) - RequestParameter無し', async () => {
       // query service mock data 作成
       const mockDatas = createServiceMockPaginatedResult();
-      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
+      jest
+        .spyOn(regionsQueryService, 'findAllPaginated')
+        .mockResolvedValue(mockDatas);
 
       // テスト対象Controller呼び出し(queryなし)
       const query = {
         // code: '01',
       } satisfies FindAllRegionsQueryDto;
 
-      const result = await regionsController.findAll(query);
+      const result = await regionsController.findAllPaginated(query);
 
       // 検証
       const dto = createExpectedPaginatedRegionDto();
       expect(result).toEqual(dto);
 
       // regiosQueryServie()の引数検証
-      expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+      expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
         code: undefined,
         name: undefined,
         status: undefined,
@@ -116,7 +118,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
     it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
       // mock data 作成 (空配列/0件)
-      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue({
+      jest.spyOn(regionsQueryService, 'findAllPaginated').mockResolvedValue({
         data: [],
         meta: {
           totalCount: 0,
@@ -127,7 +129,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
       // test対象Controller呼び出し
       const query = { code: 'xx' } satisfies FindAllRegionsQueryDto;
-      const result = await regionsController.findAll(query);
+      const result = await regionsController.findAllPaginated(query);
 
       // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
       expect(result).toEqual({
@@ -140,20 +142,20 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       } satisfies PaginatedRegionResponseDto);
     });
 
-    describe('findAllの絞り込み(filter)テスト', () => {
+    describe('findAllPaginatedの絞り込み(filter)テスト', () => {
       it('正常系(1): codeを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // テスト対象 contrller 呼び出し
         const query = { code: '10' } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           code: '10',
         });
       });
@@ -161,14 +163,14 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(2): nameを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
         // テスト対象 contrller 呼び出し
         const query = { name: '関東' } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           name: '関東',
         });
       });
@@ -176,7 +178,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(3): statusを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
@@ -184,10 +186,10 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         const query = {
           status: 'editing',
         } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           status: 'editing',
         });
       });
@@ -195,16 +197,16 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(4): pageを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // テスト対象 contrller 呼び出し
         const query = { page: 2 } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           page: 2,
         });
       });
@@ -212,16 +214,16 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(5): sizeを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // テスト対象 contrller 呼び出し
         const query = { size: 30 } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           size: 30,
         });
       });
@@ -229,16 +231,16 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(6): sortByを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // テスト対象 contrller 呼び出し
         const query = { sortBy: 'name' } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           sortBy: 'name',
         });
       });
@@ -246,16 +248,16 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       it('正常系(7): sortOrderを指定した場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // mock data 作成(jest.spyOnを使用しないパターン)
         // toHavebeeanCalledWith()の確認なので、mock データは何でもいい。
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // テスト対象 contrller 呼び出し
         const query = { sortOrder: 'desc' } satisfies FindAllRegionsQueryDto;
-        await regionsController.findAll(query);
+        await regionsController.findAllPaginated(query);
 
         // 引数検証: Serviceを期待通りの引数で呼んでいるか
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           sortOrder: 'desc',
         });
       });
@@ -263,7 +265,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
     // queryの変換処理はcontrolerで実施していないし、
     // controllerで複合ケースの試験は不要な気もするが一応
-    describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
+    describe('findAllPaginatedの絞り込み(filter) スモークテスト(複合条件)', () => {
       it('(1)+(2)+(3)+(4)+(5)+(6)+(7)が指定された場合、QueryServiceを期待通りの引数で呼び出しているか', async () => {
         // 引数
         const reqDto = {
@@ -277,15 +279,15 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         } satisfies FindAllRegionsQueryDto;
 
         // query service mock data (なんでもいい)
-        mockRegionsQueryService.findAll.mockResolvedValue(
+        mockRegionsQueryService.findAllPaginated.mockResolvedValue(
           createServiceMockPaginatedResult(),
         );
 
         // controller 呼び出し
-        await regionsController.findAll(reqDto);
+        await regionsController.findAllPaginated(reqDto);
 
         // query service への引数検証
-        expect(mockRegionsQueryService.findAll).toHaveBeenCalledWith({
+        expect(mockRegionsQueryService.findAllPaginated).toHaveBeenCalledWith({
           code: '01',
           name: '北海道',
           status: 'editing',
@@ -299,7 +301,7 @@ describe('■■■　Regions Controller TEST ■■■', () => {
 
     //-------------------------------
     // カバレッジ100%対応：
-    // async findAll(): Promise<PrefectureResponseDto[]> {
+    // async findAllPaginated(): Promise<PrefectureResponseDto[]> {
     // の、<PrefectureResponseDto[]> {  が黄色くハイライトされてしまう問題。
     // このメソッドが「正常系（成功時）」しかテストされていため発生。
     //
@@ -320,12 +322,12 @@ describe('■■■　Regions Controller TEST ■■■', () => {
         { code: 'P1001', clientVersion: '5.0.0' },
       );
       jest
-        .spyOn(regionsQueryService, 'findAll')
+        .spyOn(regionsQueryService, 'findAllPaginated')
         .mockRejectedValue(connectionError);
 
       // Controllerがエラーをそのまま伝播（reject）することを確認
       const query = { code: '10' } satisfies FindAllRegionsQueryDto;
-      await expect(regionsController.findAll(query)).rejects.toThrow(
+      await expect(regionsController.findAllPaginated(query)).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
