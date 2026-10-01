@@ -127,7 +127,7 @@ describe('■■■ Region Query Service test ■■■', () => {
   // modkData:
   // ①Prisma findMany
   // ②Prisma count
-  describe('findAll', () => {
+  describe('findAllPaginated', () => {
     it('正常系：ReadMdel配列(全項目)が返却されること(dtoは全て@Expose()がセットされている) - (filter無し)', async () => {
       // prisma mock data 作成: findMany
       const mockDatas = createPrismaMockData();
@@ -201,7 +201,7 @@ describe('■■■ Region Query Service test ■■■', () => {
      *         },
      *       });
      */
-    describe('findAllの絞り込み(filter) Where句 テスト', () => {
+    describe('findAllPaginatedの絞り込み(filter) Where句 テスト', () => {
       it('正常系(1): codeを指定した場合、prismaのwhere句に正しく反映されること。', async () => {
         // 引数
         const filters = { code: '01' } satisfies RegionFilter;
@@ -317,7 +317,7 @@ describe('■■■ Region Query Service test ■■■', () => {
      * %#
      *  テスト番号（0から）
      */
-    describe('findAllのページネーションテスト', () => {
+    describe('findAllPaginatedのページネーションテスト', () => {
       // ■ sizeの境界値テスト
       // ・未指定
       // ・サイズがマイナス値
@@ -497,7 +497,7 @@ describe('■■■ Region Query Service test ■■■', () => {
       });
     });
 
-    describe('findAllのorderBy句テスト', () => {
+    describe('findAllPaginatedのorderBy句テスト', () => {
       it('正常系: sortBy sortOrderを指定した場合、orderBy句が正しくセットされる', async () => {
         // 引数
         const filters = {
@@ -551,7 +551,7 @@ describe('■■■ Region Query Service test ■■■', () => {
       });
     });
 
-    describe('findAllの絞り込み(filter) スモークテスト(複合条件)', () => {
+    describe('findAllPaginatedの絞り込み(filter) スモークテスト(複合条件)', () => {
       it('filterが全て指定された場合、正しくwhere句、skip、take、orderBy などが組み立てられること', async () => {
         // 引数
         const filters = {
