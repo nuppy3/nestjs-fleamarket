@@ -130,6 +130,19 @@ https://nuppy3.github.io/nestjs-fleamarket/api
 
 ```
 
+## GraphQL
+
+`npm run start:dev`実施後、ブラウザで以下にアクセスするとGraphiQL UI(クエリを実際に試せる画面)が開く。
+
+```
+http://localhost:4000/graphql
+```
+
+Code First方式のため、スキーマ定義(`src/schema.gql`)はアプリ起動時に自動生成される(手動編集不可、`DO NOT MODIFY`コメント付き)。
+
+現在実装済みのQuery:
+- `regions`: エリア情報一覧(ページネーション化)
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
@@ -179,9 +192,18 @@ DBを使用した/items、DBを使用していない/items-no-db、フリーマ�
 /itemsについては、[Prisma](https://www.prisma.io/docs/orm)を使用してPostgresSQLにアクセスしている。  
 また、/itemsのAPIを利用する際、create、updateStatus、deleteについては、Jwt認証を行なっている。（/authにて、認証処理を行なっている）
 
+## アーキテクチャ・技術的な特徴
+
+設計・実装パターンの学習を目的に、以下のような技術要素を取り入れている。
+
+- **DDD(ドメイン駆動設計)**: `regions`モジュールはDomain層(Entity/Factory/Repository Port)・Application層(Command)・Infrastructure層まで含めたフルDDD構成。`prefectures`/`stores`は、MVC3層にドメイン概念を加えた「DDD-Lite」構成で、両者を意図的に比較できる設計にしている
+- **CQRS(コマンドクエリ責務分離)**: 更新系(`RegionsService`)と参照系(`RegionsQueryService`)のServiceを分離し、参照系は画面都合のRead Modelを返却する
+- **REST + GraphQLの並存**: 同一のApplication/Domain/Query層をRESTコントローラーとGraphQL Resolverの両方から利用し、プレゼンテーション層だけをAPI方式ごとに切り替える構成
+- **Prisma + PostgreSQL**: スキーマ駆動のDBマイグレーション、型安全なクエリ構築
+- **JWT認証**: `/items`のcreate・updateStatus・deleteなど、更新系APIに認証を適用
+
 ＜URL＞
 
--
--
--
--
+- REST API: http://localhost:4000
+- Swagger UI: http://localhost:4000/api-docs
+- GraphQL (GraphiQL): http://localhost:4000/graphql
