@@ -220,6 +220,34 @@ export class RegionResponseDto implements RegionResponseShape {
   // }
 }
 
+// -------------------------------------------------
+// ResponseDTO(ドロップダウン選択肢用): 型安全なRegionドメインのサブセット
+// -------------------------------------------------
+export const RegionOptionResponseKeys = [
+  'name',
+  'code',
+] satisfies (keyof Region)[];
+
+export type RegionOptionResponseShape = Pick<
+  Region,
+  (typeof RegionOptionResponseKeys)[number]
+>;
+
+/**
+ * エリア選択肢(ドロップダウン)用レスポンスDTO
+ * RegionドメインのサブセットDTO(一覧用のRegionResponseDtoより項目を絞った軽量版)
+ */
+export class RegionOptionResponseDto implements RegionOptionResponseShape {
+  @Expose()
+  readonly id!: string;
+
+  @Expose()
+  name!: string;
+
+  @Expose()
+  code!: string;
+}
+
 /**
  * ページネーション情報DTO(metaデータ)
  */

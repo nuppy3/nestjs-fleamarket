@@ -6,9 +6,10 @@ import { PaginatedResult } from '../../common/interfaces/paginated-result.interf
 import { PrismaService } from '../../prisma/prisma.service';
 import type { RegionRepositoryPort } from '../domain/region.repository.port';
 import { REGION_REPOSITORY_PORT } from '../domain/region.repository.port';
-import { Region } from '../domain/regions.model';
+import { Region, RegionStatus } from '../domain/regions.model';
 import { RegionDetailReadModel } from './read-model/region-detail.read-model';
 import { RegionListReadModel } from './read-model/region-list.read-model';
+import { RegionOptionReadModel } from './read-model/region-option.read-model';
 import { RegionFilter, SortBy, SortOrder } from './region.filter';
 
 /**
@@ -193,6 +194,37 @@ export class RegionsQueryService {
     } satisfies PaginatedResult<RegionListReadModel>;
 
     return paginated;
+  }
+
+  /**
+   * findAll(): エリア情報一覧(全件・ページネーションなし)を取得し、返却します。
+   *            ドロップダウンなど、全件を軽量な形で必要とする画面向け。
+   *            一覧画面用のfindAllPaginated()とは異なり、件数(count)の算出や
+   *            take/skipによる絞り込みは行わない。
+   *
+   * memo: statusはPUBLISHEDに固定(ハードコード)。編集中・停止中のエリアを
+   *       選択肢に出すのは業務的に不自然なため、外部からのfilter引数は受け付けない。
+   *
+   * @returns エリア情報一覧(RegionOptionReadModel[])
+   */
+  async findAll(): Promise<RegionOptionReadModel[]> {
+    const where = this.toWhere({ status: RegionStatus.PUBLISHED });
+    const orderBy = this.toOrderBy({});
+
+    const prismaRegions = await this.prismaService.region.findMany({
+      where,
+      orderBy,
+    });
+
+    // 短縮形：アロー関数の暗黙的return(オブジェクトリテラルなので()で囲む)
+    return prismaRegions.map(
+      (prismaRegion) =>
+        ({
+          id: prismaRegion.id,
+          code: prismaRegion.code,
+          name: prismaRegion.name,
+        }) satisfies RegionOptionReadModel,
+    );
   }
 
   /**
