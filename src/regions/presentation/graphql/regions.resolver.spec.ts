@@ -8,7 +8,7 @@ import { RegionQueryReturnType } from './object-types/region.object-type';
 import { RegionsResolver } from './regions.resolver';
 
 const mockRegionsQueryService = {
-  findAll: jest.fn(),
+  findAllPaginated: jest.fn(),
 };
 
 describe('■■■　RegionsResolver TEST ■■■　', () => {
@@ -65,7 +65,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
   describe('regions', () => {
     it('正常系：ObjectType配列(全項目)が返却される', async () => {
       // mock data セット
-      mockRegionsQueryService.findAll.mockResolvedValue(
+      mockRegionsQueryService.findAllPaginated.mockResolvedValue(
         createQueryServiceMockPaginatedResult(),
       );
 
@@ -118,7 +118,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
 
     it('正常系：取得データ0件、ObjectType[]の空配列が返却される', async () => {
       // mock data セット
-      mockRegionsQueryService.findAll.mockResolvedValue({
+      mockRegionsQueryService.findAllPaginated.mockResolvedValue({
         data: [],
         meta: {
           totalCount: 0,
@@ -157,7 +157,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
         "Can't reach database server",
         { code: 'P1001', clientVersion: '5.0.0' },
       );
-      mockRegionsQueryService.findAll.mockRejectedValue(connectionError);
+      mockRegionsQueryService.findAllPaginated.mockRejectedValue(connectionError);
 
       // Resolverがエラーをそのまま伝播（reject）することを確認
       await expect(regionsResolver.regions()).rejects.toThrow(

@@ -36,7 +36,7 @@ export class RegionsResolver {
   })
   async regions(): Promise<RegionQueryReturnType[]> {
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
-    const paginated = await this.queryService.findAll({});
+    const paginated = await this.queryService.findAllPaginated({});
 
     // ReadModel[] → ObjectType[]
     const objectType = paginated.data.map(

@@ -25,6 +25,7 @@ import {
   CreateRegionDto,
   FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
+  RegionOptionResponseDto,
   RegionResponseDto,
 } from './dto/region.dto';
 import { UnpublishRegionDto } from './dto/unpublish-region.dto';
@@ -47,9 +48,6 @@ export class RegionsController {
   async findAllPaginated(
     @Query() query: FindAllRegionsQueryDto,
   ): Promise<PaginatedRegionResponseDto> {
-    // エリア情報[]取得 : 以下のエリア情報取得処理とdto変換をQuery Serviceに移管
-    // const domains = await this.regionsService.findAll();
-
     // QueryDTO → filter 変換
     // ⭐️memo:
     // HTTPSのリクエストパラメーターについてnullって送れるの？unndefindって送れるの？
@@ -104,6 +102,29 @@ export class RegionsController {
 
     // PaginatedRegionResponseDtoに変換
     return new PaginatedRegionResponseDto(data, paginated.meta);
+  }
+
+  /**
+   * エリア情報選択肢取得： ドロップダウンなどの選択肢用に、エリア情報一覧
+   *                     (全件・ページネーションなし、PUBLISHEDのみ)を取得します。
+   *
+   * @returns エリア情報選択肢一覧
+   */
+  @Get('options')
+  async findAll(): Promise<RegionOptionResponseDto[]> {
+    // エリア情報[] 取得(全件、ページネーションなし)
+    const regions = await this.regionsQueryService.findAll();
+
+    // read model → dto
+    // instanceToPlain()を咬まさないと、DTOのgetter(statusLabelなど)が機能しなかったので追加している。
+    const data = instanceToPlain(
+      plainToInstance(RegionOptionResponseDto, regions, {
+        excludeExtraneousValues: true,
+      }),
+      { exposeUnsetFields: false },
+    ) as RegionOptionResponseDto[];
+
+    return data;
   }
 
   /**
