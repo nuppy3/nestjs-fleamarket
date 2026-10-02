@@ -39,10 +39,10 @@ export class RegionsController {
   ) {}
 
   /**
-   * エリア情報リスト取得： エリア情報の一覧を取得します。
+   * エリア情報リスト取得： エリア情報の一覧(ページネーション化された)を取得します。
    *
    * @param query エリア情報検索クエリDTO(フィルター項目/ソート順など)
-   * @returns エリア情報一覧
+   * @returns エリア情報一覧(ページネーション化されたエリア情報一覧)
    */
   @Get()
   async findAllPaginated(
