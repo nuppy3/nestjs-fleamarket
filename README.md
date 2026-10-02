@@ -200,7 +200,7 @@ DBを使用した/items、DBを使用していない/items-no-db、フリーマ�
 - **CQRS(コマンドクエリ責務分離)**: 更新系(`RegionsService`)と参照系(`RegionsQueryService`)のServiceを分離し、参照系は画面都合のRead Modelを返却する
 - **REST + GraphQLの並存**: 同一のApplication/Domain/Query層をRESTコントローラーとGraphQL Resolverの両方から利用し、プレゼンテーション層だけをAPI方式ごとに切り替える構成
 - **Prisma + PostgreSQL**: スキーマ駆動のDBマイグレーション、型安全なクエリ構築
-- **JWT認証**: `/items`のcreate・updateStatus・deleteなど、更新系APIに認証を適用
+- **JWT認証**: 全てのcreate・updateStatus・deleteなど、更新系APIに認証を適用
 
 ＜URL＞
 
