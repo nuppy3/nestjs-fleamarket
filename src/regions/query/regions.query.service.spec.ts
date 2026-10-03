@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prisma } from 'generated/prisma';
 import { Region as PrismaRegion } from '../../../generated/prisma';
 import { PAGINATION } from '../../common/constants/pagination.constants';
 import { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
@@ -14,9 +15,11 @@ import {
   ReconstituteRegionProps,
   Region,
   RegionState,
+  RegionStatus,
 } from '../domain/regions.model';
 import { RegionDetailReadModel } from './read-model/region-detail.read-model';
 import { RegionListReadModel } from './read-model/region-list.read-model';
+import { RegionOptionReadModel } from './read-model/region-option.read-model';
 import { RegionFilter } from './region.filter';
 import { RegionsQueryService } from './regions.query.service';
 
@@ -122,7 +125,7 @@ describe('■■■ Region Query Service test ■■■', () => {
   });
 
   //--------------------------------------
-  // findAll() test
+  // findAllPaginated() test
   //--------------------------------------
   // modkData:
   // ①Prisma findMany
@@ -639,9 +642,91 @@ describe('■■■ Region Query Service test ■■■', () => {
   });
 
   //--------------------------------------
+  // findAll() test
+  //--------------------------------------
+  // modkData:
+  // ①Prisma findMany
+  describe('findAll', () => {
+    it('正常系：ReadMdel配列(全項目)が返却されること', async () => {
+      // prisma mock data 作成: findMany
+      const mockDatas = createPrismaMockData();
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue(mockDatas);
+
+      // テスト対象Service呼び出し
+      const result = await regionsQueryService.findAll();
+
+      // 検証
+      expect(result).toEqual([
+        {
+          id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+          name: '北海道',
+          code: '01',
+        } satisfies RegionOptionReadModel,
+        {
+          id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+          name: '東北',
+          code: '02',
+        } satisfies RegionOptionReadModel,
+        {
+          id: '0324dc98-89a2-4db1-9431-b20feff57700',
+          name: '関東',
+          code: '03',
+        } satisfies RegionOptionReadModel,
+        {
+          id: '0424dc98-89a2-4db1-9431-b20feff57700',
+          name: '東海',
+          code: '04',
+        } satisfies RegionOptionReadModel,
+        {
+          id: '0524dc98-89a2-4db1-9431-b20feff57700',
+          name: '北陸',
+          code: '05',
+        } satisfies RegionOptionReadModel,
+      ] satisfies RegionOptionReadModel[]);
+
+      // prisma引数検証
+      // prisma(findManay) の パラメータ(where/take/skip/orderBn) 検証
+      expect(mockPrismaService.region.findMany).toHaveBeenCalledWith({
+        where: {
+          status: RegionStatus.PUBLISHED,
+        } satisfies Prisma.RegionWhereInput,
+        orderBy: [
+          { code: 'asc' },
+        ] satisfies Prisma.RegionOrderByWithRelationInput[],
+      });
+    });
+
+    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+      // mock data 作成(空配列)
+      jest.spyOn(prismaService.region, 'findMany').mockResolvedValue([]);
+
+      // test対象Controller呼び出し
+      const result = await regionsQueryService.findAll();
+
+      // 検証
+      expect(result).toEqual([]);
+    });
+
+    it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(prismaService.region, 'findMany')
+        .mockRejectedValue(connectionError);
+
+      // Query Serviceがエラーをそのまま伝播（reject）することを確認
+      await expect(regionsQueryService.findAll()).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------------
   // findOne() test
   //--------------------------------------
-  describe('findOne Test', () => {
+  describe('findOne', () => {
     it('正常系： 指定idに関連するRegionドメイン(＋id)(全項目)を返却する', async () => {
       // Repository mock data 作成
       // Region & {id:string} の生成は本物のRegion.reconstitute()を使う（BP)
