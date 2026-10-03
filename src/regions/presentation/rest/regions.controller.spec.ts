@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Request as ExpressRequest } from 'express';
 import { PaginatedResult } from '../../../common/interfaces/paginated-result.interface';
+import { RegionOptionReadModel } from '../../../regions/query/read-model/region-option.read-model';
 import { RequestUser } from '../../../types/requestUser';
 import { RegionsService } from '../../application/regions.service';
 import { RegionAlreadyPublishedException } from '../../domain/errors/regions.exceptions';
@@ -19,6 +20,7 @@ import {
   CreateRegionDto,
   FindAllRegionsQueryDto,
   PaginatedRegionResponseDto,
+  RegionOptionResponseDto,
   RegionResponseDto,
 } from './dto/region.dto';
 import { UnpublishRegionDto } from './dto/unpublish-region.dto';
@@ -38,6 +40,7 @@ const mockRegionsService = {
 
 const mockRegionsQueryService = {
   findAllPaginated: jest.fn(),
+  findAll: jest.fn(),
   getDetailByIdOrThrow: jest.fn(),
   getDetailByCodeOrThrow: jest.fn(),
 };
@@ -328,6 +331,70 @@ describe('■■■　Regions Controller TEST ■■■', () => {
       // Controllerがエラーをそのまま伝播（reject）することを確認
       const query = { code: '10' } satisfies FindAllRegionsQueryDto;
       await expect(regionsController.findAllPaginated(query)).rejects.toThrow(
+        PrismaClientKnownRequestError,
+      );
+    });
+  });
+
+  //--------------------------------
+  // findAll()
+  //--------------------------------
+  describe('findAll', () => {
+    it('正常系：dto配列(全項目)が返却される(dtoは全て@Expose()がセットされている) - RequestParameter無し', async () => {
+      // query service mock data 作成
+      const mockDatas = createServiceMockOptionReadModels();
+      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue(mockDatas);
+
+      // テスト対象Controller呼び出し
+      const result = await regionsController.findAll();
+
+      // 検証
+      expect(result).toEqual([
+        {
+          id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+          name: '北海道',
+          code: '01',
+        } satisfies RegionOptionResponseDto,
+        {
+          id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+          name: '東北',
+          code: '02',
+        } satisfies RegionOptionResponseDto,
+        {
+          id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+          name: '関東',
+          code: '03',
+        } satisfies RegionOptionResponseDto,
+        {
+          id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+          name: '沖縄',
+          code: '10',
+        } satisfies RegionOptionResponseDto,
+      ] satisfies RegionOptionResponseDto[]);
+    });
+
+    it('正常系：取得データが０件、dto[]の空配列が返却される', async () => {
+      // mock data 作成 (空配列/0件)
+      jest.spyOn(regionsQueryService, 'findAll').mockResolvedValue([]);
+
+      // test対象Controller呼び出し
+      const result = await regionsController.findAll();
+
+      // 検証：plainToInstance()は空配列が渡ってきた場合、空配列を返す
+      expect(result).toEqual([]);
+    });
+
+    it('異常系(カバレッジ100%のため)： DB接続エラー', async () => {
+      const connectionError = new PrismaClientKnownRequestError(
+        "Can't reach database server",
+        { code: 'P1001', clientVersion: '5.0.0' },
+      );
+      jest
+        .spyOn(regionsQueryService, 'findAll')
+        .mockRejectedValue(connectionError);
+
+      // Controllerがエラーをそのまま伝播（reject）することを確認
+      await expect(regionsController.findAll()).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
@@ -990,6 +1057,39 @@ function createServiceMockPaginatedResult(): PaginatedResult<RegionListReadModel
   } satisfies PaginatedResult<RegionListReadModel>;
 
   return paginated;
+}
+
+/**
+ * region query service mock data (RegionOptionReadModel[]) 作成
+ *
+ * @returns region service mock data
+ */
+function createServiceMockOptionReadModels(): RegionOptionReadModel[] {
+  // RegionOptionReadModelリスト
+  const readModels = [
+    {
+      id: 'b96509f2-0ba4-447c-8a98-473aa26e457a',
+      name: '北海道',
+      code: '01',
+    } satisfies RegionOptionReadModel,
+    {
+      id: 'ad24dc98-89a2-4db1-9431-b20feff57700',
+      name: '東北',
+      code: '02',
+    } satisfies RegionOptionReadModel,
+    {
+      id: '4164ffe0-d68b-4de4-9139-88c7c7849709',
+      name: '関東',
+      code: '03',
+    } satisfies RegionOptionReadModel,
+    {
+      id: '7a7adc8a-20bc-4323-9ff1-6aebc48f847c',
+      name: '沖縄',
+      code: '10',
+    } satisfies RegionOptionReadModel,
+  ] satisfies RegionOptionReadModel[];
+
+  return readModels;
 }
 
 /**
