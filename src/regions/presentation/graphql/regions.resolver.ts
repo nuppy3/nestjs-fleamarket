@@ -10,21 +10,18 @@ export class RegionsResolver {
   constructor(private readonly queryService: RegionsQueryService) {}
 
   /**
-   * regions: エリア情報一覧を取得するGraphQL Query
-   *
-   * ページネーションなしの全件取得(RegionsQueryService.findAll()を使用)。
-   * ページネーションが必要な場合は、別クエリ`regionsPaginated`(実装予定)を使用する想定。
+   * regionsPaginated: エリア情報一覧(ページネーションあり)を取得するGraphQL Query
    *
    * ※戻り値のstatusLabelはこのメソッドでは設定していない。
    *   @ResolveField()側で別途解決されるため、ここではRegionQueryReturnType
    *   (Omit<RegionObjectType, 'statusLabel'>)を返す。
    *
-   * memo: regionsの件数(count)は返さない
-   *       配列がそのまま「全部」を表しているので、data.regions.lengthをクライアント側で
+   * memo: regionsPaginatedの件数(count)は返さない
+   *       配列がそのまま「全部」を表しているので、data.regionsPaginated.lengthをクライアント側で
    *       計算すれば、それが即ち総件数。わざわざサーバー側で別途countフィールドを用意しても
    *       同じ情報を二重に持つだけで意味がない。これが主流。
    *       もし将来「件数だけを軽く知りたい(全データを転送せずに)」というニーズが出てきた場合、
-   *       それはregionsに手を加えるのではなく、regionsCount: Intのような別の専用クエリを
+   *       それはregionsPaginatedに手を加えるのではなく、regionsCount: Intのような別の専用クエリを
    *       用意するのが一般的です(配列全部を取得するコストをかけずに、件数だけ欲しい場合の最適化)。
    *
    * @returns エリア情報一覧(statusLabelを除いたRegionObjectType[])
@@ -34,7 +31,7 @@ export class RegionsResolver {
     // nullableに'items'を付与すると、空配列を許容 = [RegionObjectType]!
     // nullable: 'items',
   })
-  async regions(): Promise<RegionQueryReturnType[]> {
+  async regionsPaginated(): Promise<RegionQueryReturnType[]> {
     // エリア情報[] 取得 (ページネーション化されたRegion情報)
     const paginated = await this.queryService.findAllPaginated({});
 
