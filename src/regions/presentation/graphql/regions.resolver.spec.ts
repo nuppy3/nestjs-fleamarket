@@ -60,9 +60,9 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
   });
 
   //--------------------------------
-  // regions()
+  // regionsPaginated()
   //--------------------------------
-  describe('regions', () => {
+  describe('regionsPaginated', () => {
     it('正常系：ObjectType配列(全項目)が返却される', async () => {
       // mock data セット
       mockRegionsQueryService.findAllPaginated.mockResolvedValue(
@@ -70,7 +70,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
       );
 
       // test 対象 Resolve 呼び出し
-      const result = await regionsResolver.regions();
+      const result = await regionsResolver.regionsPaginated();
 
       // 期待値：RegionQueryReturnType[]
       const expected = [
@@ -128,7 +128,7 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
       } satisfies PaginatedResult<RegionListReadModel>);
 
       // test 対象 Resolve 呼び出し
-      const result = await regionsResolver.regions();
+      const result = await regionsResolver.regionsPaginated();
 
       // 検証
       expect(result).toEqual([]);
@@ -157,10 +157,12 @@ describe('■■■　RegionsResolver TEST ■■■　', () => {
         "Can't reach database server",
         { code: 'P1001', clientVersion: '5.0.0' },
       );
-      mockRegionsQueryService.findAllPaginated.mockRejectedValue(connectionError);
+      mockRegionsQueryService.findAllPaginated.mockRejectedValue(
+        connectionError,
+      );
 
       // Resolverがエラーをそのまま伝播（reject）することを確認
-      await expect(regionsResolver.regions()).rejects.toThrow(
+      await expect(regionsResolver.regionsPaginated()).rejects.toThrow(
         PrismaClientKnownRequestError,
       );
     });
