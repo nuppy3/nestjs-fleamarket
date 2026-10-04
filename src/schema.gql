@@ -4,7 +4,7 @@
 
 type Query {
   """エリア情報一覧を取得"""
-  findAllPaginated: [RegionObjectType!]!
+  regionsPaginated: [RegionObjectType!]!
 }
 
 type RegionObjectType {
